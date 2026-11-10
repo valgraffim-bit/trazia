@@ -1,9 +1,9 @@
-const CACHE_NAME = 'trazia-shell-v20';
+const CACHE_NAME = 'trazia-shell-v21';
 const APP_FILES = [
   './',
   './index.html',
-  './styles.css?v=18',
-  './app.js?v=20',
+  './styles.css?v=19',
+  './app.js?v=21',
   './manifest.webmanifest',
   './assets/trazia-app-icon.png',
 ];
@@ -33,3 +33,4 @@ self.addEventListener('fetch', (event) => {
       .catch(async () => (await caches.match(request)) || Response.error()),
   );
 });
+
