@@ -357,6 +357,9 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   function showSuggestionMessage(message, loading = false) {
     const list = $('#destination-suggestions');
     list.replaceChildren();
+    state.autocompletePredictions = [];
+    state.activeSuggestionIndex = -1;
+    destinationInput.removeAttribute('aria-activedescendant');
     const row = document.createElement('div');
     row.className = `suggestion-loading${loading ? ' is-loading' : ''}`;
     row.setAttribute('role', 'status');
@@ -394,7 +397,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       main.className = 'destination-suggestion-main';
       main.textContent = parts.main;
       copyBlock.append(main);
-      const secondaryText = parts.secondary;
+      const approximate = /#/.test(state.autocompleteQuery) && !feature.properties?.housenumber;
+      const secondaryText = [approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
       if (secondaryText) {
         const secondary = document.createElement('span');
         secondary.className = 'destination-suggestion-secondary';
@@ -526,7 +530,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   function colombianAddressQueryVariants(value, includeCountry = false) {
     const raw = String(value || '').trim();
     const normalized = normalizeColombianAddressQuery(raw);
-    const variants = [raw, normalized];
+    const variants = [normalized, raw];
     const hashIndex = raw.indexOf('#');
     if (hashIndex >= 0) {
       const beforeHash = normalizeColombianAddressQuery(raw.slice(0, hashIndex));
@@ -617,7 +621,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       const candidateText = photonFeatureSearchText(feature);
       const candidateTokens = new Set(candidateText.split(' '));
       const matchedTokens = queryTokens.filter((token) => candidateTokens.has(token) || (token.length >= 4 && [...candidateTokens].some((candidate) => candidate.startsWith(token) || token.startsWith(candidate))));
-      const matchingStreetTokens = streetTokens.filter((token) => candidateTokens.has(token) || [...candidateTokens].some((candidate) => candidate.startsWith(token) || token.startsWith(candidate)));
+      // Street numbers and suffixes must match exactly: 83, 83B and 83B1 are different roads.
+      const matchingStreetTokens = streetTokens.filter((token) => candidateTokens.has(token));
       if (!matchedTokens.length || (isStreetAddress && streetTokens.length && matchingStreetTokens.length !== streetTokens.length)) return null;
       const coverage = matchedTokens.length / Math.max(1, queryTokens.length);
       if (isStreetAddress && !streetTokens.length && coverage < 0.3) return null;
@@ -658,57 +663,57 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   async function findDestinationCandidates(query, center = state.currentPosition, signal, { allowNominatimFallback = false } = {}) {
-    let matches = [];
-    let photonError = null;
     const baseQuery = String(query || '').trim();
-    const normalizedQuery = normalizeColombianAddressQuery(baseQuery);
     const variants = colombianAddressQueryVariants(baseQuery, allowNominatimFallback);
     const usableCenter = isWithinColombiaSearchArea(center) ? center : null;
     const found = [];
-    for (const address of parseColombianStructuredAddress(baseQuery)) {
+    let matches = [];
+    let lastError = null;
+    let completedSearch = false;
+    // Free-text search handles abbreviations without relying on the public
+    // structured endpoint, which can fail for Colombian house numbers.
+    for (const variant of variants.slice(0, 2)) {
       try {
-        const params = new URLSearchParams({ street: address.street, housenumber: address.houseNumber, countrycode: 'CO', lang: photonLanguage() });
-        if (address.city) params.set('city', address.city);
-        if (address.state) params.set('state', address.state);
-        if (usableCenter) {
-          params.set('lat', String(usableCenter.lat));
-          params.set('lon', String(usableCenter.lng));
-          params.set('zoom', '10');
-          params.set('location_bias_scale', '0.1');
-        }
-        const structured = await fetchPhotonStructuredFeatures(params, signal);
-        found.push(...(structured.features || []).filter(isColombiaFeature));
+        const payload = await fetchPhotonFeatures(makePhotonSearchParams(variant, usableCenter), signal, 3000);
+        completedSearch = true;
+        found.push(...payload.features.filter(isColombiaFeature));
         matches = rankPhotonFeatures(found, baseQuery, usableCenter);
-        if (matches.length >= (allowNominatimFallback ? 4 : 2)) break;
+        if (matches.length) break;
       } catch (error) {
         if (signal?.aborted) throw error;
-        photonError = error;
+        lastError = error;
       }
     }
-    try {
-      for (const [index, variant] of variants.entries()) {
-        if (!variant) continue;
-        const payload = await fetchPhotonFeatures(makePhotonSearchParams(variant, index === 0 ? usableCenter : null), signal);
-        found.push(...(payload.features || []).filter(isColombiaFeature));
-        matches = rankPhotonFeatures(found, baseQuery, usableCenter);
-        if (matches.length >= (allowNominatimFallback ? 4 : 2)) break;
-      }
-    } catch (error) {
-      if (signal?.aborted) throw error;
-      photonError = error;
-    }
-    // Nominatim is only used after an explicit route-search action. Its public
-    // service does not permit per-keystroke autocomplete.
-    if (allowNominatimFallback && matches.length < 4) {
+    // Nominatim permits explicit searches, never per-keystroke autocomplete.
+    if (allowNominatimFallback && !matches.length) {
       try {
         const fallbackMatches = await findNominatimCandidates(baseQuery, signal);
-        matches = rankPhotonFeatures([...matches, ...fallbackMatches], baseQuery, usableCenter);
+        completedSearch = true;
+        matches = rankPhotonFeatures(fallbackMatches, baseQuery, usableCenter);
         if (!matches.length) matches = fallbackMatches;
       } catch (error) {
         if (signal?.aborted) throw error;
-        if (photonError) console.info('Trazia geocoding fallback:', photonError.message, error.message);
+        lastError = error;
       }
     }
+    // Many streets are mapped without individual house numbers. Offer the
+    // actual street as an explicitly labelled suggestion, never invent a pin
+    // for a house number that the provider could not locate.
+    if (!matches.length) {
+      const address = parseColombianStructuredAddress(baseQuery)[0];
+      if (address) {
+        const streetQuery = [address.street, address.city, address.state].filter(Boolean).join(', ');
+        try {
+          const payload = await fetchPhotonFeatures(makePhotonSearchParams(streetQuery, usableCenter), signal, 3000);
+          completedSearch = true;
+          matches = rankPhotonFeatures(payload.features.filter(isColombiaFeature), baseQuery, usableCenter);
+        } catch (error) {
+          if (signal?.aborted) throw error;
+          lastError = error;
+        }
+      }
+    }
+    if (!matches.length && !completedSearch && lastError) throw lastError;
     return matches;
   }
 
@@ -819,7 +824,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     return state.language === 'en' ? 'en' : 'default';
   }
 
-  async function fetchPhotonFeatures(params, signal) {
+  async function fetchPhotonFeatures(params, signal, timeoutMs = 11000) {
     const query = params.toString();
     const endpoints = isLocalApiHost()
       ? [`/api/photon?${query}`, `https://photon.komoot.io/api/?${query}`]
@@ -827,28 +832,21 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     let lastError;
     for (const endpoint of endpoints) {
       try {
-        const response = await fetchTimed(endpoint, { signal, headers: { Accept: 'application/json' } }, 11000);
+        const response = await fetchTimed(endpoint, { signal, headers: { Accept: 'application/json' } }, timeoutMs / endpoints.length);
         if (!response.ok) {
           lastError = new Error(`Photon ${response.status}`);
           if (response.status === 404 || response.status === 429 || response.status >= 500) continue;
           throw lastError;
         }
-        return await response.json();
+        const payload = await response.json();
+        if (!Array.isArray(payload.features)) throw new Error('Photon returned an invalid response');
+        return payload;
       } catch (error) {
         if (signal?.aborted) throw error;
         lastError = error;
       }
     }
     throw lastError || new Error('Photon unavailable');
-  }
-
-  async function fetchPhotonStructuredFeatures(params, signal) {
-    const response = await fetchTimed(`https://photon.komoot.io/structured?${params.toString()}`, {
-      signal,
-      headers: { Accept: 'application/json' },
-    }, 11000);
-    if (!response.ok) throw new Error(`Photon structured ${response.status}`);
-    return response.json();
   }
 
   async function fetchValhallaRoute(request, signal) {
