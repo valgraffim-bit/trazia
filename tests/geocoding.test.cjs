@@ -50,3 +50,26 @@ test('keeps results restricted to Colombia', async () => {
   const ctx = setup(async () => ({ features: [{ ...street, properties: { ...street.properties, countrycode: 'US' } }] }));
   assert.equal((await ctx.findDestinationCandidates('Carrera 80')).length, 0);
 });
+
+test('finds Carrera 83B for the reported Cali address and rejects an unrelated house', async () => {
+  const road = { ...street, properties: { ...street.properties, name: 'Carrera 83B' } };
+  const unrelated = { ...street, properties: { name: 'Villa del Peñon Suites', street: 'Carrera 3A Oeste', housenumber: '4-53', city: 'Cali', countrycode: 'CO' } };
+  const queries = [];
+  const ctx = setup(async params => {
+    const query = params.get('q');
+    queries.push(query);
+    return { features: query === 'Carrera 83b 3, Cali' ? [road] : [unrelated] };
+  });
+  const results = await ctx.findDestinationCandidates('Carrera 83b 3 # 45-53 Cali');
+  assert.equal(queries.at(-1), 'Carrera 83b 3, Cali');
+  assert.equal(results.length, 1);
+  assert.equal(results[0].properties.name, 'Carrera 83B');
+  assert.equal(results[0].properties.housenumber, undefined);
+});
+test('does not confuse street numbers or letter suffixes', () => {
+  const ctx = setup(async () => ({ features: [] }));
+  for (const name of ['Carrera 83', 'Carrera 83B1', 'Carrera 83BA']) {
+    const wrongRoad = { ...street, properties: { ...street.properties, name } };
+    assert.equal(ctx.rankPhotonFeatures([wrongRoad], 'Carrera 83B # 45-53 Cali', null).length, 0, name);
+  }
+});
