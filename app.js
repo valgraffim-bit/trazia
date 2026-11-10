@@ -20,7 +20,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   const copy = {
     es: {
       tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportar algo en la vía', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
-      vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
+      vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
       destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Busca una dirección o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones…', chooseAddress: 'Elige la dirección correcta de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', startNavigation: 'Iniciar navegación', stopNavigation: 'Detener navegación', sampleTraffic: 'Datos abiertos · sin tráfico en vivo', sampleNote: 'Ruta calculada con datos abiertos; el tráfico en vivo aún no está disponible.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
       communityTitle: 'Comparte lo que ves', communityCopy: 'Ayuda a otras personas con un reporte.', report: 'Reportar', localReports: 'En esta versión, los reportes se guardan en este dispositivo.', worldReady: 'Diseñada para usar en cualquier lugar', mapProviderLabel: 'Mapa Trazia', sampleMap: 'Mapa de Trazia', reportsLayer: 'Reportes', mapCaption: 'Mapa Trazia · datos abiertos de OpenStreetMap', mapCredits: 'Créditos del mapa',
@@ -33,7 +33,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     },
     en: {
       tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Report something on the road', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
-      vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
+      vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
       destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Search an address or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', startNavigation: 'Start navigation', stopNavigation: 'Stop navigation', sampleTraffic: 'Open data · no live traffic', sampleNote: 'Open data route; live traffic is not available yet.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
       communityTitle: 'Share what you see', communityCopy: 'Help others with a quick report.', report: 'Report', localReports: 'In this version, reports are saved on this device.', worldReady: 'Designed to work anywhere', mapProviderLabel: 'Trazia map', sampleMap: 'Trazia map', reportsLayer: 'Reports', mapCaption: 'Trazia map · open OpenStreetMap data', mapCredits: 'Map credits',
@@ -77,6 +77,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     followCamera: true,
     userMarker: null,
     userMarkerElement: null,
+    destinationMarker: null,
     is3d: true,
     currentSpeed: 0,
     lastSpeedFix: null,
@@ -99,6 +100,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     nominatimLastRequestAt: 0,
     reportMarkers: [],
     routeCoordinates: [],
+    routeRequestId: 0,
+    routeSearchController: null,
     currentRoutes: [],
     route: null,
     routeDestination: '',
@@ -136,6 +139,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     state.language = language === 'en' ? 'en' : 'es';
     document.documentElement.lang = state.language;
     $('#language-select').value = state.language;
+    const splashNote = $('#splash-note');
+    if (splashNote) splashNote.textContent = state.language === 'es' ? 'Preparando tu ruta' : 'Getting your route ready';
     $$('[data-i18n]').forEach((element) => {
       const value = t(element.dataset.i18n);
       if (value) element.textContent = value;
@@ -209,6 +214,29 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       $('#route-note').textContent = t('vehicleChangedRoute');
       $('#start-navigation').disabled = true;
     }
+  }
+
+  function runSplashScreen() {
+    const splash = $('#app-splash');
+    const progress = $('#splash-progress');
+    const valueLabel = $('#splash-progress-value');
+    if (!splash || !progress || !valueLabel) return;
+    const startedAt = performance.now();
+    const minimumTime = 950;
+    let value = 0;
+    const timer = window.setInterval(() => {
+      const elapsed = performance.now() - startedAt;
+      const loadingValue = Math.min(92, Math.round((elapsed / 760) * 92));
+      value = document.readyState === 'complete' && elapsed >= minimumTime ? 100 : Math.max(value, loadingValue);
+      progress.style.width = `${value}%`;
+      valueLabel.textContent = `${value}%`;
+      const meter = $('#splash-progress-meter');
+      meter?.setAttribute('aria-valuenow', String(value));
+      if (value < 100) return;
+      window.clearInterval(timer);
+      splash.classList.add('is-finishing');
+      window.setTimeout(() => { splash.hidden = true; }, 360);
+    }, 24);
   }
 
   function update3dButton() {
@@ -495,6 +523,53 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       .trim();
   }
 
+  function colombianAddressQueryVariants(value, includeCountry = false) {
+    const raw = String(value || '').trim();
+    const normalized = normalizeColombianAddressQuery(raw);
+    const variants = [raw, normalized];
+    const hashIndex = raw.indexOf('#');
+    if (hashIndex >= 0) {
+      const beforeHash = normalizeColombianAddressQuery(raw.slice(0, hashIndex));
+      // Keep the house number after #. Removing leading digits here used to
+      // discard the most useful part of Colombian addresses such as 45-53.
+      const afterHash = raw.slice(hashIndex + 1).split(/[;,]/, 1)[0].trim().replace(/^(?:no\.?\s*)/i, '');
+      if (beforeHash && afterHash) variants.push(`${beforeHash} ${afterHash}`);
+      else if (beforeHash) variants.push(beforeHash);
+      const road = beforeHash.match(/\b(?:carrera|calle|avenida|diagonal|transversal)\s+[\p{L}\p{N}]+/iu)?.[0];
+      if (road && afterHash) variants.push(`${road} ${afterHash}`);
+    }
+    if (includeCountry && normalized && !/\bcolombia\b/i.test(normalized)) variants.push(`${normalized} Colombia`);
+    return [...new Set(variants.filter(Boolean))];
+  }
+
+  function parseColombianStructuredAddress(value) {
+    const raw = String(value || '').trim();
+    const hashIndex = raw.indexOf('#');
+    if (hashIndex < 0) return [];
+    const street = normalizeColombianAddressQuery(raw.slice(0, hashIndex).split(',')[0]);
+    const tail = raw.slice(hashIndex + 1).trim();
+    const houseMatch = tail.match(/^(\d+[a-z]?(?:\s*[-/]\s*\d+[a-z]?)?)/i);
+    if (!street || !houseMatch) return [];
+    const houseNumber = houseMatch[1].replace(/\s+/g, '');
+    const commaIndex = raw.indexOf(',');
+    const explicitLocalities = commaIndex >= 0 ? raw.slice(commaIndex + 1).split(',').map((part) => part.trim()).filter(Boolean) : [];
+    const trailingLocality = tail.slice(houseMatch[0].length).split(',')[0].trim();
+    const city = explicitLocalities.find((part) => !/^(?:colombia|valle del cauca|cauca|departamento de .+)$/i.test(part))
+      || (/^[\p{L}][\p{L}\s.-]*$/u.test(trailingLocality) && !/^colombia$/i.test(trailingLocality) ? trailingLocality : '');
+    const addresses = [{ street, houseNumber, city }];
+
+    // Some Colombian address conventions write the crossing road before #.
+    // Search that common interpretation as a second structured candidate.
+    const road = street.match(/^(carrera|calle|avenida|diagonal|transversal)\s+[\p{L}\p{N}]+/iu)?.[0];
+    const suffix = road ? street.slice(road.length).trim() : '';
+    const suffixNumber = suffix.match(/\d+[a-z]?/i)?.[0];
+    const firstHouseNumber = houseNumber.match(/^\d+/)?.[0];
+    if (road && suffixNumber && firstHouseNumber) {
+      addresses.push({ street: road, houseNumber: `${suffixNumber}-${firstHouseNumber}`, city });
+    }
+    return addresses;
+  }
+
   function isWithinColombiaSearchArea(point) {
     return Boolean(point && Number.isFinite(point.lat) && Number.isFinite(point.lng)
       && point.lng >= COLOMBIA_SEARCH_BOUNDS.west && point.lng <= COLOMBIA_SEARCH_BOUNDS.east
@@ -533,15 +608,25 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const ignoredWords = new Set(['a', 'al', 'de', 'del', 'la', 'las', 'el', 'los', 'y', 'en', 'the', 'and']);
     const queryTokens = [...new Set(normalizedQuery.split(' ').filter((token) => token && !ignoredWords.has(token)))];
     const isStreetAddress = /#|\b(?:cra|cr|kr|carrera|cl|calle|av|avda|avenida|diag|diagonal|trans|transversal)\b/i.test(query) && /\d/.test(query);
+    const streetTokens = normalizedQuery.match(/\b(?:carrera|calle|avenida|diagonal|transversal)\s+[\p{L}\p{N}]+/iu)?.[0]?.split(' ') || [];
+    const houseNumberTokens = String(query).includes('#')
+      ? normalizeGeocodeText(String(query).split('#').slice(1).join(' ')).split(' ').filter((token) => /\d/.test(token))
+      : [];
     const ranked = features.map((feature) => {
       const candidateText = photonFeatureSearchText(feature);
       const candidateTokens = new Set(candidateText.split(' '));
       const matchedTokens = queryTokens.filter((token) => candidateTokens.has(token) || (token.length >= 4 && [...candidateTokens].some((candidate) => candidate.startsWith(token) || token.startsWith(candidate))));
-      if (!matchedTokens.length) return null;
+      const matchingStreetTokens = streetTokens.filter((token) => candidateTokens.has(token) || [...candidateTokens].some((candidate) => candidate.startsWith(token) || token.startsWith(candidate)));
+      if (!matchedTokens.length || (isStreetAddress && streetTokens.length && matchingStreetTokens.length !== streetTokens.length)) return null;
       const coverage = matchedTokens.length / Math.max(1, queryTokens.length);
-      if (isStreetAddress && coverage < 0.5) return null;
+      if (isStreetAddress && !streetTokens.length && coverage < 0.3) return null;
       const phraseMatch = normalizedQuery.length >= 4 && candidateText.includes(normalizedQuery);
       let score = coverage * 100 + matchedTokens.length * 2 + (phraseMatch ? 30 : 0);
+      if (isStreetAddress && streetTokens.length) score += 40;
+      if (houseNumberTokens.length) {
+        const numberMatches = houseNumberTokens.filter((token) => candidateTokens.has(token)).length;
+        score += numberMatches === houseNumberTokens.length ? 35 : numberMatches * 8;
+      }
       const [lng, lat] = feature.geometry?.coordinates || [];
       if (origin && Number.isFinite(lat) && Number.isFinite(lng)) {
         const proximity = 8 - (distanceMeters(origin, { lat, lng }) / 10000) * 2;
@@ -576,10 +661,28 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     let photonError = null;
     const baseQuery = String(query || '').trim();
     const normalizedQuery = normalizeColombianAddressQuery(baseQuery);
-    const variants = [...new Set([baseQuery, normalizedQuery])];
-    if (allowNominatimFallback && !/\bcolombia\b/i.test(baseQuery)) variants.push(`${normalizedQuery} Colombia`);
+    const variants = colombianAddressQueryVariants(baseQuery, allowNominatimFallback);
     const usableCenter = isWithinColombiaSearchArea(center) ? center : null;
     const found = [];
+    for (const address of parseColombianStructuredAddress(baseQuery)) {
+      try {
+        const params = new URLSearchParams({ street: address.street, housenumber: address.houseNumber, countrycode: 'CO', lang: photonLanguage() });
+        if (address.city) params.set('city', address.city);
+        if (usableCenter) {
+          params.set('lat', String(usableCenter.lat));
+          params.set('lon', String(usableCenter.lng));
+          params.set('zoom', '10');
+          params.set('location_bias_scale', '0.1');
+        }
+        const structured = await fetchPhotonStructuredFeatures(params, signal);
+        found.push(...(structured.features || []).filter(isColombiaFeature));
+        matches = rankPhotonFeatures(found, baseQuery, usableCenter);
+        if (matches.length >= (allowNominatimFallback ? 4 : 2)) break;
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        photonError = error;
+      }
+    }
     try {
       for (const [index, variant] of variants.entries()) {
         if (!variant) continue;
@@ -714,7 +817,16 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     throw lastError || new Error('Photon unavailable');
   }
 
-  async function fetchValhallaRoute(request) {
+  async function fetchPhotonStructuredFeatures(params, signal) {
+    const response = await fetchTimed(`https://photon.komoot.io/structured?${params.toString()}`, {
+      signal,
+      headers: { Accept: 'application/json' },
+    }, 11000);
+    if (!response.ok) throw new Error(`Photon structured ${response.status}`);
+    return response.json();
+  }
+
+  async function fetchValhallaRoute(request, signal) {
     const identifiedRequest = { ...request, id: 'trazia.github.io' };
     const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Client-Id': 'trazia.github.io' };
     const attempts = [];
@@ -727,13 +839,14 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     let lastError;
     for (const attempt of attempts) {
       try {
-        const response = await fetchTimed(attempt.url, attempt.options, 14000);
+        const response = await fetchTimed(attempt.url, { ...attempt.options, signal }, 14000);
         if (response.status === 429 || response.status >= 500) {
           lastError = new Error(`Valhalla ${response.status}`);
           continue;
         }
         return response;
       } catch (error) {
+        if (signal?.aborted) throw error;
         lastError = error;
       }
     }
@@ -1192,6 +1305,10 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     }
     const routeButton = $('#search-route');
     routeButton.disabled = true;
+    state.routeSearchController?.abort();
+    const routeController = new AbortController();
+    state.routeSearchController = routeController;
+    const routeRequestId = ++state.routeRequestId;
     if (!automatic) {
       clearRoutePolylines();
       state.route = null;
@@ -1209,11 +1326,12 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     state.autocompleteController?.abort();
     try {
       const origin = state.currentPosition || await getUserPosition();
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       updateUserMarker(origin);
       let selected = state.selectedDestination;
       if (!selected?.location) {
-        const matches = await findDestinationCandidates(typedDestination, origin, undefined, { allowNominatimFallback: true });
-        if (destinationInput.value.trim() !== typedDestination || searchRequestId !== state.autocompleteRequestId) return;
+        const matches = await findDestinationCandidates(typedDestination, origin, routeController.signal, { allowNominatimFallback: true });
+        if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || destinationInput.value.trim() !== typedDestination || searchRequestId !== state.autocompleteRequestId) return;
         state.autocompleteQuery = typedDestination;
         if (!matches.length) {
           showSuggestionMessage(t('autocompleteNoResults'));
@@ -1246,7 +1364,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       if (state.avoidTolls && ['auto', 'motorcycle', 'truck'].includes(costing)) {
         request.costing_options = { [costing]: { use_tolls: 0.05, toll_booth_penalty: 1200 } };
       }
-      const response = await fetchValhallaRoute(request);
+      const response = await fetchValhallaRoute(request, routeController.signal);
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       let payload;
       try { payload = await response.json(); } catch { payload = {}; }
       if (!response.ok || payload.error || !payload.trip?.legs?.length) {
@@ -1320,6 +1439,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       if (automatic) showToast(t('rerouteReady'));
       else showToast(t('routeReady'));
     } catch (error) {
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       console.error('Trazia route search failed:', error);
       const message = automatic ? t('rerouteFailed') : getRouteErrorMessage(error);
       $('#route-note').textContent = message;
@@ -1329,8 +1449,11 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         showToast(message, true);
       } else showToast(message, true);
     } finally {
-      routeButton.disabled = false;
-      if (automatic) state.isRerouting = false;
+      if (routeRequestId === state.routeRequestId) {
+        routeButton.disabled = false;
+        if (automatic) state.isRerouting = false;
+        state.routeSearchController = null;
+      }
     }
   }
 
@@ -1339,6 +1462,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       if (state.map?.getLayer(layerId)) state.map.removeLayer(layerId);
     });
     if (state.map?.getSource('trazia-route')) state.map.removeSource('trazia-route');
+    state.destinationMarker?.remove();
+    state.destinationMarker = null;
     state.routeCoordinates = [];
     state.fitRouteToMap = false;
     $('#route-summary-overlay').hidden = true;
@@ -1357,6 +1482,19 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const labelLayer = (state.map.getStyle().layers || []).find((layer) => layer.type === 'symbol')?.id;
     state.map.addLayer({ id: 'trazia-route-outline', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#34205f', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 8, 16, 17], 'line-opacity': 0.9 } }, labelLayer);
     state.map.addLayer({ id: 'trazia-route-line', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#9364f4', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 4, 16, 10] } }, labelLayer);
+    const destination = state.routeCoordinates[state.routeCoordinates.length - 1];
+    if (destination) {
+      state.destinationMarker?.remove();
+      const markerElement = document.createElement('div');
+      markerElement.className = 'trazia-destination-marker';
+      markerElement.textContent = '🏁';
+      markerElement.setAttribute('role', 'img');
+      markerElement.setAttribute('aria-label', t('destinationMarkerLabel'));
+      markerElement.title = t('destinationMarkerLabel');
+      state.destinationMarker = new maplibregl.Marker({ element: markerElement, anchor: 'bottom' })
+        .setLngLat(destination)
+        .addTo(state.map);
+    }
     if (state.fitRouteToMap) {
       if (state.isNavigating && state.currentPosition) {
         state.followCamera = true;
@@ -1934,17 +2072,29 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const label = button.querySelector('span');
     label.textContent = state.isNavigating ? t('stopNavigation') : t('startNavigation');
     button.classList.toggle('is-navigating', state.isNavigating);
+    button.setAttribute('aria-pressed', String(state.isNavigating));
   }
 
   function stopNavigation(showMessage = true) {
+    const wasRerouting = state.isRerouting;
     state.isNavigating = false;
     state.isRerouting = false;
     state.offRouteFixes = 0;
+    state.followCamera = false;
+    state.map?.stop();
+    if (wasRerouting) {
+      state.routeRequestId += 1;
+      state.routeSearchController?.abort();
+      state.routeSearchController = null;
+      $('#search-route').disabled = false;
+    }
     $('#navigation-banner').hidden = true;
     window.speechSynthesis?.cancel();
-    state.screenWakeLock?.release?.();
+    const wakeLockRelease = state.screenWakeLock?.release?.();
+    wakeLockRelease?.catch?.(() => {});
     state.screenWakeLock = null;
     updateNavigationButton();
+    if (showMessage) $('#route-note').textContent = t('navigationStopped');
     if (showMessage) showToast(t('navigationStopped'));
   }
 
@@ -2076,6 +2226,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   function initialize() {
+    runSplashScreen();
     applyLanguage(state.language);
     applyTheme();
     setupEvents();
