@@ -222,11 +222,11 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const valueLabel = $('#splash-progress-value');
     if (!splash || !progress || !valueLabel) return;
     const startedAt = performance.now();
-    const minimumTime = 950;
+    const minimumTime = 2700;
     let value = 0;
     const timer = window.setInterval(() => {
       const elapsed = performance.now() - startedAt;
-      const loadingValue = Math.min(92, Math.round((elapsed / 760) * 92));
+      const loadingValue = Math.min(92, Math.round((elapsed / 2300) * 92));
       value = document.readyState === 'complete' && elapsed >= minimumTime ? 100 : Math.max(value, loadingValue);
       progress.style.width = `${value}%`;
       valueLabel.textContent = `${value}%`;
@@ -556,7 +556,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const trailingLocality = tail.slice(houseMatch[0].length).split(',')[0].trim();
     const city = explicitLocalities.find((part) => !/^(?:colombia|valle del cauca|cauca|departamento de .+)$/i.test(part))
       || (/^[\p{L}][\p{L}\s.-]*$/u.test(trailingLocality) && !/^colombia$/i.test(trailingLocality) ? trailingLocality : '');
-    const addresses = [{ street, houseNumber, city }];
+    const state = explicitLocalities.find((part) => /\bvalle del cauca\b/i.test(part)) || '';
+    const addresses = [{ street, houseNumber, city, state }];
 
     // Some Colombian address conventions write the crossing road before #.
     // Search that common interpretation as a second structured candidate.
@@ -565,7 +566,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const suffixNumber = suffix.match(/\d+[a-z]?/i)?.[0];
     const firstHouseNumber = houseNumber.match(/^\d+/)?.[0];
     if (road && suffixNumber && firstHouseNumber) {
-      addresses.push({ street: road, houseNumber: `${suffixNumber}-${firstHouseNumber}`, city });
+      addresses.push({ street: road, houseNumber: `${suffixNumber}-${firstHouseNumber}`, city, state });
     }
     return addresses;
   }
@@ -668,6 +669,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       try {
         const params = new URLSearchParams({ street: address.street, housenumber: address.houseNumber, countrycode: 'CO', lang: photonLanguage() });
         if (address.city) params.set('city', address.city);
+        if (address.state) params.set('state', address.state);
         if (usableCenter) {
           params.set('lat', String(usableCenter.lat));
           params.set('lon', String(usableCenter.lng));
@@ -750,18 +752,41 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const key = normalizeGeocodeText(query);
     const cached = state.nominatimCache.get(key);
     if (cached && cached.expiresAt > Date.now()) return cached.features;
-    const wait = Math.max(0, 1100 - (Date.now() - state.nominatimLastRequestAt));
-    if (wait) await waitWithSignal(wait, signal);
     const normalizedQuery = normalizeColombianAddressQuery(query);
     const countryQuery = /\bcolombia\b/i.test(normalizedQuery) ? normalizedQuery : `${normalizedQuery} Colombia`;
-    const params = new URLSearchParams({ q: countryQuery, countrycodes: 'co', format: 'jsonv2', addressdetails: '1', limit: '8', 'accept-language': state.language === 'es' ? 'es' : 'en' });
-    state.nominatimLastRequestAt = Date.now();
-    const response = await fetchTimed(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
-      signal,
-      headers: { Accept: 'application/json' },
-    }, 12000);
-    if (!response.ok) throw new Error(`Nominatim ${response.status}`);
-    const results = await response.json();
+    const common = { countrycodes: 'co', format: 'jsonv2', addressdetails: '1', limit: '8', 'accept-language': state.language === 'es' ? 'es' : 'en' };
+    const freeformParams = new URLSearchParams({ ...common, q: countryQuery });
+    const address = parseColombianStructuredAddress(query)[0];
+    const requests = [];
+    if (address) {
+      const structuredParams = new URLSearchParams({ ...common, street: `${address.houseNumber} ${address.street}` });
+      if (address.city) structuredParams.set('city', address.city);
+      if (address.state) structuredParams.set('state', address.state);
+      requests.push(structuredParams);
+    }
+    requests.push(freeformParams);
+    let results = [];
+    let lastError = null;
+    for (const params of requests) {
+      const wait = Math.max(0, 1100 - (Date.now() - state.nominatimLastRequestAt));
+      if (wait) await waitWithSignal(wait, signal);
+      state.nominatimLastRequestAt = Date.now();
+      try {
+        const response = await fetchTimed(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+          signal,
+          headers: { Accept: 'application/json' },
+        }, 12000);
+        if (!response.ok) throw new Error(`Nominatim ${response.status}`);
+        results = await response.json();
+        if (!Array.isArray(results)) throw new Error('Nominatim returned an invalid response');
+        lastError = null;
+        if (results.length) break;
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        lastError = error;
+      }
+    }
+    if (lastError) throw lastError;
     const features = (Array.isArray(results) ? results : []).map((result) => {
       const address = result.address || {};
       const properties = {
