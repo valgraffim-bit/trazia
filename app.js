@@ -1,5 +1,7 @@
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
+import { parseWazeLocation } from './waze-links.mjs?v=27';
+
 (() => {
   'use strict';
 
@@ -19,6 +21,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
   const copy = {
     es: {
+      importWaze: 'Importar ubicación de Waze', wazeInstructions: 'En Waze, selecciona el destino, pulsa Compartir y copia el enlace. Pégalo aquí para usar el mismo punto en Trazia.', wazeLinkLabel: 'Enlace compartido de Waze', useWazePoint: 'Usar ubicación en Trazia',
       tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportar algo en la vía', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
       vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
       destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Busca una dirección o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones…', chooseAddress: 'Elige la dirección correcta de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
@@ -32,6 +35,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       categoryGas: 'Gasolineras', categoryClinic: 'Clínicas', categoryPharmacy: 'Farmacias', categoryBusiness: 'Negocios', nearbyPlaces: 'Lugares cercanos', rating: 'Calificación', noAddress: 'Dirección no disponible', incidentSaved: 'Reporte',
     },
     en: {
+      importWaze: 'Import Waze location', wazeInstructions: 'In Waze, select the destination, choose Share and copy the link. Paste it here to use that point in Trazia.', wazeLinkLabel: 'Shared Waze link', useWazePoint: 'Use location in Trazia',
       tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Report something on the road', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
       vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
       destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Search an address or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
@@ -436,6 +440,44 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     });
   }
 
+  function wazeImportError(error) {
+    return error.code === 'WAZE_NO_COORDINATES'
+      ? (state.language === 'es' ? 'El enlace no contiene un punto importable. Abre Waze, selecciona la ubicación en el mapa y comparte el enlace del lugar, no solo la búsqueda.' : 'This link has no importable point. In Waze, select the location on the map and share the place link, not just the search.')
+      : (state.language === 'es' ? 'El enlace de Waze contiene coordenadas inválidas. Comparte de nuevo la ubicación.' : 'The Waze link has invalid coordinates. Share the location again.');
+  }
+
+  function setWazeDestination(imported) {
+    const { lat, lng } = imported.location;
+    const label = `${state.language === 'es' ? 'Ubicación de Waze' : 'Waze location'} · ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    state.selectedDestination = { label, location: imported.location, wazeLink: imported.link };
+    destinationInput.value = label;
+    closeDestinationSuggestions();
+    const message = imported.approximate
+      ? (state.language === 'es' ? 'Punto aproximado importado de Waze. Pulsa Buscar ruta para continuar.' : 'Approximate point imported from Waze. Select Find route to continue.')
+      : (state.language === 'es' ? 'Coordenadas importadas de Waze. Pulsa Buscar ruta para continuar.' : 'Coordinates imported from Waze. Select Find route to continue.');
+    $('#route-note').textContent = message;
+    showToast(message);
+  }
+
+  function importWazeFromDialog() {
+    const status = $('#waze-import-status');
+    try {
+      const imported = parseWazeLocation($('#waze-link-input').value);
+      if (!imported) {
+        status.textContent = state.language === 'es' ? 'Pega un enlace de ubicación de Waze.' : 'Paste a Waze location link.';
+        return;
+      }
+      state.autocompleteRequestId += 1;
+      window.clearTimeout(state.autocompleteTimer);
+      state.autocompleteController?.abort();
+      setWazeDestination(imported);
+      closeDialog($('#waze-import-dialog'));
+      destinationInput.focus();
+    } catch (error) {
+      status.textContent = wazeImportError(error);
+    }
+  }
+
   function handleDestinationInput() {
     state.selectedDestination = null;
     state.autocompleteRequestId += 1;
@@ -443,6 +485,16 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     window.clearTimeout(state.autocompleteTimer);
     state.autocompleteController?.abort();
     const query = destinationInput.value.trim();
+    try {
+      const imported = parseWazeLocation(query);
+      if (imported) {
+        setWazeDestination(imported);
+        return;
+      }
+    } catch (error) {
+      showSuggestionMessage(wazeImportError(error));
+      return;
+    }
     if (query.length < 3) {
       closeDestinationSuggestions();
       return;
@@ -1372,6 +1424,16 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       destinationInput.focus();
       return;
     }
+    // Recent and saved Waze links must bypass address geocoding too.
+    if (!state.selectedDestination) {
+      try {
+        const imported = parseWazeLocation(typedDestination);
+        if (imported) setWazeDestination(imported);
+      } catch (error) {
+        showSuggestionMessage(wazeImportError(error));
+        return;
+      }
+    }
     if (!state.mapReady) {
       showToast(t('demoRoute'));
       return;
@@ -1508,7 +1570,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         $('#navigation-instruction').textContent = instruction;
         speak(instruction);
       }
-      saveRecentDestination(selected.temporary ? selected.query : state.routeDestination);
+      saveRecentDestination(selected.wazeLink || (selected.temporary ? selected.query : state.routeDestination));
       if (automatic) showToast(t('rerouteReady'));
       else showToast(t('routeReady'));
     } catch (error) {
@@ -2226,6 +2288,13 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       if (button) selectSavedPlace(button.dataset.placeId);
     });
     $('#save-place').addEventListener('click', saveSavedPlace);
+    $('#open-waze-import').addEventListener('click', () => {
+      $('#waze-import-status').textContent = '';
+      $('#waze-link-input').value = '';
+      openDialog($('#waze-import-dialog'));
+      $('#waze-link-input').focus();
+    });
+    $('#confirm-waze-import').addEventListener('click', importWazeFromDialog);
     $('#search-route').addEventListener('click', () => { void searchRoute(); });
     $('#recalculate-route').addEventListener('click', () => { void searchRoute(); });
     destinationInput.addEventListener('input', handleDestinationInput);
