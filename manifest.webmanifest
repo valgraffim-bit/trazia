@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Trazia · Tu ruta, más clara",
+  "short_name": "Trazia",
+  "description": "Navegación, lugares y reportes del camino.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f8f7",
+  "theme_color": "#14263b",
+  "icons": [
+    {
+      "src": "./assets/trazia-app-icon.png",
+      "sizes": "1280x1280",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

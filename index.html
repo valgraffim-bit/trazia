@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f8f7" />
+    <meta name="description" content="Trazia te ayuda a encontrar una ruta más clara, descubrir lugares y compartir reportes del camino." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
+    <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="./styles.css?v=18" />
+    <title>Trazia · Tu ruta, más clara</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="side-panel" aria-label="Panel de Trazia">
+        <div class="panel-scroll">
+          <button class="mobile-panel-handle" id="toggle-panel" type="button" aria-label="Expandir o contraer el panel" aria-expanded="false"><span></span></button>
+          <header class="panel-header">
+            <div class="brand-row">
+              <img class="brand-icon" src="./assets/trazia-app-icon.png" alt="" />
+              <div class="brand-copy">
+                <div class="brand-name">Trazia</div>
+                <div class="brand-tagline" data-i18n="tagline">Tu ruta, más clara</div>
+              </div>
+              <div class="header-actions">
+                <label class="sr-only" for="language-select" data-i18n="language">Idioma</label>
+                <select id="language-select" class="language-select" aria-label="Language">
+                  <option value="es">ES</option>
+                  <option value="en">EN</option>
+                </select>
+                <button class="icon-button settings-button" id="open-settings" type="button" aria-label="Configuración" title="Configuración">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Z"/><path d="m19.4 13.5 1.1.9-1.8 3.1-1.4-.5a7.9 7.9 0 0 1-1.4.8l-.3 1.5h-3.6l-.3-1.5a7.9 7.9 0 0 1-1.4-.8l-1.4.5-1.8-3.1 1.1-.9a7.6 7.6 0 0 1 0-1.6l-1.1-.9 1.8-3.1 1.4.5a7.9 7.9 0 0 1 1.4-.8l.3-1.5h3.6l.3 1.5a7.9 7.9 0 0 1 1.4.8l1.4-.5 1.8 3.1-1.1.9a7.6 7.6 0 0 1 0 1.6Z"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="status-row">
+              <span class="status-dot" id="status-dot"></span>
+              <span id="connection-status" data-i18n="demoMode">Modo demostración</span>
+              <span class="status-right" id="location-status" data-i18n="locationOff">Ubicación apagada</span>
+            </div>
+          </header>
+
+          <section class="search-section" aria-labelledby="destination-label">
+            <div class="vehicle-picker" role="group" aria-labelledby="vehicle-label">
+              <span class="vehicle-picker-label" id="vehicle-label" data-i18n="vehicleLabel">Tu vehículo</span>
+              <div class="vehicle-options">
+                <button class="vehicle-choice active" type="button" data-vehicle="car" aria-pressed="true"><span aria-hidden="true">🚗</span><span data-i18n="vehicleCar">Carro</span></button>
+                <button class="vehicle-choice" type="button" data-vehicle="motorcycle" aria-pressed="false"><span aria-hidden="true">🏍️</span><span data-i18n="vehicleMotorcycle">Moto</span></button>
+                <button class="vehicle-choice" type="button" data-vehicle="truck" aria-pressed="false"><span aria-hidden="true">🚚</span><span data-i18n="vehicleTruck">Camión</span></button>
+                <button class="vehicle-choice" type="button" data-vehicle="bicycle" aria-pressed="false"><span aria-hidden="true">🚲</span><span data-i18n="vehicleBicycle">Bicicleta</span></button>
+              </div>
+              <p class="vehicle-note" id="vehicle-note" aria-live="polite" hidden></p>
+            </div>
+            <label class="section-eyebrow" id="destination-label" for="destination-input" data-i18n="destinationPrompt">¿A dónde quieres ir?</label>
+            <div class="destination-autocomplete">
+              <div class="search-field-wrap">
+                <span class="search-pin" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M19 10.1c0 5-7 11-7 11s-7-6-7-11a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>
+                </span>
+                <input id="destination-input" type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="destination-suggestions" placeholder="Busca una dirección o lugar" data-i18n-placeholder="destinationPlaceholder" />
+                <button class="voice-button" id="voice-search" type="button" aria-label="Buscar destino por voz" title="Buscar por voz">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"/></svg>
+                </button>
+              </div>
+              <div class="destination-suggestions" id="destination-suggestions" role="listbox" aria-label="Sugerencias de destinos" hidden></div>
+            </div>
+            <div class="search-buttons">
+              <button class="primary-button" id="search-route" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 9 5l6 14 5-14"/><circle cx="4" cy="19" r="1.5"/><circle cx="20" cy="5" r="1.5"/></svg>
+                <span data-i18n="findRoute">Buscar ruta</span>
+              </button>
+              <button class="secondary-button" id="locate-me" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="8"/></svg>
+                <span data-i18n="myLocation">Mi ubicación</span>
+              </button>
+            </div>
+            <div class="mobile-shortcuts" id="quick-places" aria-label="Lugares guardados"></div>
+            <section class="recent-destinations" id="recent-destinations" hidden aria-labelledby="recent-title">
+              <h2 id="recent-title" data-i18n="recent">Recientes</h2>
+              <div id="recent-list"></div>
+            </section>
+            <p class="voice-status" id="voice-status" aria-live="polite"></p>
+          </section>
+
+          <section class="nearby-section" aria-labelledby="nearby-title">
+            <div class="section-heading-row">
+              <h2 class="section-eyebrow" id="nearby-title" data-i18n="nearbyTitle">Explora cerca de tu ruta</h2>
+              <button class="text-button" id="clear-places" type="button" hidden data-i18n="clear">Limpiar</button>
+            </div>
+            <div class="category-grid">
+              <button class="category-button" data-category="gas" type="button">
+                <span class="category-icon gas-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V5.5A2.5 2.5 0 0 1 7.5 3h6A2.5 2.5 0 0 1 16 5.5V21M4 21h13M8 7h5v4H8zM16 7h2l2 2v6a2 2 0 0 1-4 0"/></svg></span>
+                <span data-i18n="gasStations">Gasolineras</span>
+              </button>
+              <button class="category-button" data-category="clinic" type="button">
+                <span class="category-icon clinic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M2 21h20M9 7h6m-3-3v6m-3 4h6v7H9z"/></svg></span>
+                <span data-i18n="clinics">Clínicas</span>
+              </button>
+              <button class="category-button" data-category="pharmacy" type="button">
+                <span class="category-icon pharmacy-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v15H4zM8 3v6m8-6v6M9 14h6m-3-3v6"/></svg></span>
+                <span data-i18n="pharmacies">Farmacias</span>
+              </button>
+              <button class="category-button" data-category="business" type="button">
+                <span class="category-icon business-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18l-2-6H5zM5 10v10h14V10M9 20v-6h6v6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg></span>
+                <span data-i18n="businesses">Negocios</span>
+              </button>
+            </div>
+            <div class="place-results" id="place-results" aria-live="polite" hidden></div>
+          </section>
+
+          <section class="route-card" aria-labelledby="route-title">
+            <div class="route-card-top">
+              <div>
+                <span class="route-kicker" data-i18n="suggestedRoute">RUTA DE EJEMPLO</span>
+                <h2 id="route-title" data-i18n="sampleDestination">Tu destino</h2>
+              </div>
+              <span class="route-score"><span class="score-dot"></span><span data-i18n="lessTraffic">Menos tráfico</span></span>
+            </div>
+            <div class="route-metrics">
+              <div><strong id="route-duration">— <small data-i18n="minutes">min</small></strong><span data-i18n="estimatedTime">Tiempo estimado</span></div>
+              <div class="metric-divider"></div>
+              <div><strong id="route-distance">— <small data-i18n="kilometers">km</small></strong><span data-i18n="distance">Distancia</span></div>
+              <button class="recalculate-button" id="recalculate-route" type="button" aria-label="Recalcular ruta" title="Recalcular ruta">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9a7 7 0 0 1 11.5-2L20 12M4 12l2.4 5a7 7 0 0 0 11.5-2"/></svg>
+              </button>
+            </div>
+            <div class="route-traffic-line"><span class="route-line-green"></span><span class="traffic-caption" data-i18n="sampleTraffic">Datos abiertos · sin tráfico en vivo</span></div>
+            <div class="route-options">
+              <label class="toggle-label" for="avoid-tolls">
+                <span data-i18n="avoidTolls">Evitar peajes</span>
+                <span class="toggle"><input id="avoid-tolls" type="checkbox" /><span class="toggle-slider"></span></span>
+              </label>
+              <button class="start-navigation" id="start-navigation" type="button" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 3 15 9-15 9z"/></svg>
+                <span data-i18n="startNavigation">Iniciar navegación</span>
+              </button>
+            </div>
+            <p class="route-note" id="route-note" data-i18n="emptyRoute">Busca un destino para ver tu ruta.</p>
+          </section>
+
+          <section class="community-card" aria-labelledby="community-title">
+            <div class="community-copy">
+              <span class="community-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4.5 8-11a8 8 0 1 0-16 0c0 6.5 8 11 8 11Z"/><path d="M12 8v5m0 3h.01"/></svg></span>
+              <div><h2 id="community-title" data-i18n="communityTitle">Comparte lo que ves</h2><p data-i18n="communityCopy">Ayuda a otras personas con un reporte.</p></div>
+            </div>
+            <button class="report-button" id="open-report" type="button"><span data-i18n="report">Reportar</span><span class="report-count" id="report-count">0</span></button>
+            <p class="local-note" data-i18n="localReports">En esta versión, los reportes se guardan en este dispositivo.</p>
+          </section>
+        </div>
+        <footer class="panel-footer">
+          <span class="footer-mark"><span class="footer-dot"></span><span data-i18n="worldReady">Diseñada para usar en cualquier lugar</span></span>
+          <button class="footer-settings" id="open-settings-footer" type="button" data-i18n="mapSettings">Mapa Trazia</button>
+        </footer>
+      </aside>
+
+      <section class="map-area" aria-label="Mapa de navegación">
+        <div class="map-stage">
+          <div class="demo-map" id="demo-map" aria-hidden="true">
+            <svg class="map-drawing" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" role="presentation">
+              <rect width="1200" height="900" fill="#eef3f0"/>
+              <path d="M-80 682 148 541l166 82 186-101 186 91 177-92 234 100 177-86v370H-80Z" fill="#e2eee7"/>
+              <path d="M-65 138 94 48l104 72-90 128-170 24Zm197-82 126 8 84 95-92 103-152-14Zm245-58 175 8 60 90-76 100-142-28Zm246 78 174-53 105 116-44 109-191-10ZM955 54l155-64 146 111-82 125-199-22Zm-941 291 131-65 117 87-38 135-185 20Zm284-25 129-68 142 87-54 141-165 31Zm314-4 148-77 148 83-29 159-172 5Zm319 9 125-42 145 118-74 117-181-31Zm-916 328 148-65 131 88-38 162-189 24Zm309-47 154-72 146 82-41 167-168 37Zm317-4 150-63 158 94-33 143-187 24Zm-933-12 90-82 93 45-25 98-146 39Z" fill="#dceae3" opacity=".77"/>
+              <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M-50 318C123 302 215 370 353 340s226-79 363-45 190 43 316 5 211-54 250-48" stroke-width="29"/>
+                <path d="M-50 318C123 302 215 370 353 340s226-79 363-45 190 43 316 5 211-54 250-48" stroke="#d4e0da" stroke-width="2" stroke-dasharray="7 12"/>
+                <path d="M86-75c40 151 33 258 92 383s124 219 101 380 18 228 66 298" stroke-width="25"/>
+                <path d="M86-75c40 151 33 258 92 383s124 219 101 380 18 228 66 298" stroke="#d4e0da" stroke-width="2" stroke-dasharray="6 12"/>
+                <path d="M438-70c-37 152 11 250 95 343s134 178 121 321-13 224 41 373" stroke-width="28"/>
+                <path d="M438-70c-37 152 11 250 95 343s134 178 121 321-13 224 41 373" stroke="#d4e0da" stroke-width="2" stroke-dasharray="6 12"/>
+                <path d="M836-55c-44 130-37 260 14 365s78 175 40 290-30 213 18 352" stroke-width="25"/>
+                <path d="M836-55c-44 130-37 260 14 365s78 175 40 290-30 213 18 352" stroke="#d4e0da" stroke-width="2" stroke-dasharray="6 12"/>
+                <path d="M-42 542c136-83 226-99 348-75s210 88 351 76 242-113 364-78 179 85 224 128" stroke-width="24"/>
+                <path d="M-42 542c136-83 226-99 348-75s210 88 351 76 242-113 364-78 179 85 224 128" stroke="#d4e0da" stroke-width="2" stroke-dasharray="6 12"/>
+                <path d="M-24 801c124-71 235-73 355-32s222 58 344 14 212-85 350-62 190 76 239 108" stroke-width="24"/>
+                <path d="M-24 801c124-71 235-73 355-32s222 58 344 14 212-85 350-62 190 76 239 108" stroke="#d4e0da" stroke-width="2" stroke-dasharray="6 12"/>
+                <path d="M-44 101c128 88 208 140 345 146s244-29 350-6 205 124 330 142 211 11 263-9" stroke-width="18" opacity=".8"/>
+              </g>
+              <path d="M161 711c106-51 184-139 259-203s121-63 191-44 104 4 168-43 97-118 182-130" fill="none" stroke="#d7e4df" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M161 711c106-51 184-139 259-203s121-63 191-44 104 4 168-43 97-118 182-130" fill="none" stroke="#16bfa7" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M510 464c37 10 66 13 103 2" fill="none" stroke="#f0aa42" stroke-width="10" stroke-linecap="round"/>
+              <circle cx="161" cy="711" r="16" fill="#fff" stroke="#14263b" stroke-width="7"/>
+              <circle cx="961" cy="291" r="17" fill="#fff" stroke="#16bfa7" stroke-width="8"/>
+              <circle cx="961" cy="291" r="5" fill="#16bfa7"/>
+              <g fill="#a1b7ad" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="2" opacity=".72">
+                <text x="272" y="270">NORTH PARK</text><text x="673" y="614">RIVERSIDE</text><text x="958" y="708">OLD TOWN</text><text x="332" y="766">GREEN DISTRICT</text>
+              </g>
+            </svg>
+            <div class="demo-place-marker marker-gas"><span>⛽</span></div>
+            <div class="demo-place-marker marker-clinic"><span>✚</span></div>
+            <div class="demo-place-marker marker-shop"><span>⌂</span></div>
+            <div class="demo-you-marker"><span></span></div>
+          </div>
+          <div class="live-map" id="trazia-map" aria-label="Mapa de Trazia"></div>
+
+          <div class="map-topbar">
+            <div class="map-topbar-leading">
+              <button class="mobile-menu-button" id="open-menu" type="button" aria-label="Abrir menú" title="Menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+              <button class="compass-button" id="compass-control" type="button" aria-label="Cambiar a norte arriba" title="Cambiar a norte arriba" data-mode="follow">
+                <span class="compass-north-label" aria-hidden="true">N</span>
+                <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.5"/><g id="compass-rose"><path class="compass-north-needle" d="m16 5 4.1 11-4.1-2.1L11.9 16 16 5Z"/><path class="compass-south-needle" d="m16 27-4.1-11 4.1 2.1 4.1-2.1L16 27Z"/></g></svg>
+              </button>
+              <div class="map-status-pill"><span class="live-indicator" id="map-live-dot"></span><span id="map-label" data-i18n="sampleMap">Mapa de ejemplo</span></div>
+              <button class="map-credit-button" id="toggle-map-credits" type="button" aria-label="Créditos del mapa" aria-expanded="false" title="Créditos del mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg></button>
+            </div>
+            <label class="traffic-pill" for="traffic-toggle">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m5 10V5m6 14v-7m5 7V3"/><path d="M2 19h20"/></svg>
+              <span data-i18n="reportsLayer">Reportes</span>
+              <input id="traffic-toggle" type="checkbox" checked />
+              <span class="mini-switch" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div class="map-credits" id="map-credits" hidden>
+            <span>OpenFreeMap · © OpenMapTiles</span>
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">Data from © OpenStreetMap contributors · ODbL</a>
+          </div>
+
+          <div class="navigation-banner" id="navigation-banner" hidden>
+            <span class="navigation-turn-icon" aria-hidden="true">↗</span>
+            <div><span data-i18n="nextInstruction">Siguiente indicación</span><strong id="navigation-instruction"></strong></div>
+          </div>
+
+          <div class="speedometer" id="speedometer" aria-label="0 km/h">
+            <strong id="speed-value">0</strong>
+            <span id="speed-unit">km/h</span>
+          </div>
+
+          <div class="map-action-stack">
+            <button class="map-action" id="zoom-in" type="button" aria-label="Acercar" title="Acercar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="map-action" id="zoom-out" type="button" aria-label="Alejar" title="Alejar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+            <span class="map-action-divider"></span>
+            <button class="map-action map-3d-toggle" id="toggle-3d" type="button" aria-label="Activar vista 3D" aria-pressed="false" title="Vista 3D"><span>3D</span></button>
+            <button class="map-action locate-action" id="map-locate" type="button" aria-label="Mi ubicación" title="Mi ubicación"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="8"/></svg></button>
+          </div>
+
+          <div class="map-quick-actions">
+            <button class="map-round-button music-map-button" id="open-music" type="button" aria-label="Conectar música" title="Conectar música"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
+            <button class="map-round-button voice-map-button" id="toggle-voice" type="button" aria-label="Activar voz de navegación" title="Voz de navegación"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12"/></svg></button>
+            <button class="map-round-button report-map-button" id="open-report-map" type="button" aria-label="Reportar algo en la vía" title="Reportar"><span aria-hidden="true">+</span></button>
+          </div>
+
+          <div class="route-summary-overlay" id="route-summary-overlay" aria-live="polite" hidden>
+            <div class="route-summary-cell"><span data-i18n="arrivalTime">Llegada</span><strong id="arrival-time">—</strong></div>
+            <span class="route-summary-divider" aria-hidden="true"></span>
+            <div class="route-summary-cell"><span data-i18n="routeDistanceLabel">Distancia</span><strong id="summary-distance">— km</strong></div>
+            <span class="route-summary-divider" aria-hidden="true"></span>
+            <div class="route-summary-cell"><span data-i18n="routeDurationLabel">Tiempo</span><strong id="summary-duration">— min</strong></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="modal menu-modal" id="app-menu-dialog">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="menu-brand"><img class="brand-icon" src="./assets/trazia-app-icon.png" alt="" /><div><strong>Trazia</strong><span data-i18n="tagline">Tu ruta, más clara</span></div></div>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="app-menu-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <button class="menu-item" id="menu-search" type="button"><span class="menu-item-icon">⌕</span><span data-i18n="menuSearch">Buscar destino</span></button>
+        <button class="menu-item" id="menu-music" type="button"><span class="menu-item-icon">♫</span><span data-i18n="musicConnect">Conectar música</span></button>
+        <button class="menu-item" id="menu-reports" type="button"><span class="menu-item-icon">＋</span><span data-i18n="menuReport">Reportar algo en la vía</span></button>
+        <button class="menu-item" id="menu-settings" type="button"><span class="menu-item-icon">⚙</span><span data-i18n="menuSettings">Ajustes</span></button>
+        <p class="menu-footnote" data-i18n="menuNote">Navegación clara, hecha por Trazia.</p>
+      </div>
+    </dialog>
+
+    <dialog class="modal music-dialog" id="music-dialog">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div><span class="modal-kicker" data-i18n="musicKicker">MÚSICA</span><h2 data-i18n="musicTitle">Conecta tu app de música</h2></div>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="music-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <p class="music-note" data-i18n="musicIntegrationNote">Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.</p>
+        <div class="music-services">
+          <button class="music-service" type="button" data-music-service="spotify"><span class="music-service-icon spotify-icon">●</span><span class="music-service-name">Spotify</span><span class="music-service-action" data-i18n="musicOpen">Abrir</span></button>
+          <button class="music-service" type="button" data-music-service="apple"><span class="music-service-icon apple-icon">♫</span><span class="music-service-name">Apple Music</span><span class="music-service-action" data-i18n="musicOpen">Abrir</span></button>
+          <button class="music-service" type="button" data-music-service="youtube"><span class="music-service-icon youtube-icon">▶</span><span class="music-service-name">YouTube Music</span><span class="music-service-action" data-i18n="musicOpen">Abrir</span></button>
+          <button class="music-service" type="button" data-music-service="deezer"><span class="music-service-icon deezer-icon">≋</span><span class="music-service-name">Deezer</span><span class="music-service-action" data-i18n="musicOpen">Abrir</span></button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="saved-place-dialog">
+      <form class="modal-card" method="dialog" onsubmit="return false">
+        <div class="modal-header">
+          <div><span class="modal-kicker" data-i18n="savedPlaceTitle">LUGARES GUARDADOS</span><h2 id="saved-place-dialog-title">Nuevo lugar</h2></div>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="saved-place-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <label class="form-label" for="saved-place-name" data-i18n="savedPlaceName">Nombre</label>
+        <input id="saved-place-name" class="form-control" maxlength="32" />
+        <label class="form-label" for="saved-place-address" data-i18n="savedPlaceAddress">Dirección</label>
+        <input id="saved-place-address" class="form-control" maxlength="180" placeholder="Calle, ciudad, país" />
+        <div class="modal-actions"><button class="secondary-button modal-cancel" type="button" data-close="saved-place-dialog" data-i18n="cancel">Cancelar</button><button class="primary-button" id="save-place" type="button" data-i18n="savePlace">Guardar</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="report-dialog">
+      <form class="modal-card" method="dialog" onsubmit="return false">
+        <div class="modal-header">
+          <div><span class="modal-kicker" data-i18n="communityKicker">COMUNIDAD TRAZIA</span><h2 data-i18n="reportTitle">¿Qué estás viendo?</h2></div>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="report-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <label class="form-label" for="report-type" data-i18n="reportTypeLabel">Tipo de reporte</label>
+        <select id="report-type" class="form-control">
+          <option value="traffic" data-i18n="incidentTraffic">Tráfico detenido</option>
+          <option value="crash" data-i18n="incidentCrash">Choque</option>
+          <option value="hazard" data-i18n="incidentHazard">Peligro u obstáculo</option>
+          <option value="closure" data-i18n="incidentClosure">Cierre de vía</option>
+          <option value="place" data-i18n="incidentPlace">Lugar nuevo o incorrecto</option>
+        </select>
+        <label class="form-label" for="report-details" data-i18n="reportDetailsLabel">Nota breve (opcional)</label>
+        <textarea id="report-details" class="form-control" rows="3" maxlength="180" placeholder="Describe lo que ves" data-i18n-placeholder="reportDetailsPlaceholder"></textarea>
+        <p class="modal-note" data-i18n="reportLocationNote">El reporte se asociará al centro del mapa. En esta versión solo queda guardado en este dispositivo.</p>
+        <div class="modal-actions"><button class="secondary-button modal-cancel" type="button" data-close="report-dialog" data-i18n="cancel">Cancelar</button><button class="primary-button" id="save-report" type="button" data-i18n="publishReport">Guardar reporte</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="settings-dialog">
+      <form class="modal-card settings-card" method="dialog" onsubmit="return false">
+        <div class="modal-header">
+          <div><span class="modal-kicker" data-i18n="settingsKicker">CONFIGURACIÓN</span><h2 data-i18n="settingsTitle">Mapa Trazia</h2></div>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="settings-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <p class="settings-intro" data-i18n="settingsIntro">Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.</p>
+        <label class="form-label" for="theme-select" data-i18n="themeLabel">Apariencia</label>
+        <select id="theme-select" class="form-control">
+          <option value="auto" data-i18n="themeAuto">Automática: clara de día, oscura de noche</option>
+          <option value="light" data-i18n="themeLight">Clara</option>
+          <option value="dark" data-i18n="themeDark">Oscura</option>
+        </select>
+        <p class="modal-note" data-i18n="mapDataNote">Mapa base: OpenStreetMap. Las sugerencias de direcciones vienen de datos abiertos; las rutas y el tiempo son aproximados y no tienen tráfico en vivo.</p>
+        <a class="docs-link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" data-i18n="openStreetMapCredits">Créditos y licencia de OpenStreetMap</a>
+        <a class="docs-link" href="https://openfreemap.org/" target="_blank" rel="noreferrer" data-i18n="mapProviderLabel">Servicio de mapas abiertos</a>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./app.js?v=20"></script>
+  </body>
+</html>
