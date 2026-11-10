@@ -9,10 +9,23 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=19" />
+    <link rel="stylesheet" href="./styles.css?v=20" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
+    <section class="app-splash" id="app-splash" aria-label="Trazia" role="status">
+      <div class="splash-card">
+        <img class="splash-logo" src="./assets/trazia-app-icon.png" alt="" width="112" height="112" />
+        <h1 class="splash-wordmark">Trazia</h1>
+        <p class="splash-note" id="splash-note">Preparando tu ruta</p>
+        <div class="splash-progress-row">
+          <div class="splash-progress-meter" id="splash-progress-meter" role="progressbar" aria-label="Carga de Trazia" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span class="splash-progress" id="splash-progress"></span>
+          </div>
+          <span class="splash-progress-value" id="splash-progress-value">0%</span>
+        </div>
+      </div>
+    </section>
     <main class="app-shell">
       <aside class="side-panel" aria-label="Panel de Trazia">
         <div class="panel-scroll">
@@ -337,7 +350,7 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="./app.js?v=22"></script>
+    <script type="module" src="./app.js?v=23"></script>
   </body>
 </html>
 
