@@ -62,3 +62,11 @@ Trazia es una PWA en esta entrega. Crear un archivo IPA para iPhone requiere emp
 Las direcciones con `#` consultan primero ArcGIS World Geocoding para buscar la nomenclatura completa. Se aceptan únicamente coincidencias de dirección con puntuación mínima de 95, vía y números coincidentes, y ciudad coincidente cuando se especifica. Un resultado de calle sin número nunca se presenta como dirección completa. El punto de llegada puede ser interpolado sobre la vía; no garantiza la ubicación de la puerta.
 
 Las consultas ArcGIS usan `forStorage=false`: sus resultados se muestran temporalmente en el mapa y la ruta; el historial conserva únicamente el texto original escrito por la persona. No se guarda la respuesta del proveedor. Si ArcGIS falla o no encuentra la nomenclatura, continúa la búsqueda abierta de Photon y la sugerencia de vía aproximada.
+
+## Importar una ubicación de Waze
+
+En Waze, selecciona el lugar y usa Compartir para copiar su enlace. En Trazia pulsa **Importar ubicación de Waze**, pega el enlace y elige **Usar ubicación en Trazia**. Después pulsa **Buscar ruta**. También puedes pegar el enlace directamente en el buscador. El destino utiliza las coordenadas compartidas; no vuelve a buscar la dirección como texto.
+
+Se admiten enlaces Waze con `ll=latitud,longitud`, enlaces Live Map con `to=ll.latitud,longitud` y enlaces con geohash de al menos 8 caracteres (`h=` o `/ul/h…`). Los geohashes se indican como puntos aproximados. Los enlaces de búsqueda, favoritos sin coordenadas y acortadores opacos no permiten importar un destino y muestran instrucciones para compartir el lugar. No se consultan APIs privadas de Waze ni servicios externos para resolver enlaces. El historial conserva el enlace canónico para reutilizar el punto sin geocodificarlo.
+
+Pruebas: `node tests/waze-links.test.cjs`, `node tests/geocoding.test.cjs`. Prueba móvil automatizada: `node tests/waze-browser.cjs` (requiere Playwright y Chromium en `/usr/bin/chromium`; mapa y servicios externos simulados).
