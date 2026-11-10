@@ -48,9 +48,32 @@ const server = createServer((request, response) => {
   }
 
   if (pathname === '/api/route' && request.method === 'GET') {
-    const target = new URL('https://valhalla.openstreetmap.de/route');
+    const target = new URL('https://valhalla1.openstreetmap.de/route');
     target.search = new URL(request.url || '/', 'http://localhost').search;
-    void proxyJson(response, target);
+    void proxyJson(response, target, { headers: { Accept: 'application/json', 'X-Client-Id': 'trazia.github.io' } });
+    return;
+  }
+
+  if (pathname === '/api/route' && request.method === 'POST') {
+    const chunks = [];
+    let size = 0;
+    request.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > 100_000) {
+        response.writeHead(413).end('Request too large');
+        request.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    request.on('end', () => {
+      if (response.writableEnded) return;
+      void proxyJson(response, 'https://valhalla1.openstreetmap.de/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Client-Id': 'trazia.github.io' },
+        body: Buffer.concat(chunks),
+      });
+    });
     return;
   }
 
@@ -68,9 +91,9 @@ const server = createServer((request, response) => {
     });
     request.on('end', () => {
       if (response.writableEnded) return;
-      void proxyJson(response, 'https://overpass-api.de/api/interpreter', {
+      void proxyJson(response, 'https://overpass.private.coffee/api/interpreter', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json', 'User-Agent': 'Trazia local app' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json', 'User-Agent': 'Trazia (valgraffim-bit.github.io)' },
         body: Buffer.concat(chunks),
       });
     });
@@ -102,3 +125,4 @@ const server = createServer((request, response) => {
 });
 
 server.listen(8000, '127.0.0.1');
+
