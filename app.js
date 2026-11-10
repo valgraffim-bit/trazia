@@ -92,7 +92,10 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     musicService: localStorage.getItem('trazia:music-service') || '',
     placeMarkers: [],
     nearbyRequestId: 0,
+    nearbyCache: new Map(),
     cityBoundaryCache: new Map(),
+    nominatimCache: new Map(),
+    nominatimLastRequestAt: 0,
     reportMarkers: [],
     routeCoordinates: [],
     currentRoutes: [],
@@ -234,10 +237,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   function updateVehicleMarkerOrientation() {
-    if (!state.userMarker || !Number.isFinite(state.lastHeading)) return;
-    const bearing = state.map?.getBearing() ?? 0;
-    const rotation = ((state.lastHeading - bearing) % 360 + 360) % 360;
-    state.userMarker.setRotation(rotation);
+    // The vehicle glyph is deliberately kept level on screen, as requested.
+    // Map rotation is handled by the camera; rotating the marker made emoji vehicles stand upright.
   }
 
   function bearingBetween(from, to) {
@@ -537,16 +538,110 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     return params;
   }
 
-  async function findDestinationCandidates(query, center = state.currentPosition, signal) {
-    let params = makePhotonSearchParams(query, center);
-    let payload = await fetchPhotonFeatures(params, signal);
-    let matches = rankPhotonFeatures(payload.features || [], query, center);
-    if (!matches.length && center) {
-      params = makePhotonSearchParams(query, null);
-      payload = await fetchPhotonFeatures(params, signal);
+  async function findDestinationCandidates(query, center = state.currentPosition, signal, { allowNominatimFallback = false } = {}) {
+    let matches = [];
+    let photonError = null;
+    try {
+      let params = makePhotonSearchParams(query, center);
+      let payload = await fetchPhotonFeatures(params, signal);
       matches = rankPhotonFeatures(payload.features || [], query, center);
+      if (!matches.length && center) {
+        params = makePhotonSearchParams(query, null);
+        payload = await fetchPhotonFeatures(params, signal);
+        matches = rankPhotonFeatures(payload.features || [], query, center);
+      }
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      photonError = error;
+    }
+    // Nominatim is only used after an explicit route-search action. Its public
+    // service does not permit per-keystroke autocomplete.
+    if (allowNominatimFallback && matches.length < 4) {
+      try {
+        const fallbackMatches = await findNominatimCandidates(query, signal);
+        matches = rankPhotonFeatures([...matches, ...fallbackMatches], query, center);
+        if (!matches.length) matches = fallbackMatches;
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        if (photonError) console.info('Trazia geocoding fallback:', photonError.message, error.message);
+      }
     }
     return matches;
+  }
+
+  function fetchTimed(url, options = {}, timeoutMs = 12000) {
+    const controller = new AbortController();
+    const externalSignal = options.signal;
+    const abortFromCaller = () => controller.abort();
+    if (externalSignal?.aborted) controller.abort();
+    else externalSignal?.addEventListener('abort', abortFromCaller, { once: true });
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => {
+      window.clearTimeout(timeout);
+      externalSignal?.removeEventListener('abort', abortFromCaller);
+    });
+  }
+
+  function isLocalApiHost() {
+    return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  }
+
+  function waitWithSignal(milliseconds, signal) {
+    return new Promise((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'));
+        return;
+      }
+      const timer = window.setTimeout(() => {
+        signal?.removeEventListener('abort', abort);
+        resolve();
+      }, milliseconds);
+      const abort = () => {
+        window.clearTimeout(timer);
+        signal?.removeEventListener('abort', abort);
+        reject(new DOMException('Aborted', 'AbortError'));
+      };
+      signal?.addEventListener('abort', abort, { once: true });
+    });
+  }
+
+  async function findNominatimCandidates(query, signal) {
+    const key = normalizeGeocodeText(query);
+    const cached = state.nominatimCache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return cached.features;
+    const wait = Math.max(0, 1100 - (Date.now() - state.nominatimLastRequestAt));
+    if (wait) await waitWithSignal(wait, signal);
+    const params = new URLSearchParams({ q: query, format: 'jsonv2', addressdetails: '1', limit: '8', 'accept-language': state.language === 'es' ? 'es' : 'en' });
+    state.nominatimLastRequestAt = Date.now();
+    const response = await fetchTimed(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+      signal,
+      headers: { Accept: 'application/json' },
+    }, 12000);
+    if (!response.ok) throw new Error(`Nominatim ${response.status}`);
+    const results = await response.json();
+    const features = (Array.isArray(results) ? results : []).map((result) => {
+      const address = result.address || {};
+      const properties = {
+        name: result.name || result.type || '',
+        housenumber: address.house_number || '',
+        street: address.road || address.pedestrian || address.residential || address.footway || '',
+        district: address.suburb || address.neighbourhood || address.city_district || '',
+        city: address.city || address.town || address.village || address.municipality || '',
+        county: address.county || '',
+        state: address.state || '',
+        country: address.country || '',
+        postcode: address.postcode || '',
+      };
+      return {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [Number(result.lon), Number(result.lat)] },
+        properties,
+      };
+    }).filter((feature) => feature.geometry.coordinates.every(Number.isFinite));
+    const ranked = rankPhotonFeatures(features, query, null);
+    const useful = ranked.length ? ranked : features;
+    state.nominatimCache.set(key, { expiresAt: Date.now() + 5 * 60 * 1000, features: useful });
+    return useful;
   }
 
   function photonLanguage() {
@@ -556,27 +651,52 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   async function fetchPhotonFeatures(params, signal) {
-    let response = null;
-    try {
-      response = await fetch(`/api/photon?${params.toString()}`, { signal, headers: { Accept: 'application/json' } });
-      if (response.status === 404 || response.status === 502) response = null;
-    } catch (error) {
-      if (signal?.aborted) throw error;
+    const query = params.toString();
+    const endpoints = isLocalApiHost()
+      ? [`/api/photon?${query}`, `https://photon.komoot.io/api/?${query}`]
+      : [`https://photon.komoot.io/api/?${query}`];
+    let lastError;
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetchTimed(endpoint, { signal, headers: { Accept: 'application/json' } }, 11000);
+        if (!response.ok) {
+          lastError = new Error(`Photon ${response.status}`);
+          if (response.status === 404 || response.status === 429 || response.status >= 500) continue;
+          throw lastError;
+        }
+        return await response.json();
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        lastError = error;
+      }
     }
-    if (!response) response = await fetch(`https://photon.komoot.io/api/?${params.toString()}`, { signal, headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`Photon ${response.status}`);
-    return response.json();
+    throw lastError || new Error('Photon unavailable');
   }
 
   async function fetchValhallaRoute(request) {
-    const query = new URLSearchParams({ json: JSON.stringify(request) }).toString();
-    let response = null;
-    try {
-      response = await fetch(`/api/route?${query}`, { headers: { Accept: 'application/json' } });
-      if (response.status === 404 || response.status === 502) response = null;
-    } catch { /* Use the public route service directly when a local proxy is unavailable. */ }
-    if (!response) response = await fetch(`https://valhalla.openstreetmap.de/route?${query}`, { headers: { Accept: 'application/json' } });
-    return response;
+    const identifiedRequest = { ...request, id: 'trazia.github.io' };
+    const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Client-Id': 'trazia.github.io' };
+    const attempts = [];
+    if (isLocalApiHost()) attempts.push({ url: '/api/route', options: { method: 'POST', headers, body: JSON.stringify(identifiedRequest) } });
+    attempts.push({ url: 'https://valhalla1.openstreetmap.de/route', options: { method: 'POST', headers, body: JSON.stringify(identifiedRequest) } });
+    const query = new URLSearchParams({ json: JSON.stringify(identifiedRequest) }).toString();
+    attempts.push({ url: `https://valhalla1.openstreetmap.de/route?${query}`, options: { headers: { Accept: 'application/json', 'X-Client-Id': 'trazia.github.io' } } });
+    // Keep the old public hostname as a final compatibility fallback.
+    attempts.push({ url: `https://valhalla.openstreetmap.de/route?${query}`, options: { headers: { Accept: 'application/json', 'X-Client-Id': 'trazia.github.io' } } });
+    let lastError;
+    for (const attempt of attempts) {
+      try {
+        const response = await fetchTimed(attempt.url, attempt.options, 14000);
+        if (response.status === 429 || response.status >= 500) {
+          lastError = new Error(`Valhalla ${response.status}`);
+          continue;
+        }
+        return response;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error('Valhalla unavailable');
   }
 
   function showToast(message, isError = false) {
@@ -1031,6 +1151,17 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     }
     const routeButton = $('#search-route');
     routeButton.disabled = true;
+    if (!automatic) {
+      clearRoutePolylines();
+      state.route = null;
+      state.currentRoutes = [];
+      state.navigationSteps = [];
+      state.activeStep = 0;
+      $('#route-duration').innerHTML = `— <small>${t('minutes')}</small>`;
+      $('#route-distance').innerHTML = `— <small>${t('kilometers')}</small>`;
+      $('#start-navigation').disabled = true;
+      $('#route-summary-overlay').hidden = true;
+    }
     $('#route-note').textContent = automatic ? t('rerouting') : t('connecting');
     const searchRequestId = ++state.autocompleteRequestId;
     window.clearTimeout(state.autocompleteTimer);
@@ -1040,7 +1171,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       updateUserMarker(origin);
       let selected = state.selectedDestination;
       if (!selected?.location) {
-        const matches = await findDestinationCandidates(typedDestination, origin);
+        const matches = await findDestinationCandidates(typedDestination, origin, undefined, { allowNominatimFallback: true });
         if (destinationInput.value.trim() !== typedDestination || searchRequestId !== state.autocompleteRequestId) return;
         state.autocompleteQuery = typedDestination;
         if (!matches.length) {
@@ -1075,7 +1206,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         request.costing_options = { [costing]: { use_tolls: 0.05, toll_booth_penalty: 1200 } };
       }
       const response = await fetchValhallaRoute(request);
-      const payload = await response.json();
+      let payload;
+      try { payload = await response.json(); } catch { payload = {}; }
       if (!response.ok || payload.error || !payload.trip?.legs?.length) {
         const detail = `${payload.error || ''} ${payload.status_message || ''}`.toLowerCase();
         throw new Error(detail.includes('path could not') ? 'no-route' : 'route-service');
@@ -1089,17 +1221,34 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         coordinates.push(...legCoordinates);
         (leg.maneuvers || []).forEach((maneuver) => {
           if (!maneuver.instruction) return;
+            const beginIndex = Math.min(Math.max(0, Number(maneuver.begin_shape_index) || 0) + legOffset, coordinates.length - 1);
           const endpointIndex = Math.min(Math.max(0, maneuver.end_shape_index || 0) + legOffset, coordinates.length - 1);
           const [lng, lat] = coordinates[endpointIndex] || coordinates[coordinates.length - 1] || [origin.lng, origin.lat];
-          navigationSteps.push({ instructions: maneuver.instruction, endLocation: { lat, lng } });
+            const [beginLng, beginLat] = coordinates[beginIndex] || [origin.lng, origin.lat];
+            navigationSteps.push({
+              instructions: maneuver.instruction,
+              alertInstruction: maneuver.verbal_transition_alert_instruction || maneuver.instruction,
+              preInstruction: maneuver.verbal_pre_transition_instruction || maneuver.instruction,
+              endLocation: { lat, lng },
+              beginLocation: { lat: beginLat, lng: beginLng },
+              alertSpoken: false,
+              preSpoken: false,
+            });
         });
       });
       if (coordinates.length < 2) throw new Error('no-route');
-      const routeSummary = payload.trip.summary || {};
+      const legSummaries = payload.trip.legs.map((leg) => leg.summary || {});
+      const routeSummary = payload.trip.summary || {
+        length: legSummaries.reduce((total, summary) => total + (Number(summary.length) || 0), 0),
+        time: legSummaries.reduce((total, summary) => total + (Number(summary.time) || 0), 0),
+      };
+      const distanceKilometers = Number(routeSummary.length);
+      const durationSeconds = Number(routeSummary.time);
+      if (!Number.isFinite(distanceKilometers) || distanceKilometers <= 0 || !Number.isFinite(durationSeconds) || durationSeconds < 0) throw new Error('no-route');
       const route = {
         path: coordinates.map(([lng, lat]) => ({ lat, lng })),
-        distanceMeters: Number(routeSummary.length) * 1000,
-        durationMillis: Number(routeSummary.time) * 1000,
+        distanceMeters: distanceKilometers * 1000,
+        durationMillis: durationSeconds * 1000,
         legs: [{ steps: navigationSteps }],
       };
       clearRoutePolylines();
@@ -1225,39 +1374,41 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   async function requestOverpass(query, timeoutMs = 18000) {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const options = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
-        body: new URLSearchParams({ data: query }).toString(),
-        signal: controller.signal,
-      };
-      let response = null;
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
+      body: new URLSearchParams({ data: query }).toString(),
+    };
+    const endpoints = [
+      ...(isLocalApiHost() ? ['/api/overpass'] : []),
+      'https://overpass.private.coffee/api/interpreter',
+      'https://overpass-api.de/api/interpreter',
+    ];
+    const perEndpointTimeout = Math.max(7000, Math.min(14000, Math.floor(timeoutMs / endpoints.length)));
+    let lastError;
+    for (const endpoint of endpoints) {
       try {
-        response = await fetch('/api/overpass', options);
-        if (response.status === 404 || response.status === 502) response = null;
+        const response = await fetchTimed(endpoint, options, perEndpointTimeout);
+        if (!response.ok) {
+          lastError = new Error(`Overpass ${response.status}`);
+          if (response.status === 404 || response.status === 408 || response.status === 429 || response.status >= 500) continue;
+          throw lastError;
+        }
+        return await response.json();
       } catch (error) {
-        if (controller.signal.aborted) throw error;
+        lastError = error;
       }
-      if (!response) response = await fetch('https://overpass-api.de/api/interpreter', options);
-      if (!response.ok) throw new Error(`Overpass ${response.status}`);
-      return await response.json();
-    } finally {
-      window.clearTimeout(timeout);
     }
+    throw lastError || new Error('Overpass unavailable');
   }
 
   async function findCityBoundary(center) {
-    const cacheKey = `${center.lat.toFixed(2)}:${center.lng.toFixed(2)}`;
+    const cacheKey = `${center.lat.toFixed(3)}:${center.lng.toFixed(3)}`;
     if (state.cityBoundaryCache.has(cacheKey)) return state.cityBoundaryCache.get(cacheKey);
-    const query = `[out:json][timeout:12];is_in(${center.lat},${center.lng})->.containing;area.containing["boundary"="administrative"]["admin_level"~"^(5|6|7|8|9|10)$"];out tags;`;
+    const query = `[out:json][timeout:14];is_in(${center.lat},${center.lng})->.containing;area.containing["boundary"="administrative"]["admin_level"~"^(5|6|7|8)$"];out tags;`;
     const payload = await requestOverpass(query, 14000);
     const candidates = (payload.elements || []).filter((element) => element.type === 'area' && element.tags?.boundary === 'administrative' && Number.isFinite(Number(element.tags.admin_level)));
-    const municipality = candidates.filter((element) => Number(element.tags.admin_level) >= 5 && Number(element.tags.admin_level) <= 8);
-    const pool = municipality.length ? municipality : candidates;
-    const boundary = pool.sort((a, b) => Number(b.tags.admin_level) - Number(a.tags.admin_level))[0]?.id ?? null;
+    const boundary = candidates.sort((a, b) => Number(b.tags.admin_level) - Number(a.tags.admin_level))[0]?.id ?? null;
     state.cityBoundaryCache.set(cacheKey, boundary);
     return boundary;
   }
@@ -1271,14 +1422,42 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     }[category] || [];
   }
 
-  function makeNearbyOverpassQuery(category, center, boundaryId) {
-    const radius = 12000;
-    const localSelector = boundaryId
-      ? `nwr(area.city)(around:${radius},${center.lat},${center.lng})`
-      : `nwr(around:${radius},${center.lat},${center.lng})`;
+  function makeNearbySearchPlan(center) {
+    const coordinates = state.route && state.routeCoordinates.length > 1 ? state.routeCoordinates : [];
+    if (!coordinates.length) return { points: [center], radius: 12000, onRoute: false };
+    const routePoints = coordinates.map(([lng, lat]) => ({ lat, lng }));
+    const lengths = routePoints.slice(1).map((point, index) => distanceMeters(routePoints[index], point));
+    const totalLength = lengths.reduce((sum, length) => sum + length, 0);
+    if (!Number.isFinite(totalLength) || totalLength < 100) return { points: [center], radius: 12000, onRoute: false };
+    const pointCount = Math.min(14, Math.max(2, Math.ceil(totalLength / 2500) + 1));
+    const spacing = totalLength / (pointCount - 1);
+    const radius = Math.max(1100, Math.min(5000, spacing * 0.62));
+    const points = [];
+    for (let target = 0; target <= pointCount - 1; target += 1) {
+      const targetDistance = Math.min(totalLength, target * spacing);
+      let traversed = 0;
+      let segmentIndex = 0;
+      while (segmentIndex < lengths.length - 1 && traversed + lengths[segmentIndex] < targetDistance) {
+        traversed += lengths[segmentIndex];
+        segmentIndex += 1;
+      }
+      const segmentLength = lengths[segmentIndex] || 1;
+      const fraction = Math.max(0, Math.min(1, (targetDistance - traversed) / segmentLength));
+      const from = routePoints[segmentIndex];
+      const to = routePoints[segmentIndex + 1] || from;
+      const point = { lat: from.lat + (to.lat - from.lat) * fraction, lng: from.lng + (to.lng - from.lng) * fraction };
+      if (!points.some((candidate) => Math.abs(candidate.lat - point.lat) < 0.002 && Math.abs(candidate.lng - point.lng) < 0.002)) points.push(point);
+    }
+    return { points, radius, onRoute: true };
+  }
+
+  function makeNearbyOverpassQuery(category, plan, boundaryId) {
+    const localSelector = (point) => boundaryId
+      ? `nwr(area.city)(around:${Math.round(plan.radius)},${point.lat},${point.lng})`
+      : `nwr(around:${Math.round(plan.radius)},${point.lat},${point.lng})`;
     const areaQuery = boundaryId ? `area(${boundaryId})->.city;` : '';
-    const searches = nearbyTagFilters(category).map((filter) => `${localSelector}${filter};`).join('\n');
-    return `[out:json][timeout:18];${areaQuery}(${searches});out center tags qt 100;`;
+    const searches = plan.points.flatMap((point) => nearbyTagFilters(category).map((filter) => `${localSelector(point)}${filter};`)).join('\n');
+    return `[out:json][timeout:22];${areaQuery}(${searches});out center tags qt 200;`;
   }
 
   function overpassFeature(element) {
@@ -1323,39 +1502,56 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       }
       const center = state.currentPosition || currentMapCenter();
       if (!center) throw new Error('location-unavailable');
+      const plan = makeNearbySearchPlan(center);
+      const route = state.routeCoordinates;
+      const routeKey = plan.onRoute && route.length
+        ? `${route[0][0].toFixed(3)},${route[0][1].toFixed(3)}:${route[route.length - 1][0].toFixed(3)},${route[route.length - 1][1].toFixed(3)}:${route.length}`
+        : 'city-radius';
+      const cacheKey = `${category}:${center.lat.toFixed(3)},${center.lng.toFixed(3)}:${routeKey}`;
+      const cached = state.nearbyCache.get(cacheKey);
       let features;
-      try {
-        const boundaryId = await findCityBoundary(center);
-        const query = makeNearbyOverpassQuery(category, center, boundaryId);
-        const payload = await requestOverpass(query);
-        const unique = new Map();
-        (payload.elements || []).forEach((element) => {
-          const feature = overpassFeature(element);
-          if (feature) unique.set(feature.id, feature);
-        });
-        features = [...unique.values()];
-      } catch (overpassError) {
-        console.info('Trazia is using the nearby-search fallback:', overpassError.message);
-        const queries = {
-          gas: state.language === 'es' ? 'gasolinera' : 'gas station',
-          clinic: state.language === 'es' ? 'clínica hospital' : 'clinic hospital',
-          pharmacy: state.language === 'es' ? 'farmacia' : 'pharmacy',
-          business: state.language === 'es' ? 'tienda negocio' : 'shop business',
-        };
-        const params = new URLSearchParams({ q: queries[category], limit: '30', lang: photonLanguage(), lat: String(center.lat), lon: String(center.lng), zoom: '14' });
-        const payload = await fetchPhotonFeatures(params);
-        features = (payload.features || []).filter((feature) => {
-          const [lng, lat] = feature.geometry?.coordinates || [];
-          return Number.isFinite(lat) && Number.isFinite(lng) && distanceMeters(center, { lat, lng }) <= 12000;
-        });
+      if (cached && cached.expiresAt > Date.now()) features = cached.features;
+      else {
+        try {
+          const boundaryId = await findCityBoundary(center);
+          const query = makeNearbyOverpassQuery(category, plan, boundaryId);
+          const payload = await requestOverpass(query, 30000);
+          const unique = new Map();
+          (payload.elements || []).forEach((element) => {
+            const feature = overpassFeature(element);
+            if (feature) unique.set(feature.id, feature);
+          });
+          features = [...unique.values()];
+        } catch (overpassError) {
+          console.info('Trazia is using the nearby-search fallback:', overpassError.message);
+          const queries = {
+            gas: state.language === 'es' ? 'gasolinera' : 'gas station',
+            clinic: state.language === 'es' ? 'clínica hospital' : 'clinic hospital',
+            pharmacy: state.language === 'es' ? 'farmacia' : 'pharmacy',
+            business: state.language === 'es' ? 'tienda negocio' : 'shop business',
+          };
+          const params = new URLSearchParams({ q: queries[category], limit: '30', lang: photonLanguage(), lat: String(center.lat), lon: String(center.lng), zoom: '14' });
+          const payload = await fetchPhotonFeatures(params);
+          features = (payload.features || []).filter((feature) => {
+            const [lng, lat] = feature.geometry?.coordinates || [];
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+            return plan.onRoute ? distanceFromRouteMeters({ lat, lng }, state.routeCoordinates) <= plan.radius : distanceMeters(center, { lat, lng }) <= plan.radius;
+          });
+        }
+        state.nearbyCache.set(cacheKey, { expiresAt: Date.now() + 3 * 60 * 1000, features });
       }
       if (requestId !== state.nearbyRequestId) return;
       features = features
-        .map((feature) => ({ feature, distance: distanceMeters(center, { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] }) }))
-        .filter((item) => item.distance <= 12500)
-        .sort((a, b) => a.distance - b.distance)
+        .map((feature) => {
+          const [lng, lat] = feature.geometry.coordinates;
+          const point = { lat, lng };
+          return { feature, distance: distanceMeters(center, point), routeDistance: plan.onRoute ? distanceFromRouteMeters(point, state.routeCoordinates) : null };
+        })
+        .filter((item) => plan.onRoute ? item.routeDistance <= plan.radius + 100 : item.distance <= plan.radius + 500)
+        .sort((a, b) => plan.onRoute ? a.routeDistance - b.routeDistance : a.distance - b.distance)
         .slice(0, 8)
         .map((item) => item.feature);
+      state.nearbyCache.set(cacheKey, { expiresAt: Date.now() + 3 * 60 * 1000, features });
       results.replaceChildren();
       if (!features.length) {
         results.textContent = t('invalidCategory');
@@ -1384,7 +1580,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         const meta = document.createElement('div');
         meta.className = 'place-result-meta';
         const [lng, lat] = coordinates;
-        const distance = distanceMeters(center, { lat, lng });
+        const point = { lat, lng };
+        const distance = plan.onRoute ? distanceFromRouteMeters(point, state.routeCoordinates) : distanceMeters(center, point);
         const distanceLabel = `${new Intl.NumberFormat(state.language === 'es' ? 'es-CO' : 'en-US', { maximumFractionDigits: 1 }).format(distance / 1000)} km`;
         meta.textContent = [parts.secondary || parts.label || t('noAddress'), distanceLabel].filter(Boolean).join(' · ');
         text.append(name, meta);
@@ -1517,7 +1714,10 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text.replace(/<[^>]*>/g, ' '));
     utterance.lang = state.language === 'es' ? 'es-CO' : 'en-US';
-    utterance.rate = 1;
+    utterance.rate = 0.96;
+    const preferredLanguage = state.language === 'es' ? /^es(?:-|$)/i : /^en(?:-|$)/i;
+    const preferredVoice = window.speechSynthesis.getVoices().find((voice) => preferredLanguage.test(voice.lang));
+    if (preferredVoice) utterance.voice = preferredVoice;
     window.speechSynthesis.speak(utterance);
   }
 
@@ -1530,6 +1730,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       showToast(t('navigationNeedsRoute'));
       return;
     }
+    // Resume speech while the tap still counts as a direct user gesture on mobile.
+    window.speechSynthesis?.resume?.();
     try {
       const position = await getUserPosition();
       collapseMobilePanel();
@@ -1537,7 +1739,9 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       state.followCamera = true;
       state.activeStep = 0;
       state.offRouteFixes = 0;
-      const firstInstruction = state.navigationSteps[state.activeStep]?.instructions || t('navigationFollowRoute');
+      const firstStep = state.navigationSteps[state.activeStep];
+      if (firstStep) firstStep.alertSpoken = true;
+      const firstInstruction = firstStep?.instructions || t('navigationFollowRoute');
       $('#route-note').textContent = firstInstruction;
       $('#navigation-instruction').textContent = firstInstruction;
       $('#navigation-banner').hidden = false;
@@ -1602,7 +1806,19 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     const end = step.endLocation;
     const endPoint = typeof end?.lat === 'function' ? { lat: end.lat(), lng: end.lng() } : end;
     if (!endPoint) return;
-    if (distanceMeters(user, endPoint) <= 65) {
+    const metersToManeuver = distanceMeters(user, endPoint);
+    if (!step.alertSpoken && metersToManeuver <= 650) {
+      step.alertSpoken = true;
+      speak(step.alertInstruction || step.instructions);
+    }
+    if (!step.preSpoken && metersToManeuver <= 230) {
+      step.preSpoken = true;
+      const preInstruction = step.preInstruction || step.instructions;
+      $('#route-note').textContent = preInstruction;
+      $('#navigation-instruction').textContent = preInstruction;
+      speak(preInstruction);
+    }
+    if (metersToManeuver <= 65) {
       state.activeStep += 1;
       const next = state.navigationSteps[state.activeStep];
       if (!next) {
@@ -1613,6 +1829,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       }
       $('#route-note').textContent = next.instructions;
       $('#navigation-instruction').textContent = next.instructions;
+      next.alertSpoken = true;
       speak(next.instructions);
     }
   }
@@ -1813,3 +2030,4 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
   initialize();
 })();
+
