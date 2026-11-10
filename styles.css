@@ -24,6 +24,20 @@ body { overflow: hidden; }
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(20, 191, 166, .3); outline-offset: 2px; }
+.app-splash { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow: hidden; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); color: #f5fbff; background: radial-gradient(circle at 50% 40%, rgba(20,191,166,.18), transparent 33%), linear-gradient(145deg, #10243c 0%, #142c49 55%, #0a947f 150%); opacity: 1; transition: opacity .36s ease, visibility .36s ease; }
+.app-splash::before, .app-splash::after { position: absolute; width: min(78vw, 560px); aspect-ratio: 1; border: 1px solid rgba(68,222,195,.12); border-radius: 50%; content: ''; pointer-events: none; }
+.app-splash::before { transform: scale(1.25); }
+.app-splash::after { transform: scale(1.65); }
+.app-splash.is-finishing { visibility: hidden; opacity: 0; }
+.app-splash[hidden] { display: none; }
+.splash-card { position: relative; z-index: 1; display: grid; width: min(100%, 360px); justify-items: center; text-align: center; }
+.splash-logo { width: clamp(92px, 22vw, 118px); height: auto; border-radius: 27px; box-shadow: 0 18px 48px rgba(0,0,0,.24), 0 0 34px rgba(20,191,166,.2); }
+.splash-wordmark { margin: 19px 0 0; color: #f7fbff; font: 850 clamp(38px, 9vw, 48px)/1 Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: -2.5px; }
+.splash-note { margin: 11px 0 0; color: #b6c8d4; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.splash-progress-row { display: flex; width: min(100%, 300px); align-items: center; gap: 12px; margin-top: 37px; }
+.splash-progress-meter { height: 8px; flex: 1; overflow: hidden; border: 1px solid rgba(255,255,255,.24); border-radius: 99px; background: rgba(255,255,255,.12); box-shadow: inset 0 2px 5px rgba(0,0,0,.15); }
+.splash-progress { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #12c9b0, #6ce6ce); box-shadow: 0 0 14px rgba(57,225,196,.55); transition: width .12s linear; }
+.splash-progress-value { min-width: 42px; color: #e9f8f5; font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 800; text-align: right; }
 .app-shell { display: grid; grid-template-columns: 378px minmax(0, 1fr); height: 100%; width: 100%; }
 
 .side-panel { position: relative; z-index: 4; display: flex; min-width: 0; min-height: 0; flex-direction: column; background: var(--panel); border-right: 1px solid var(--line); }
@@ -189,7 +203,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .compass-button .compass-north-needle { fill: #e95361; stroke: #e95361; }
 .compass-button .compass-south-needle { fill: #159b8e; stroke: #159b8e; }
 .compass-north-label { position: absolute; z-index: 1; top: 2px; color: #e95361; font-size: 7px; font-weight: 900; line-height: 1; }
-.navigation-banner { position: absolute; z-index: 3; top: 74px; left: 19px; display: flex; max-width: min(440px, calc(100% - 90px)); align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,.72); border-radius: 16px; padding: 12px 15px; color: #65788a; background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(18,42,61,.16); backdrop-filter: blur(12px); }
+.navigation-banner { position: absolute; z-index: 3; top: 145px; left: 19px; display: flex; max-width: min(440px, calc(100% - 90px)); align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,.72); border-radius: 16px; padding: 12px 15px; color: #65788a; background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(18,42,61,.16); backdrop-filter: blur(12px); }
 .navigation-banner[hidden] { display: none; }
 .navigation-turn-icon { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 12px; color: #0b8275; background: #e5f7f2; font-size: 27px; font-weight: 800; }
 .navigation-banner div { display: grid; gap: 4px; min-width: 0; }
@@ -199,7 +213,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .speedometer strong { font: 800 29px/1 Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: -1px; }
 .speedometer span { margin-top: 3px; font-size: 10px; font-weight: 600; opacity: .86; }
 .speedometer.gps-active { border-color: rgba(43,218,190,.85); }
-.route-summary-overlay { position: absolute; z-index: 3; bottom: 18px; left: 50%; display: flex; min-width: 260px; align-items: center; justify-content: center; gap: 15px; transform: translateX(-50%); border: 1px solid rgba(255,255,255,.8); border-radius: 16px; padding: 11px 16px; color: #fff; background: rgba(20,38,59,.94); box-shadow: 0 10px 28px rgba(10,24,38,.24); backdrop-filter: blur(10px); }
+.route-summary-overlay { position: absolute; z-index: 3; top: 70px; bottom: auto; left: 50%; display: flex; min-width: 260px; align-items: center; justify-content: center; gap: 15px; transform: translateX(-50%); border: 1px solid rgba(255,255,255,.8); border-radius: 16px; padding: 11px 16px; color: #fff; background: rgba(20,38,59,.94); box-shadow: 0 10px 28px rgba(10,24,38,.24); backdrop-filter: blur(10px); }
 .route-summary-overlay[hidden] { display: none; }
 .route-summary-cell { display: grid; gap: 3px; }
 .route-summary-cell span { color: #b7c4cc; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
@@ -238,6 +252,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .trazia-place-marker { color: #14263b; background: #f8bd45; }
 .trazia-report-marker { color: #fff; background: #e85c5c; }
 .trazia-report-marker.report-place { background: #12aa97; }
+.trazia-destination-marker { display: grid; width: 42px; height: 42px; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #8054db; box-shadow: 0 4px 14px rgba(43,25,85,.38), 0 0 0 3px rgba(128,84,219,.25); font-size: 22px; line-height: 1; }
 
 .modal { width: min(430px, calc(100vw - 28px)); max-width: 430px; border: 1px solid #e7eeee; border-radius: 20px; padding: 0; color: var(--text); background: #fff; box-shadow: 0 24px 80px rgba(16, 36, 54, .22); }
 .modal::backdrop { background: rgba(17, 34, 48, .36); backdrop-filter: blur(3px); }
@@ -305,13 +320,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .compass-button { width: 38px; height: 38px; }
   .compass-button svg { width: 27px; height: 27px; }
   .map-action-stack { top: 65px; right: 12px; }
-  .navigation-banner { top: calc(max(12px, env(safe-area-inset-top)) + 50px); left: 12px; max-width: calc(100% - 78px); padding: 9px 11px; }
+  .navigation-banner { top: calc(max(12px, env(safe-area-inset-top)) + 116px); left: 12px; max-width: calc(100% - 78px); padding: 9px 11px; }
   .navigation-turn-icon { width: 35px; height: 35px; border-radius: 11px; font-size: 23px; }
   .navigation-banner strong { font-size: 11px; }
   .speedometer { top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 12px; width: 68px; height: 68px; }
   .speedometer strong { font-size: 25px; }
   .speedometer span { font-size: 9px; }
-  .route-summary-overlay { right: auto; bottom: 78px; left: 88px; width: min(260px, calc(100vw - 112px)); min-width: 0; justify-content: space-around; gap: 7px; transform: none; border-radius: 14px; padding: 9px 11px; }
+  .route-summary-overlay { top: calc(max(12px, env(safe-area-inset-top)) + 48px); right: auto; bottom: auto; left: 50%; width: min(248px, calc(100vw - 134px)); min-width: 0; justify-content: space-around; gap: 7px; transform: translateX(-50%); border-radius: 14px; padding: 9px 10px; }
   .route-summary-cell span { font-size: 7px; }
   .route-summary-cell strong { font-size: 14px; }
   .route-summary-divider { height: 26px; }
@@ -375,7 +390,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .category-button { font-size: 8px; }
   .status-right { font-size: 9px; }
   .route-score { padding: 4px 6px; font-size: 7px; }
-  .route-summary-overlay { left: 82px; width: min(190px, calc(100vw - 104px)); gap: 4px; padding: 8px 7px; }
+  .route-summary-overlay { width: min(230px, calc(100vw - 134px)); gap: 4px; padding: 8px 7px; }
 }
 
 :root[data-theme="dark"] {
