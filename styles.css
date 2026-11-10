@@ -232,7 +232,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .demo-you-marker span { width: 7px; height: 7px; border-radius: 50%; background: #fff; }
 .trazia-location-marker { position: absolute; display: grid; width: 68px; height: 68px; place-items: center; filter: drop-shadow(0 4px 7px rgba(10,35,45,.42)); }
 .trazia-location-marker::before { position: absolute; z-index: -1; width: 66px; height: 66px; border: 2px solid rgba(13,183,157,.62); border-radius: 50%; background: rgba(13,183,157,.12); content: ''; animation: gps-location-pulse 2.2s ease-out infinite; }
-.trazia-location-marker > span { position: relative; z-index: 1; display: grid; width: 54px; height: 54px; place-items: center; transform: rotate(-90deg); border: 4px solid #fff; border-radius: 50%; background: #0eb9a4; box-shadow: 0 0 0 3px rgba(13,183,157,.45); font-size: 31px; line-height: 1; }
+.trazia-location-marker > span { position: relative; z-index: 1; display: grid; width: 54px; height: 54px; place-items: center; border: 4px solid #fff; border-radius: 50%; background: #0eb9a4; box-shadow: 0 0 0 3px rgba(13,183,157,.45); font-size: 31px; line-height: 1; transform: none; }
 @keyframes gps-location-pulse { 0% { opacity: .85; transform: scale(.72); } 75%, 100% { opacity: 0; transform: scale(1.18); } }
 .trazia-place-marker, .trazia-report-marker { display: grid; width: 35px; height: 35px; place-items: center; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 3px 9px rgba(8,25,35,.28); font-size: 17px; line-height: 1; }
 .trazia-place-marker { color: #14263b; background: #f8bd45; }
@@ -465,3 +465,4 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
