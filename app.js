@@ -1,6 +1,7 @@
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
+import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
 
 (() => {
   'use strict';
@@ -100,6 +101,7 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
     nearbyRequestId: 0,
     nearbyCache: new Map(),
     cityBoundaryCache: new Map(),
+    tomtomCache: new Map(),
     nominatimCache: new Map(),
     nominatimLastRequestAt: 0,
     reportMarkers: [],
@@ -422,7 +424,7 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
   function appendSuggestionAttribution(list) {
     const attribution = document.createElement('div');
     attribution.className = 'suggestion-attribution';
-    attribution.textContent = state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'esri') ? 'Geocodificación © Esri' : t('autocompleteAttribution');
+    attribution.textContent = state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'tomtom') ? 'Búsqueda © TomTom' : state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'esri') ? 'Geocodificación © Esri' : t('autocompleteAttribution');
     list.append(attribution);
   }
 
@@ -500,7 +502,7 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
       return;
     }
     showSuggestionMessage(t('suggestionLoading'), true);
-    state.autocompleteTimer = window.setTimeout(() => { void fetchDestinationSuggestions(query, requestId); }, 350);
+    state.autocompleteTimer = window.setTimeout(() => { void fetchDestinationSuggestions(query, requestId); }, 650);
   }
 
   async function fetchDestinationSuggestions(query, requestId) {
@@ -529,7 +531,7 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
     state.autocompleteRequestId += 1;
     const [lng, lat] = feature.geometry.coordinates;
     const parts = photonFeatureParts(feature.properties || {}, state.autocompleteQuery);
-    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: feature.properties?.geocoder === 'esri', query: state.autocompleteQuery };
+    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: ['esri', 'tomtom'].includes(feature.properties?.geocoder), query: state.autocompleteQuery };
     destinationInput.value = parts.label;
     closeDestinationSuggestions();
     collapseMobilePanel();
@@ -537,7 +539,7 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
   }
 
   function photonFeatureParts(properties, query = '') {
-    if (properties.geocoder === 'esri') {
+    if (['esri', 'tomtom'].includes(properties.geocoder) && properties.street && properties.housenumber) {
       const main = `${properties.street} # ${properties.housenumber}`;
       const secondary = [properties.district, properties.city, properties.state, properties.country].filter(Boolean).join(', ');
       return { main, secondary, label: [main, secondary].filter(Boolean).join(', ') };
@@ -727,6 +729,28 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
     let matches = [];
     let lastError = null;
     let completedSearch = false;
+    const tomtomKey = window.TRAZIA_CONFIG?.tomtomApiKey;
+    if (tomtomKey) {
+      try {
+        const cacheKey = `${state.language}:${baseQuery.toLowerCase()}:${usableCenter ? [usableCenter.lat.toFixed(2), usableCenter.lng.toFixed(2)].join(',') : 'default'}`;
+        const cached = state.tomtomCache.get(cacheKey);
+        let addresses = cached && cached.expiresAt > Date.now() ? cached.features : null;
+        if (!addresses) {
+          addresses = await findTomtomCandidates(baseQuery, {
+            apiKey: tomtomKey, center: usableCenter || { lng: DEFAULT_MAP_CENTER[0], lat: DEFAULT_MAP_CENTER[1] },
+            signal, language: state.language, expectedAddress: parseColombianStructuredAddress(baseQuery)[0],
+            fetchFn: (url, options) => fetchTimed(url, options, 5000),
+          });
+          if (state.tomtomCache.size >= 50) state.tomtomCache.delete(state.tomtomCache.keys().next().value);
+          state.tomtomCache.set(cacheKey, { features: addresses, expiresAt: Date.now() + 5 * 60 * 1000 });
+        }
+        completedSearch = true;
+        if (addresses.length) return addresses;
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        lastError = error;
+      }
+    }
     // Address lookup is temporary: Esri results are used for the current map
     // and route only. Persist the user's original query, never returned data.
     if (parseColombianStructuredAddress(baseQuery).length) {
