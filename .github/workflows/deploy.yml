@@ -23,6 +23,19 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v6
+      - name: Configure TomTom browser key
+        env:
+          TOMTOM_BROWSER_KEY: ${{ vars.TOMTOM_BROWSER_KEY }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          from pathlib import Path
+          key = os.environ.get('TOMTOM_BROWSER_KEY', '').strip()
+          config = json.dumps({'tomtomApiKey': key}, ensure_ascii=True)
+          Path('config.js').write_text('window.TRAZIA_CONFIG = Object.freeze(' + config + ');\n')
+          if not key:
+              print('::warning::TomTom is not configured; existing address providers remain active.')
+          PYTHON
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site
