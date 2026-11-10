@@ -25,11 +25,6 @@ jobs:
         uses: actions/checkout@v6
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Prepare Google Places configuration
-        env:
-          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
-        run: |
-          node -e 'const fs = require("node:fs"); const key = process.env.GOOGLE_PLACES_API_KEY || ""; fs.writeFileSync("google-config.js", "window.TRAZIA_CONFIG = Object.freeze({ googlePlacesApiKey: " + JSON.stringify(key) + " });\n");'
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
@@ -37,4 +32,3 @@ jobs:
       - name: Deploy site
         id: deployment
         uses: actions/deploy-pages@v4
-

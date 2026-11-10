@@ -16,18 +16,16 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   const musicDialog = $('#music-dialog');
   const DEFAULT_MAP_CENTER = [-76.532, 3.452];
   const COLOMBIA_SEARCH_BOUNDS = { west: -82.2, south: -5.1, east: -66.5, north: 14.3 };
-  let googlePlacesLoader = null;
-  let googleFallbackGeneration = 0;
 
   const copy = {
     es: {
       tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportar algo en la vía', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
       vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
-      destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Busca una dirección o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones…', chooseAddress: 'Elige la dirección correcta de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors', googleSearchAction: 'Probar búsqueda de Google', googleSearchTitle: 'Resultados de Google', googleSearchDescription: 'Google ayuda a encontrar el destino. El mapa y la ruta siguen siendo de Trazia.', googleSearchLoading: 'Buscando dirección en Google…', googleSearchNoResults: 'Google no encontró coincidencias. Prueba con una dirección más completa.', googleSearchFailed: 'No se pudo consultar Google. Revisa la configuración de Places e inténtalo otra vez.', googleSearchNoKey: 'Falta conectar Google Places para activar esta búsqueda de respaldo.', googleSearchPlaceError: 'No pudimos confirmar la ubicación elegida. Selecciona otro resultado.',
+      destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Busca una dirección o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones…', chooseAddress: 'Elige la dirección correcta de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', startNavigation: 'Iniciar navegación', stopNavigation: 'Detener navegación', sampleTraffic: 'Datos abiertos · sin tráfico en vivo', sampleNote: 'Ruta calculada con datos abiertos; el tráfico en vivo aún no está disponible.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
       communityTitle: 'Comparte lo que ves', communityCopy: 'Ayuda a otras personas con un reporte.', report: 'Reportar', localReports: 'En esta versión, los reportes se guardan en este dispositivo.', worldReady: 'Diseñada para usar en cualquier lugar', mapProviderLabel: 'Mapa Trazia', sampleMap: 'Mapa de Trazia', reportsLayer: 'Reportes', mapCaption: 'Mapa Trazia · datos abiertos de OpenStreetMap', mapCredits: 'Créditos del mapa',
       communityKicker: 'COMUNIDAD TRAZIA', reportTitle: '¿Qué estás viendo?', reportTypeLabel: 'Tipo de reporte', incidentTraffic: 'Tráfico detenido', incidentCrash: 'Choque', incidentHazard: 'Peligro u obstáculo', incidentClosure: 'Cierre de vía', incidentPlace: 'Lugar nuevo o incorrecto', reportDetailsLabel: 'Nota breve (opcional)', reportDetailsPlaceholder: 'Describe lo que ves', reportLocationNote: 'El reporte se asociará al centro del mapa. En esta versión solo queda guardado en este dispositivo.', cancel: 'Cancelar', publishReport: 'Guardar reporte',
-      settingsKicker: 'CONFIGURACIÓN', settingsTitle: 'Mapa Trazia', settingsIntro: 'Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.', themeLabel: 'Apariencia', themeAuto: 'Automática: clara de día, oscura de noche', themeLight: 'Clara', themeDark: 'Oscura', mapDataNote: 'Mapa base: OpenStreetMap. Las direcciones se buscan con datos abiertos y, si hace falta, Google Places. Las rutas y el tiempo son aproximados y no tienen tráfico en vivo.', openStreetMapCredits: 'Créditos y licencia de OpenStreetMap', mapProviderLabel: 'Servicio OpenFreeMap',
+      settingsKicker: 'CONFIGURACIÓN', settingsTitle: 'Mapa Trazia', settingsIntro: 'Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.', themeLabel: 'Apariencia', themeAuto: 'Automática: clara de día, oscura de noche', themeLight: 'Clara', themeDark: 'Oscura', mapDataNote: 'Mapa base: OpenStreetMap. Las sugerencias de direcciones vienen de datos abiertos; las rutas y el tiempo son aproximados y no tienen tráfico en vivo.', openStreetMapCredits: 'Créditos y licencia de OpenStreetMap', mapProviderLabel: 'Servicio OpenFreeMap',
       noDestination: 'Escribe o dicta un destino primero.', demoRoute: 'El mapa todavía se está cargando. Intenta de nuevo en unos segundos.', noLocation: 'No se pudo obtener tu ubicación. Permite el acceso a ubicación e inténtalo de nuevo.', locationUnsupported: 'Este navegador no ofrece acceso a la ubicación.', routeLocationDenied: 'Permite que el navegador comparta tu ubicación para iniciar la ruta.', routeLocationUnavailable: 'No se pudo detectar tu ubicación. Pulsa Mi ubicación y revisa los ajustes de ubicación del celular.', routeNotFound: 'No encontramos esa ruta. Revisa el destino e incluye ciudad y país.', routeApiError: 'El servicio de rutas rechazó la consulta. Intenta de nuevo en unos minutos.', routeServiceError: 'No se pudo conectar con el servicio de rutas abiertas. Inténtalo otra vez.', voiceUnsupported: 'El reconocimiento de voz no está disponible aquí. Puedes escribir el destino.', voiceListening: 'Escuchando… di el destino.', voiceError: 'No se pudo escuchar el destino. Inténtalo otra vez.', searchError: 'No se pudo calcular esa ruta. Revisa el destino y vuelve a intentarlo.', autocompleteNoResults: 'No encontramos coincidencias. Prueba con otra dirección o agrega la ciudad.', vehicleChangedRoute: 'Vehículo cambiado. Busca la ruta de nuevo.',
       connecting: 'Buscando lugares…', mapError: 'No se pudo cargar el mapa abierto. Revisa tu conexión a internet.', invalidCategory: 'No se encontraron lugares en esta zona.', nearbyNeedsMaps: 'Activa la ubicación para encontrar lugares cerca de ti.', clearPlaces: 'Lugares quitados del mapa.', trafficEnabled: 'Reportes visibles en el mapa.', trafficDisabled: 'Reportes ocultos en el mapa.',
       reportSaved: 'Reporte guardado en este dispositivo.', reportRequired: 'No se pudo guardar el reporte.', routeReady: 'Ruta calculada con OpenStreetMap. El tiempo es aproximado y no incluye tráfico en vivo.', navigationNeedsRoute: 'Busca una ruta antes de iniciar la navegación.', navigationLocation: 'Activa tu ubicación para iniciar la guía por voz.', navigationStarted: 'Guía por voz iniciada.', navigationStopped: 'Navegación detenida.', navigationFollowRoute: 'Sigue la ruta marcada.', rerouting: 'Te saliste de la ruta. Recalculando…', rerouteReady: 'Ruta actualizada desde tu ubicación.', rerouteFailed: 'No se pudo recalcular. Sigue la línea morada.', arrived: 'Has llegado a tu destino.', nextInstruction: 'Siguiente indicación', demoNotice: 'El mapa necesita conexión a internet para cargar los datos abiertos.',
@@ -36,11 +34,11 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     en: {
       tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Report something on the road', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
       vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
-      destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Search an address or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors', googleSearchAction: 'Try Google search', googleSearchTitle: 'Google results', googleSearchDescription: 'Google helps find the destination. The map and route remain Trazia’s.', googleSearchLoading: 'Searching for the address on Google…', googleSearchNoResults: 'Google found no matches. Try a more complete address.', googleSearchFailed: 'Google could not be reached. Check the Places setup and try again.', googleSearchNoKey: 'Google Places must be connected to enable this backup search.', googleSearchPlaceError: 'We could not confirm that location. Choose another result.',
+      destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Search an address or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', startNavigation: 'Start navigation', stopNavigation: 'Stop navigation', sampleTraffic: 'Open data · no live traffic', sampleNote: 'Open data route; live traffic is not available yet.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
       communityTitle: 'Share what you see', communityCopy: 'Help others with a quick report.', report: 'Report', localReports: 'In this version, reports are saved on this device.', worldReady: 'Designed to work anywhere', mapProviderLabel: 'Trazia map', sampleMap: 'Trazia map', reportsLayer: 'Reports', mapCaption: 'Trazia map · open OpenStreetMap data', mapCredits: 'Map credits',
       communityKicker: 'TRAZIA COMMUNITY', reportTitle: 'What are you seeing?', reportTypeLabel: 'Report type', incidentTraffic: 'Stopped traffic', incidentCrash: 'Crash', incidentHazard: 'Hazard or obstacle', incidentClosure: 'Road closure', incidentPlace: 'New or incorrect place', reportDetailsLabel: 'Short note (optional)', reportDetailsPlaceholder: 'Describe what you see', reportLocationNote: 'The report will be linked to the center of the map. In this version it is saved only on this device.', cancel: 'Cancel', publishReport: 'Save report',
-      settingsKicker: 'SETTINGS', settingsTitle: 'Trazia map', settingsIntro: 'Trazia uses open OpenStreetMap data, its own design, and open-source routing.', themeLabel: 'Appearance', themeAuto: 'Automatic: light by day, dark at night', themeLight: 'Light', themeDark: 'Dark', mapDataNote: 'Base map: OpenStreetMap. Address search uses open data and Google Places as a fallback. Routes and travel time are estimates without live traffic.', openStreetMapCredits: 'OpenStreetMap credits and licence', mapProviderLabel: 'OpenFreeMap service',
+      settingsKicker: 'SETTINGS', settingsTitle: 'Trazia map', settingsIntro: 'Trazia uses open OpenStreetMap data, its own design, and open-source routing.', themeLabel: 'Appearance', themeAuto: 'Automatic: light by day, dark at night', themeLight: 'Light', themeDark: 'Dark', mapDataNote: 'Base map: OpenStreetMap. Address suggestions use open data; routes and travel time are estimates without live traffic.', openStreetMapCredits: 'OpenStreetMap credits and licence', mapProviderLabel: 'OpenFreeMap service',
       noDestination: 'Enter or say a destination first.', demoRoute: 'The map is still loading. Try again in a few seconds.', noLocation: 'Your location could not be found. Allow location access and try again.', locationUnsupported: 'This browser does not provide location access.', routeLocationDenied: 'Allow your browser to share your location to start the route.', routeLocationUnavailable: 'Your location could not be detected. Tap My location and check your phone location settings.', routeNotFound: 'We could not find that route. Check the destination, including city and country.', routeApiError: 'The open routing service rejected the request. Try again shortly.', routeServiceError: 'Could not connect to the open routing service. Please try again.', voiceUnsupported: 'Voice recognition is not available here. You can type your destination.', voiceListening: 'Listening… say your destination.', voiceError: 'Could not hear the destination. Please try again.', searchError: 'Could not calculate that route. Check the destination and try again.', autocompleteNoResults: 'No matches found. Try another address or add the city.', vehicleChangedRoute: 'Vehicle changed. Search for the route again.',
       connecting: 'Searching places…', mapError: 'The open map could not load. Check your internet connection.', invalidCategory: 'No places were found in this area.', nearbyNeedsMaps: 'Turn on location to find places nearby.', clearPlaces: 'Places cleared from the map.', trafficEnabled: 'Reports are visible on the map.', trafficDisabled: 'Reports are hidden from the map.',
       reportSaved: 'Report saved on this device.', reportRequired: 'Could not save the report.', routeReady: 'Route calculated from OpenStreetMap. Travel time is an estimate and does not include live traffic.', navigationNeedsRoute: 'Find a route before starting navigation.', navigationLocation: 'Enable your location to start voice guidance.', navigationStarted: 'Voice guidance started.', navigationStopped: 'Navigation stopped.', navigationFollowRoute: 'Follow the marked route.', rerouting: 'You left the route. Recalculating…', rerouteReady: 'Route updated from your location.', rerouteFailed: 'Could not recalculate. Follow the purple line.', arrived: 'You have arrived at your destination.', nextInstruction: 'Next direction', demoNotice: 'The map needs an internet connection to load open map data.',
@@ -348,7 +346,6 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   function closeDestinationSuggestions() {
-    googleFallbackGeneration += 1;
     const list = $('#destination-suggestions');
     list.hidden = true;
     list.replaceChildren();
@@ -376,7 +373,6 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     state.activeSuggestionIndex = -1;
     if (!state.autocompletePredictions.length) {
       showSuggestionMessage(t('autocompleteNoResults'));
-      appendGoogleFallbackAction(list);
       appendSuggestionAttribution(list);
       return;
     }
@@ -410,7 +406,6 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       button.addEventListener('click', () => { void selectDestinationSuggestion(index); });
       list.append(button);
     });
-    appendGoogleFallbackAction(list);
     appendSuggestionAttribution(list);
     list.hidden = false;
     destinationInput.setAttribute('aria-expanded', 'true');
@@ -421,154 +416,6 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     attribution.className = 'suggestion-attribution';
     attribution.textContent = t('autocompleteAttribution');
     list.append(attribution);
-  }
-
-  function appendGoogleFallbackAction(list) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'provider-fallback-button';
-    button.textContent = t('googleSearchAction');
-    button.addEventListener('pointerdown', (event) => event.preventDefault());
-    button.addEventListener('click', () => {
-      void openGoogleFallback(state.autocompleteQuery || destinationInput.value.trim());
-    });
-    list.append(button);
-  }
-
-  async function loadGooglePlacesUiKit() {
-    const apiKey = String(window.TRAZIA_CONFIG?.googlePlacesApiKey || '').trim();
-    if (!apiKey) throw new Error('google-key-missing');
-    if (window.google?.maps?.importLibrary) return window.google.maps.importLibrary('places');
-    if (!googlePlacesLoader) {
-      googlePlacesLoader = new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        const params = new URLSearchParams({
-          key: apiKey,
-          v: 'weekly',
-          libraries: 'places',
-          language: state.language === 'es' ? 'es' : 'en',
-          region: 'CO',
-        });
-        script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
-        script.async = true;
-        script.defer = true;
-        const timeout = window.setTimeout(() => {
-          script.remove();
-          reject(new Error('google-load-failed'));
-        }, 15000);
-        script.addEventListener('load', () => {
-          window.clearTimeout(timeout);
-          resolve();
-        }, { once: true });
-        script.addEventListener('error', () => {
-          window.clearTimeout(timeout);
-          script.remove();
-          reject(new Error('google-load-failed'));
-        }, { once: true });
-        document.head.append(script);
-      }).then(async () => {
-        if (!window.google?.maps?.importLibrary) throw new Error('google-load-failed');
-        await window.google.maps.importLibrary('places');
-      }).catch((error) => {
-        googlePlacesLoader = null;
-        throw error;
-      });
-    }
-    await googlePlacesLoader;
-    return window.google.maps.importLibrary('places');
-  }
-
-  function googleCoordinates(location) {
-    if (!location) return null;
-    const latitude = typeof location.lat === 'function' ? location.lat() : Number(location.lat);
-    const longitude = typeof location.lng === 'function' ? location.lng() : Number(location.lng);
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-    return { lat: latitude, lng: longitude };
-  }
-
-  async function openGoogleFallback(query) {
-    const searchText = String(query || '').trim();
-    if (!searchText) return;
-    const requestId = ++googleFallbackGeneration;
-    const list = $('#destination-suggestions');
-    state.autocompletePredictions = [];
-    state.activeSuggestionIndex = -1;
-    list.replaceChildren();
-
-    const panel = document.createElement('section');
-    panel.className = 'google-fallback-panel';
-    const heading = document.createElement('strong');
-    heading.className = 'google-fallback-heading';
-    heading.textContent = t('googleSearchTitle');
-    const description = document.createElement('p');
-    description.className = 'google-fallback-description';
-    description.textContent = t('googleSearchDescription');
-    const status = document.createElement('p');
-    status.className = 'google-fallback-status';
-    status.setAttribute('role', 'status');
-    status.textContent = t('googleSearchLoading');
-    const host = document.createElement('div');
-    host.className = 'google-fallback-results';
-    panel.append(heading, description, status, host);
-    list.append(panel);
-    list.hidden = false;
-    destinationInput.setAttribute('aria-expanded', 'true');
-
-    try {
-      const places = await loadGooglePlacesUiKit();
-      if (requestId !== googleFallbackGeneration || destinationInput.value.trim() !== searchText) return;
-      if (!places.PlaceSearchElement) throw new Error('google-load-failed');
-
-      const placeSearch = document.createElement('gmp-place-search');
-      placeSearch.id = 'google-place-search';
-      placeSearch.setAttribute('selectable', '');
-      placeSearch.setAttribute('orientation', 'vertical');
-      const placeRequest = document.createElement('gmp-place-text-search-request');
-      placeRequest.setAttribute('max-result-count', '5');
-      placeRequest.includedRegionCodes = ['co'];
-      const center = state.currentPosition || googleCoordinates(state.map?.getCenter?.());
-      if (center) placeRequest.locationBias = { center: { lat: center.lat, lng: center.lng }, radius: 50000 };
-      placeRequest.textQuery = /\bcolombia\b/i.test(searchText) ? searchText : `${searchText}, Colombia`;
-      const detailsTemplate = document.createElement('template');
-      detailsTemplate.slot = 'details-item';
-      detailsTemplate.innerHTML = '<gmp-place-name></gmp-place-name><gmp-place-address></gmp-place-address>';
-      const attribution = document.createElement('gmp-place-attribution');
-      attribution.setAttribute('light-scheme-color', 'black');
-      attribution.setAttribute('dark-scheme-color', 'white');
-      placeSearch.append(placeRequest, detailsTemplate, attribution);
-      placeSearch.addEventListener('gmp-load', () => {
-        if (requestId !== googleFallbackGeneration) return;
-        const matches = Array.isArray(placeSearch.places) ? placeSearch.places : [];
-        status.textContent = matches.length ? '' : t('googleSearchNoResults');
-        status.hidden = Boolean(matches.length);
-      });
-      placeSearch.addEventListener('gmp-requesterror', () => {
-        if (requestId !== googleFallbackGeneration) return;
-        status.hidden = false;
-        status.textContent = t('googleSearchFailed');
-      });
-      placeSearch.addEventListener('gmp-select', (event) => {
-        if (requestId !== googleFallbackGeneration) return;
-        const selectedPlace = event.place;
-        const place = placeSearch.places?.find((candidate) => candidate.id === selectedPlace?.id) || selectedPlace;
-        const location = googleCoordinates(place?.location);
-        if (!location) {
-          status.hidden = false;
-          status.textContent = t('googleSearchPlaceError');
-          return;
-        }
-        state.selectedDestination = { label: searchText, location, source: 'google-places' };
-        destinationInput.value = searchText;
-        closeDestinationSuggestions();
-        void searchRoute();
-      });
-      host.append(placeSearch);
-    } catch (error) {
-      if (requestId !== googleFallbackGeneration) return;
-      console.info('Trazia Google address fallback:', error.message);
-      status.hidden = false;
-      status.textContent = error.message === 'google-key-missing' ? t('googleSearchNoKey') : t('googleSearchFailed');
-    }
   }
 
   function setActiveDestinationSuggestion(index) {
@@ -613,7 +460,6 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       if (requestId !== state.autocompleteRequestId || controller.signal.aborted && destinationInput.value.trim() !== query) return;
       console.error('Trazia could not load open address suggestions:', error);
       showSuggestionMessage(t('autocompleteUnavailable'));
-      appendGoogleFallbackAction($('#destination-suggestions'));
       appendSuggestionAttribution($('#destination-suggestions'));
     } finally {
       window.clearTimeout(timeout);
@@ -1514,7 +1360,6 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         state.autocompleteQuery = typedDestination;
         if (!matches.length) {
           showSuggestionMessage(t('autocompleteNoResults'));
-          appendGoogleFallbackAction($('#destination-suggestions'));
           appendSuggestionAttribution($('#destination-suggestions'));
           $('#route-note').textContent = t('autocompleteNoResults');
           return;

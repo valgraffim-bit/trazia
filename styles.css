@@ -95,15 +95,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .destination-suggestion-secondary { color: #8794a0; font-size: 10px; }
 .suggestion-attribution { padding: 6px 7px 3px; color: #637486; font-size: 9px; font-weight: 650; text-align: right; }
 .suggestion-loading { padding: 9px 10px; color: #758596; font-size: 10px; }
-.provider-fallback-button { display: block; width: 100%; margin-top: 4px; border: 1px solid #dce9e8; border-radius: 10px; padding: 9px 10px; color: #17695f; background: #f5fbfa; text-align: left; cursor: pointer; font: inherit; font-size: 10px; font-weight: 750; }
-.provider-fallback-button:hover { border-color: #87d9cd; background: #ecf8f5; }
-.google-fallback-panel { display: grid; gap: 7px; padding: 8px 6px 4px; }
-.google-fallback-heading { color: #243c4f; font-size: 11px; font-weight: 800; }
-.google-fallback-description, .google-fallback-status { margin: 0; color: #718192; font-size: 10px; line-height: 1.45; }
-.google-fallback-status:not([hidden]) { padding: 7px 8px; border-radius: 8px; color: #596d7c; background: #f3f6f6; }
-.google-fallback-results { min-width: 0; }
-#google-place-search { display: block; width: 100%; max-width: 100%; font-family: inherit; --gmp-mat-color-primary: #087f72; }
-.google-fallback-results gmp-place-attribution { display: block; padding: 5px 2px 0; }
 .map-3d-toggle { font-size: 10px; font-weight: 850; }
 .map-3d-toggle.active { color: #087f72; background: #e6f7f2; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(223, 89, 79, .1); } }
@@ -445,12 +436,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 :root[data-theme="dark"] .destination-suggestion-main { color: #eff2f4; }
 :root[data-theme="dark"] .destination-suggestion-secondary, :root[data-theme="dark"] .suggestion-loading { color: #aab5bd; }
 :root[data-theme="dark"] .suggestion-attribution { color: #c2cbd1; }
-:root[data-theme="dark"] .provider-fallback-button { border-color: #3e504f; color: #8de0d2; background: #263936; }
-:root[data-theme="dark"] .provider-fallback-button:hover { border-color: #397b70; background: #2a4541; }
-:root[data-theme="dark"] .google-fallback-heading { color: #eff2f4; }
-:root[data-theme="dark"] .google-fallback-description, :root[data-theme="dark"] .google-fallback-status { color: #aab5bd; }
-:root[data-theme="dark"] .google-fallback-status:not([hidden]) { color: #c9d2d8; background: #33383e; }
-:root[data-theme="dark"] #google-place-search { color-scheme: dark; }
 :root[data-theme="dark"] .search-field-wrap input, :root[data-theme="dark"] .form-control { color: var(--text); }
 :root[data-theme="dark"] .search-field-wrap input::placeholder, :root[data-theme="dark"] .form-control::placeholder { color: #909ba4; }
 :root[data-theme="dark"] .secondary-button:hover, :root[data-theme="dark"] .category-button:hover, :root[data-theme="dark"] .category-button.active, :root[data-theme="dark"] .menu-item:hover { border-color: #397b70; background: #263b39; }
