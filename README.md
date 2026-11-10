@@ -56,3 +56,9 @@ Trazia es una PWA en esta entrega. Crear un archivo IPA para iPhone requiere emp
 - [Photon API](https://github.com/komoot/photon/blob/master/docs/api-v1.md)
 - [Valhalla Route API](https://valhalla.github.io/valhalla/api/route/api-reference/)
 - [Créditos y licencia de OpenStreetMap](https://www.openstreetmap.org/copyright)
+
+## Búsqueda de direcciones completas
+
+Las direcciones con `#` consultan primero ArcGIS World Geocoding para buscar la nomenclatura completa. Se aceptan únicamente coincidencias de dirección con puntuación mínima de 95, vía y números coincidentes, y ciudad coincidente cuando se especifica. Un resultado de calle sin número nunca se presenta como dirección completa. El punto de llegada puede ser interpolado sobre la vía; no garantiza la ubicación de la puerta.
+
+Las consultas ArcGIS usan `forStorage=false`: sus resultados se muestran temporalmente en el mapa y la ruta; el historial conserva únicamente el texto original escrito por la persona. No se guarda la respuesta del proveedor. Si ArcGIS falla o no encuentra la nomenclatura, continúa la búsqueda abierta de Photon y la sugerencia de vía aproximada.

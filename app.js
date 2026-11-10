@@ -398,7 +398,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       main.textContent = parts.main;
       copyBlock.append(main);
       const approximate = /#/.test(state.autocompleteQuery) && !feature.properties?.housenumber;
-      const secondaryText = [approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
+      const secondaryText = [feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
       if (secondaryText) {
         const secondary = document.createElement('span');
         secondary.className = 'destination-suggestion-secondary';
@@ -418,7 +418,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   function appendSuggestionAttribution(list) {
     const attribution = document.createElement('div');
     attribution.className = 'suggestion-attribution';
-    attribution.textContent = t('autocompleteAttribution');
+    attribution.textContent = state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'esri') ? 'Geocodificación © Esri' : t('autocompleteAttribution');
     list.append(attribution);
   }
 
@@ -454,7 +454,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   async function fetchDestinationSuggestions(query, requestId) {
     const controller = new AbortController();
     state.autocompleteController = controller;
-    const timeout = window.setTimeout(() => controller.abort(), 12000);
+    const timeout = window.setTimeout(() => controller.abort(), 16000);
     try {
       const features = await findDestinationCandidates(query, state.currentPosition, controller.signal);
       if (requestId !== state.autocompleteRequestId || destinationInput.value.trim() !== query) return;
@@ -477,7 +477,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     state.autocompleteRequestId += 1;
     const [lng, lat] = feature.geometry.coordinates;
     const parts = photonFeatureParts(feature.properties || {}, state.autocompleteQuery);
-    state.selectedDestination = { label: parts.label, location: { lat, lng } };
+    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: feature.properties?.geocoder === 'esri', query: state.autocompleteQuery };
     destinationInput.value = parts.label;
     closeDestinationSuggestions();
     collapseMobilePanel();
@@ -485,6 +485,11 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
   }
 
   function photonFeatureParts(properties, query = '') {
+    if (properties.geocoder === 'esri') {
+      const main = `${properties.street} # ${properties.housenumber}`;
+      const secondary = [properties.district, properties.city, properties.state, properties.country].filter(Boolean).join(', ');
+      return { main, secondary, label: [main, secondary].filter(Boolean).join(', ') };
+    }
     const streetAddress = [properties.housenumber, properties.street].filter(Boolean).join(' ');
     const locality = [properties.district, properties.city, properties.county, properties.state, properties.country].filter(Boolean);
     const addressQuery = /#|\b(?:cra|cr|kr|carrera|cl|calle|av|avda|avenida|diag|diagonal|trans|transversal)\b/i.test(query) && /\d/.test(query);
@@ -670,6 +675,17 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     let matches = [];
     let lastError = null;
     let completedSearch = false;
+    // Address lookup is temporary: Esri results are used for the current map
+    // and route only. Persist the user's original query, never returned data.
+    if (parseColombianStructuredAddress(baseQuery).length) {
+      try {
+        const addresses = await findArcgisCandidates(baseQuery, usableCenter, signal);
+        if (addresses.length) return addresses;
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        lastError = error;
+      }
+    }
     // Free-text search handles abbreviations without relying on the public
     // structured endpoint, which can fail for Colombian house numbers.
     for (const variant of variants.slice(0, 2)) {
@@ -715,6 +731,40 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
     }
     if (!matches.length && !completedSearch && lastError) throw lastError;
     return matches;
+  }
+
+  async function findArcgisCandidates(query, center, signal) {
+    const address = parseColombianStructuredAddress(query)[0];
+    if (!address) return [];
+    const params = new URLSearchParams({
+      SingleLine: [address.street + ' # ' + address.houseNumber, address.city, address.state, 'Colombia'].filter(Boolean).join(', '),
+      f: 'json', sourceCountry: 'COL', forStorage: 'false', maxLocations: '5', outSR: '4326',
+      outFields: 'Addr_type,ShortLabel,City,Region,Nbrhd,Country',
+    });
+    const bias = center || { lng: DEFAULT_MAP_CENTER[0], lat: DEFAULT_MAP_CENTER[1] };
+    params.set('location', `${bias.lng},${bias.lat}`);
+    const response = await fetchTimed(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?${params}`, {
+      signal, headers: { Accept: 'application/json' },
+    }, 3000);
+    if (!response.ok) throw new Error(`Esri ${response.status}`);
+    const payload = await response.json();
+    if (payload.error || !Array.isArray(payload.candidates)) throw new Error('Esri address search unavailable');
+    const required = normalizeGeocodeText(`${address.street} ${address.houseNumber}`).split(' ');
+    return payload.candidates.filter((candidate) => {
+      const attributes = candidate.attributes || {};
+      const tokens = new Set(normalizeGeocodeText(attributes.ShortLabel || candidate.address).split(' '));
+      return candidate.score >= 95 && ['PointAddress', 'StreetAddress'].includes(attributes.Addr_type)
+        && attributes.Country === 'COL' && required.every((token) => tokens.has(token))
+        && (!address.city || normalizeGeocodeText(attributes.City) === normalizeGeocodeText(address.city))
+        && Number.isFinite(candidate.location?.x) && Number.isFinite(candidate.location?.y);
+    }).map((candidate) => ({
+      type: 'Feature', geometry: { type: 'Point', coordinates: [candidate.location.x, candidate.location.y] },
+      properties: {
+        geocoder: 'esri', street: address.street, housenumber: address.houseNumber,
+        district: candidate.attributes.Nbrhd, city: candidate.attributes.City,
+        state: candidate.attributes.Region, country: 'Colombia', countrycode: 'CO',
+      },
+    }));
   }
 
   function fetchTimed(url, options = {}, timeoutMs = 12000) {
@@ -1458,7 +1508,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
         $('#navigation-instruction').textContent = instruction;
         speak(instruction);
       }
-      saveRecentDestination(state.routeDestination);
+      saveRecentDestination(selected.temporary ? selected.query : state.routeDestination);
       if (automatic) showToast(t('rerouteReady'));
       else showToast(t('routeReady'));
     } catch (error) {
