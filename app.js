@@ -621,7 +621,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
       const candidateText = photonFeatureSearchText(feature);
       const candidateTokens = new Set(candidateText.split(' '));
       const matchedTokens = queryTokens.filter((token) => candidateTokens.has(token) || (token.length >= 4 && [...candidateTokens].some((candidate) => candidate.startsWith(token) || token.startsWith(candidate))));
-      const matchingStreetTokens = streetTokens.filter((token) => candidateTokens.has(token) || [...candidateTokens].some((candidate) => candidate.startsWith(token) || token.startsWith(candidate)));
+      // Street numbers and suffixes must match exactly: 83, 83B and 83B1 are different roads.
+      const matchingStreetTokens = streetTokens.filter((token) => candidateTokens.has(token));
       if (!matchedTokens.length || (isStreetAddress && streetTokens.length && matchingStreetTokens.length !== streetTokens.length)) return null;
       const coverage = matchedTokens.length / Math.max(1, queryTokens.length);
       if (isStreetAddress && !streetTokens.length && coverage < 0.3) return null;
