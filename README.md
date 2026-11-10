@@ -26,7 +26,9 @@ La página publicada queda accesible desde Internet. Trazia usa la ubicación lo
 
 ## Mapas, direcciones y rutas
 
-Trazia no usa Google Maps ni copia el mapa de Waze. Dibuja su propia interfaz y la ruta sobre datos abiertos de OpenStreetMap. Los mapas vectoriales llegan de OpenFreeMap y se muestran con MapLibre; la búsqueda de direcciones usa Photon y las rutas se calculan con Valhalla. Estos servicios públicos no necesitan una clave de Google, pero dependen de internet y de la disponibilidad de cada servicio.
+Trazia no usa Google Maps como mapa base ni copia el mapa de Waze. Dibuja su propia interfaz y la ruta sobre datos abiertos de OpenStreetMap. Los mapas vectoriales llegan de OpenFreeMap y se muestran con MapLibre; la búsqueda principal usa Photon y las rutas se calculan con Valhalla. Si las sugerencias abiertas no sirven, el botón **Probar búsqueda de Google** abre Google Places UI Kit para buscar el destino; el mapa y la ruta siguen siendo de Trazia/Valhalla.
+
+El respaldo de Google requiere un proyecto de Google Cloud con facturación y Places UI Kit habilitados. Para publicarlo en GitHub Pages, guarda la clave como secreto de Actions llamado `GOOGLE_PLACES_API_KEY` en **Settings → Secrets and variables → Actions**. El flujo de publicación la inyecta al sitio publicado y no la agrega al código del repositorio. Como las claves de navegador se pueden ver desde el sitio, restríngela por sitio web a `https://valgraffim-bit.github.io/*` y por API a las APIs de Google Maps necesarias para Places UI Kit. Sin ese secreto, el botón explica que Google aún no está conectado.
 
 El selector permite carro, moto, camión y bicicleta. La ruta de moto está marcada como beta. La ruta de camión usa límites estándar; faltan controles para ingresar las dimensiones y el peso exactos del camión. La cobertura de calles y direcciones puede variar por país.
 
@@ -54,5 +56,7 @@ Trazia es una PWA en esta entrega. Crear un archivo IPA para iPhone requiere emp
 - [OpenFreeMap](https://openfreemap.org/) y su [guía rápida](https://openfreemap.org/quick_start/)
 - [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/)
 - [Photon API](https://github.com/komoot/photon/blob/master/docs/api-v1.md)
+- [Google Places UI Kit](https://developers.google.com/maps/documentation/javascript/places-ui-kit/overview)
 - [Valhalla Route API](https://valhalla.github.io/valhalla/api/route/api-reference/)
 - [Créditos y licencia de OpenStreetMap](https://www.openstreetmap.org/copyright)
+
