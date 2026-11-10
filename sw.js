@@ -1,9 +1,9 @@
-const CACHE_NAME = 'trazia-shell-v22';
+const CACHE_NAME = 'trazia-shell-v23';
 const APP_FILES = [
   './',
   './index.html',
-  './styles.css?v=19',
-  './app.js?v=22',
+  './styles.css?v=20',
+  './app.js?v=23',
   './manifest.webmanifest',
   './assets/trazia-app-icon.png',
 ];
