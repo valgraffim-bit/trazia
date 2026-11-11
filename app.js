@@ -131,6 +131,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     nominatimLastRequestAt: 0,
     reportMarkers: [],
     routeCoordinates: [],
+    routeProgress: 0,
     routeRequestId: 0,
     routeSearchController: null,
     currentRoutes: [],
@@ -1463,9 +1464,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       collapseMobilePanel();
       state.followCamera = true;
       if (state.map) {
-        state.map.flyTo({ center: [position.lng, position.lat], zoom: 17, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
+        state.map.flyTo({ center: [position.lng, position.lat], zoom: 18, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
       }
       updateUserMarker(position);
+      updateRouteProgress(position);
       setMap3d(true);
       window.setTimeout(() => {
         if (state.mapReady && state.map && state.followCamera && state.currentPosition) {
@@ -1702,6 +1704,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         return;
       }
       collapseMobilePanel();
+      updateRouteProgress(position);
       setMap3d(true);
       state.selectedDestination = selected;
       state.routeDestination = selected.label || typedDestination;
@@ -1823,8 +1826,56 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     state.destinationMarker?.remove();
     state.destinationMarker = null;
     state.routeCoordinates = [];
+    state.routeProgress = 0;
     state.fitRouteToMap = false;
     $('#route-summary-overlay').hidden = true;
+  }
+
+  // Keep the original geometry for guidance and rerouting; trim only its display.
+  function remainingRouteCoordinates() {
+    const coordinates = state.routeCoordinates;
+    if (coordinates.length < 2) return coordinates;
+    const index = Math.min(Math.floor(state.routeProgress), coordinates.length - 2);
+    const fraction = state.routeProgress - index;
+    const start = coordinates[index];
+    const end = coordinates[index + 1];
+    return [[start[0] + (end[0] - start[0]) * fraction,
+      start[1] + (end[1] - start[1]) * fraction], ...coordinates.slice(index + 1)];
+  }
+
+  function updateRouteProgress(user) {
+    if (!state.isNavigating || state.routeCoordinates.length < 2) return;
+    const accuracy = state.lastLocationAccuracy;
+    // Poor GPS fixes and positions away from the route must not erase it.
+    if (Number.isFinite(accuracy) && accuracy > 70) return;
+    const coordinates = state.routeCoordinates;
+    const scaleY = 6371000 * Math.PI / 180;
+    const scaleX = scaleY * Math.cos(user.lat * Math.PI / 180);
+    let nearest = Infinity;
+    let progress = state.routeProgress;
+    for (let i = Math.floor(state.routeProgress); i < coordinates.length - 1; i += 1) {
+      const a = coordinates[i];
+      const b = coordinates[i + 1];
+      const x = (a[0] - user.lng) * scaleX;
+      const y = (a[1] - user.lat) * scaleY;
+      const dx = (b[0] - a[0]) * scaleX;
+      const dy = (b[1] - a[1]) * scaleY;
+      const lengthSquared = dx * dx + dy * dy;
+      const fraction = lengthSquared ? Math.max(0, Math.min(1, -(x * dx + y * dy) / lengthSquared)) : 0;
+      const distance = Math.hypot(x + fraction * dx, y + fraction * dy);
+      if (distance < nearest) {
+        nearest = distance;
+        progress = Math.max(state.routeProgress, i + fraction);
+        // At crossings, prefer the first matching section still ahead.
+        if (distance < 5) break;
+      }
+    }
+    if (nearest > 45 || progress <= state.routeProgress) return;
+    state.routeProgress = progress;
+    state.map?.getSource('trazia-route')?.setData({
+      type: 'Feature', properties: {},
+      geometry: { type: 'LineString', coordinates: remainingRouteCoordinates() },
+    });
   }
 
   function drawRouteOnMap() {
@@ -1833,14 +1884,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (state.map.getLayer(layerId)) state.map.removeLayer(layerId);
     });
     if (state.map.getSource('trazia-route')) state.map.removeSource('trazia-route');
+    if (state.isNavigating && state.currentPosition) updateRouteProgress(state.currentPosition);
     state.map.addSource('trazia-route', {
       type: 'geojson',
-      data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: state.routeCoordinates } },
+      data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: remainingRouteCoordinates() } },
     });
     const labelLayer = (state.map.getStyle().layers || []).find((layer) => layer.type === 'symbol')?.id;
     state.map.addLayer({ id: 'trazia-route-outline', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#34205f', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 8, 16, 17], 'line-opacity': 0.9 } }, labelLayer);
     state.map.addLayer({ id: 'trazia-route-line', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#9364f4', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 4, 16, 10] } }, labelLayer);
-    if (state.map.getLayer(TRAFFIC_LAYER)) state.map.moveLayer(TRAFFIC_LAYER, labelLayer);
+    if (state.map.getLayer(TRAFFIC_LAYER)) state.map.moveLayer(TRAFFIC_LAYER, 'trazia-route-outline');
     const destination = state.routeCoordinates[state.routeCoordinates.length - 1];
     if (destination) {
       state.destinationMarker?.remove();
@@ -1857,7 +1909,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (state.fitRouteToMap) {
       if (state.isNavigating && state.currentPosition) {
         state.followCamera = true;
-        state.map.easeTo({ center: [state.currentPosition.lng, state.currentPosition.lat], zoom: 17, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 450, offset: mobileMapOffset() });
+        state.map.easeTo({ center: [state.currentPosition.lng, state.currentPosition.lat], zoom: 18, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 450, offset: mobileMapOffset() });
       } else {
         state.followCamera = false;
         const bounds = new maplibregl.LngLatBounds();
@@ -1899,7 +1951,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       }
       if (!state.map.getLayer(TRAFFIC_LAYER)) {
         const labels = (state.map.getStyle().layers || []).find((layer) => layer.type === 'symbol')?.id;
-        state.map.addLayer(congestionLayer(), labels);
+        state.map.addLayer(congestionLayer(), state.map.getLayer('trazia-route-outline') ? 'trazia-route-outline' : labels);
       }
       updateLiveTrafficStatus();
     } catch {
@@ -2509,9 +2561,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (navigator.geolocation?.watchPosition) {
         startLocationWatch();
       }
+      updateRouteProgress(position);
       setMap3d(true);
       if (state.userMarker) state.userMarker.setLngLat([position.lng, position.lat]);
-      state.map.flyTo({ center: [position.lng, position.lat], zoom: 17, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
+      state.map.flyTo({ center: [position.lng, position.lat], zoom: 18, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
       void requestNavigationWakeLock();
       showToast(t('navigationStarted'));
     } catch {
@@ -2525,7 +2578,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (state.mapReady && state.map && (state.followCamera || state.isNavigating)) {
       state.map.easeTo({
         center: [user.lng, user.lat],
-        zoom: Math.max(state.map.getZoom(), 16),
+        zoom: Math.max(state.map.getZoom(), state.isNavigating ? 18 : 16),
         pitch: state.is3d ? 55 : 0,
         bearing: compassBearing(),
         duration: 380,
@@ -2533,6 +2586,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       });
     }
     if (!state.isNavigating) return;
+    updateRouteProgress(user);
     const accuracy = Number.isFinite(state.lastLocationAccuracy) ? state.lastLocationAccuracy : 0;
     const destination = state.selectedDestination?.location;
     if (destination && distanceMeters(user, destination) <= Math.max(40, Math.min(70, accuracy))) {
