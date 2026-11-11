@@ -2,6 +2,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
+import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
 
 (() => {
   'use strict';
@@ -98,6 +99,11 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
     autocompleteUnavailable: false,
     musicService: localStorage.getItem('trazia:music-service') || '',
     placeMarkers: [],
+    speedCameraDataset: null,
+    speedCameraPromise: null,
+    announcedCameras: new Set(),
+    speedCameraEventsBound: false,
+    updatePending: false,
     nearbyRequestId: 0,
     nearbyCache: new Map(),
     cityBoundaryCache: new Map(),
@@ -1424,6 +1430,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
         }
         updateCompassControl();
         drawRouteOnMap();
+        void renderSpeedCameras();
       });
       state.map.on('style.load', () => {
         addTraziaBuildingLayer();
@@ -1431,6 +1438,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
         addTraziaRoadLayer();
         applyTraziaMapPalette();
         drawRouteOnMap();
+        void renderSpeedCameras();
       });
       state.map.on('error', (event) => console.info('Trazia map service notice:', event.error?.message || 'map tile unavailable'));
     } catch (error) {
@@ -1671,6 +1679,70 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       state.fitRouteToMap = false;
       if (state.is3d) window.setTimeout(() => state.map?.easeTo({ pitch: 55, duration: 360 }), 700);
     }
+  }
+
+  async function renderSpeedCameras() {
+    if (!state.mapReady || !state.map?.isStyleLoaded()) return;
+    try {
+      if (!state.speedCameraDataset) {
+        if (!state.speedCameraPromise) {
+          state.speedCameraPromise = fetchTimed('./data/speed-cameras.json?v=30', {}, 12000)
+            .then(async (response) => {
+              if (!response.ok) throw new Error('Camera registry unavailable');
+              const dataset = await response.json();
+              if (!Array.isArray(dataset.cameras)) throw new Error('Invalid camera registry');
+              state.speedCameraDataset = dataset;
+              return dataset;
+            }).finally(() => { state.speedCameraPromise = null; });
+        }
+        await state.speedCameraPromise;
+      }
+      if (!state.map.isStyleLoaded()) return;
+      if (!state.map.hasImage('trazia-camera-png')) {
+        const icon = await state.map.loadImage('./assets/speed-camera.png');
+        if (!state.map.isStyleLoaded()) return;
+        if (!state.map.hasImage('trazia-camera-png')) state.map.addImage('trazia-camera-png', icon.data, { pixelRatio: 4 });
+      }
+      const features = cameraFeatures(state.speedCameraDataset);
+      if (state.map.getSource('trazia-speed-cameras')) state.map.getSource('trazia-speed-cameras').setData(features);
+      else state.map.addSource('trazia-speed-cameras', { type: 'geojson', data: features });
+      if (!state.map.getLayer('trazia-speed-cameras')) state.map.addLayer({
+        id: 'trazia-speed-cameras', type: 'symbol', source: 'trazia-speed-cameras', minzoom: 10,
+        layout: { 'icon-image': 'trazia-camera-png', 'icon-size': 1, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-pitch-alignment': 'viewport' },
+      });
+      if (!state.speedCameraEventsBound) {
+        state.speedCameraEventsBound = true;
+        state.map.on('click', 'trazia-speed-cameras', (event) => {
+          const feature = event.features?.[0];
+          if (!feature) return;
+          const details = document.createElement('div');
+          const title = document.createElement('strong');
+          title.textContent = state.language === 'es' ? 'Cámara de fotodetección' : 'Traffic enforcement camera';
+          const address = document.createElement('p');
+          address.textContent = [feature.properties.address, feature.properties.city].filter(Boolean).join(', ');
+          const status = document.createElement('p');
+          const date = new Date(state.speedCameraDataset.updatedAt).toLocaleDateString(state.language === 'es' ? 'es-CO' : 'en-US');
+          status.textContent = state.language === 'es' ? `Registro ANSV: Operando · Datos del ${date}. No es información en tiempo real.` : `ANSV registry: Operating · Data as of ${date}. Not real-time information.`;
+          const source = document.createElement('a');
+          source.href = 'https://fotodeteccion.ansv.gov.co/ubicaciones-aprobadas.html';
+          source.target = '_blank'; source.rel = 'noopener noreferrer'; source.textContent = state.language === 'es' ? 'Consultar fuente ANSV' : 'View ANSV source';
+          details.append(title, address, status, source);
+          new maplibregl.Popup({ offset: 14 }).setLngLat(feature.geometry.coordinates).setDOMContent(details).addTo(state.map);
+        });
+      }
+    } catch (error) {
+      console.info('Trazia camera registry:', error.message);
+    }
+  }
+
+  function announceCameraAhead(user) {
+    if (!state.isNavigating || !state.voiceEnabled || !state.speedCameraDataset) return;
+    // Turn instructions have priority; never cancel them to announce a camera.
+    if (window.speechSynthesis?.speaking || window.speechSynthesis?.pending) return;
+    const camera = cameraAhead(user, state.routeCoordinates, state.speedCameraDataset.cameras, state.announcedCameras);
+    if (!camera) return;
+    state.announcedCameras.add(camera.id);
+    speak(state.language === 'es' ? 'Atención: cámara de fotomulta registrada más adelante.' : 'Traffic enforcement camera registered ahead.');
   }
 
   function updateRouteSummary(route) {
@@ -2136,6 +2208,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       const position = await getUserPosition();
       collapseMobilePanel();
       state.isNavigating = true;
+      state.announcedCameras.clear();
       state.followCamera = true;
       state.activeStep = 0;
       state.offRouteFixes = 0;
@@ -2232,6 +2305,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       next.alertSpoken = true;
       speak(next.instructions);
     }
+    announceCameraAhead(user);
   }
 
   function distanceMeters(a, b) {
@@ -2291,6 +2365,10 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       $('#search-route').disabled = false;
     }
     $('#navigation-banner').hidden = true;
+    if (state.updatePending) {
+      state.updatePending = false;
+      window.setTimeout(() => window.location.reload(), 400);
+    }
     window.speechSynthesis?.cancel();
     const wakeLockRelease = state.screenWakeLock?.release?.();
     wakeLockRelease?.catch?.(() => {});
@@ -2448,7 +2526,20 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
     window.setInterval(() => { if (state.theme === 'auto') applyTheme(); }, 60_000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden && state.theme === 'auto') applyTheme(); });
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-      navigator.serviceWorker.register('./sw.js').catch((error) => console.info('Trazia offline shell is unavailable:', error));
+      let refreshing = false;
+      const wasControlled = Boolean(navigator.serviceWorker.controller);
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!wasControlled || refreshing) return;
+        if (state.isNavigating) {
+          state.updatePending = true;
+          return;
+        }
+        refreshing = true;
+        window.location.reload();
+      });
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+        .then((registration) => registration.update())
+        .catch((error) => console.info('Trazia offline shell is unavailable:', error));
     }
   }
 

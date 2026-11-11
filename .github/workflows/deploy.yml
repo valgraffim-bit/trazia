@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v6
+      - name: Refresh public ANSV camera locations
+        run: python3 scripts/update-speed-cameras.py
       - name: Configure TomTom browser key
         env:
           TOMTOM_BROWSER_KEY: ${{ vars.TOMTOM_BROWSER_KEY }}
