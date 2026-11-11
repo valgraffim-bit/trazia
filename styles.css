@@ -484,3 +484,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 .route-details { margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--line); }
 .route-details .route-metrics { margin-top: 0; }
+
+.live-traffic-legend { display: flex; align-items: center; gap: 6px; margin: 10px 0 3px; color: var(--muted); }
+.live-traffic-legend > span { width: 16px; height: 4px; border-radius: 3px; background: #8d999e; }
+.live-traffic-legend[data-status="ready"] > span { background: #ed303b; }
+.live-traffic-legend small { font-size: 10px; line-height: 1.4; }

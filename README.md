@@ -30,7 +30,7 @@ Trazia no usa Google Maps ni copia el mapa de Waze. Dibuja su propia interfaz y 
 
 El selector permite carro, moto, camión y bicicleta. La ruta de moto está marcada como beta. La ruta de camión usa límites estándar; faltan controles para ingresar las dimensiones y el peso exactos del camión. La cobertura de calles y direcciones puede variar por país.
 
-Los tiempos y la llegada son estimaciones a partir de la ruta calculada. Esta versión no tiene una fuente de tráfico en vivo. El botón **Reportar** guarda avisos solamente en el dispositivo actual; todavía no los comparte con otras personas. Los resultados de gasolineras, clínicas, farmacias y negocios dependen de la información disponible en OpenStreetMap.
+Los tiempos y la llegada son estimaciones a partir de la ruta calculada. La capa opcional de tráfico muestra datos recientes de TomTom sobre el mapa; estos datos no se usan todavía para ajustar el tiempo de viaje ni elegir la ruta. El botón **Reportar** guarda avisos solamente en el dispositivo actual; todavía no los comparte con otras personas. Los resultados de gasolineras, clínicas, farmacias y negocios dependen de la información disponible en OpenStreetMap.
 
 Trazia puede abrir Spotify, Apple Music, YouTube Music o Deezer en el dispositivo. La conexión para controlar la reproducción desde Trazia requiere una autorización e integración adicional con el proveedor.
 
@@ -83,3 +83,11 @@ Pruebas TomTom: `node tests/tomtom-geocoding.test.cjs` y `node tests/tomtom-brow
 ### Publicar después de configurar la clave
 
 Guardar o cambiar `TOMTOM_BROWSER_KEY` no publica el sitio automáticamente. Inicia una ejecución nueva de **Deploy Trazia to GitHub Pages** desde Actions → Run workflow. Si al reejecutar un job anterior aparece `Multiple artifacts named "github-pages"`, inicia un workflow nuevo en lugar de repetir ese job: la nueva ejecución tendrá su propio artefacto. Para verificar la activación, comprueba únicamente si la configuración publicada tiene una clave no vacía, sin copiar ni registrar su valor.
+
+## Trancones en rojo
+
+La capa vectorial de TomTom Orbis Traffic Flow muestra en rojo únicamente segmentos con `relative_speed` entre 0 y 0.5 (velocidad observada inferior a la mitad de la velocidad de flujo libre). No se colorean como congestión las vías sin dato ni los cierres. Las líneas rojas se colocan encima de la ruta morada, debajo de los nombres y marcadores. No se cambia la geometría de la ruta ni se inventan tramos.
+
+La clave de navegador existente se envía solo en encabezados al endpoint oficial de tráfico. La capa se activa por defecto cuando hay una clave; puede ocultarse desde Ajustes → Mostrar trancones en rojo. Se conserva esa preferencia en el dispositivo. El mapa solicita actualizar sus tiles cada 60 segundos mientras esté visible, respetando el caché del proveedor. Errores de permisos/cuota (403/429) detienen nuevos intentos hasta volver a activar el control. La leyenda informa si los datos están disponibles; la ausencia de rojo no significa que toda la vía esté libre. El cálculo de rutas y los tiempos siguen siendo de Valhalla y no incorporan este tráfico.
+
+Verificación: una consulta real desde el dominio publicado de Trazia obtuvo tiles de Cali con HTTP 200; la prueba con MapLibre real dibujó segmentos rojos y comprobó sus velocidades relativas. Se probaron por separado el control móvil y el orden de capas con mapa simulado. Estos datos cambian con el tiempo y dependen de la cobertura de TomTom.
