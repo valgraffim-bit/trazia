@@ -65,7 +65,7 @@ Las consultas ArcGIS usan `forStorage=false`: sus resultados se muestran tempora
 
 ## Buscar y consultar el destino
 
-El campo «¿A dónde quieres ir?», la búsqueda de ruta, el tiempo, la distancia, las opciones y el inicio de navegación están reunidos en una sola sección. El historial no se muestra en la interfaz; los registros existentes del dispositivo no se borran. No hay botón ni diálogo de importación de Waze. Los enlaces de coordenadas compatibles pueden pegarse directamente en el campo de destino.
+El campo «¿A dónde quieres ir?», la búsqueda de ruta, el tiempo, la distancia, las opciones y el inicio de navegación están reunidos en una sola sección. El historial permanece cerrado por defecto bajo «Recientes»; una flecha permite desplegarlo y volver a ocultarlo. Los registros existentes del dispositivo no se borran. No hay botón ni diálogo de importación de Waze. Los enlaces de coordenadas compatibles pueden pegarse directamente en el campo de destino.
 
 ## Activar TomTom para todos los usuarios
 
@@ -91,3 +91,9 @@ La capa vectorial de TomTom Orbis Traffic Flow muestra en rojo únicamente segme
 La clave de navegador existente se envía solo en encabezados al endpoint oficial de tráfico. La capa se activa por defecto cuando hay una clave; puede ocultarse desde Ajustes → Mostrar trancones en rojo. Se conserva esa preferencia en el dispositivo. El mapa solicita actualizar sus tiles cada 60 segundos mientras esté visible, respetando el caché del proveedor. Errores de permisos/cuota (403/429) detienen nuevos intentos hasta volver a activar el control. La leyenda informa si los datos están disponibles; la ausencia de rojo no significa que toda la vía esté libre. El cálculo de rutas y los tiempos siguen siendo de Valhalla y no incorporan este tráfico.
 
 Verificación: una consulta real desde el dominio publicado de Trazia obtuvo tiles de Cali con HTTP 200; la prueba con MapLibre real dibujó segmentos rojos y comprobó sus velocidades relativas. Se probaron por separado el control móvil y el orden de capas con mapa simulado. Estos datos cambian con el tiempo y dependen de la cobertura de TomTom.
+
+## Paleta del mapa y panel desplegable
+
+La v33 aplica una paleta propia inspirada en la referencia visual del usuario: fondo azul grisáceo, zonas verdes y vías principales amarillas, con variante clara y oscura. No reutiliza mapas, logos ni datos privados de Waze. Los colores se aplican solo al mapa base: la ruta morada, la congestión roja de TomTom y los iconos de cámaras conservan su significado.
+
+El mapa espera a que el estilo esté listo para aplicar la paleta y la red vial, también al cambiar de tema. «Recientes» usa un desplegable nativo cerrado por defecto; el panel móvil inferior tiene una flecha que cambia al expandir o contraer. No se reintroduce el botón de importar Waze ni una tarjeta separada de destino.

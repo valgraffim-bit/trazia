@@ -4,6 +4,7 @@ import { parseWazeLocation } from './waze-links.mjs?v=27';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
 import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
 import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, congestionLayer } from './live-traffic.mjs?v=32';
+import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
 (() => {
   'use strict';
@@ -75,6 +76,7 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
     theme: localStorage.getItem('trazia:theme') || 'auto',
     map: null,
     mapStyle: '',
+    mapPaletteSignature: null,
     mapLoaded: false,
     mapReady: false,
     trafficEnabled: true,
@@ -180,6 +182,7 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
     update3dButton();
     updateCompassControl();
     updateMusicOptions();
+    renderRecentDestinations();
     $('#toggle-map-credits').setAttribute('aria-label', t('mapCredits'));
     $('#toggle-map-credits').title = t('mapCredits');
     updateLiveTrafficStatus();
@@ -1075,6 +1078,25 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
     container.append(add);
   }
 
+  function renderRecentDestinations() {
+    const section = $('#recent-destinations');
+    const list = $('#recent-list');
+    list.replaceChildren();
+    section.hidden = state.recentDestinations.length === 0;
+    state.recentDestinations.forEach((destination) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'recent-destination-button';
+      button.textContent = destination;
+      button.addEventListener('click', () => {
+        section.open = false;
+        setDestinationText(destination);
+        void searchRoute();
+      });
+      list.append(button);
+    });
+  }
+
   function openSavedPlaceEditor(id = null) {
     const saved = state.savedPlaces.find((place) => place.id === id);
     state.editingSavedPlaceId = id;
@@ -1125,6 +1147,7 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
   function saveRecentDestination(destination) {
     state.recentDestinations = [destination, ...state.recentDestinations.filter((item) => item.toLowerCase() !== destination.toLowerCase())].slice(0, 5);
     localStorage.setItem('trazia:recent-destinations', JSON.stringify(state.recentDestinations));
+    renderRecentDestinations();
   }
 
   function getUserPosition() {
@@ -1309,14 +1332,13 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
 
   function applyTraziaMapPalette() {
     if (!state.map?.isStyleLoaded()) return;
-    const dark = document.documentElement.dataset.theme === 'dark';
+    const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    const signature = `${state.mapStyle}:${theme}`;
+    if (state.mapPaletteSignature === signature) return;
+    state.mapPaletteSignature = signature;
     (state.map.getStyle().layers || []).forEach((layer) => {
       try {
-        if (layer.type === 'symbol' && layer.layout?.['text-field']) {
-          state.map.setPaintProperty(layer.id, 'text-color', dark ? '#e0e9ef' : '#263b4d');
-          state.map.setPaintProperty(layer.id, 'text-halo-color', dark ? '#17232e' : '#f5f8f6');
-          state.map.setPaintProperty(layer.id, 'text-halo-width', dark ? 1.35 : 1.1);
-        }
+        Object.entries(mapLayerPalette(layer, theme)).forEach(([property, value]) => state.map.setPaintProperty(layer.id, property, value));
       } catch (error) {
         console.info(`Trazia kept the base style for map layer ${layer.id}:`, error.message);
       }
@@ -1336,9 +1358,7 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
       filter: ['all', ['has', 'class'], ['!in', 'class', 'rail', 'ferry', 'aerialway', 'transit', 'path']],
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': dark
-          ? ['match', ['get', 'class'], ['motorway', 'trunk'], '#f2c34e', 'primary', '#16a981', ['secondary', 'tertiary'], '#278aa0', '#455e76']
-          : ['match', ['get', 'class'], ['motorway', 'trunk'], '#f2c34e', 'primary', '#42bd69', ['secondary', 'tertiary'], '#e8c746', '#d3dde0'],
+        'line-color': roadColors(dark ? 'dark' : 'light'),
         'line-width': [
           'interpolate', ['linear'], ['zoom'],
           10, ['match', ['get', 'class'], ['motorway', 'trunk'], 1.7, ['primary', 'secondary'], 1.4, 0.9],
@@ -1396,6 +1416,7 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
         renderLiveTraffic();
       });
       state.map.on('style.load', () => {
+        state.mapPaletteSignature = null;
         addTraziaBuildingLayer();
         if (state.is3d) removeTraziaBuildingLayers();
         addTraziaRoadLayer();
@@ -1407,6 +1428,8 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
       // Style edits can keep isStyleLoaded() false during the load callback.
       // Attach overlays once the style settles, including after a theme change.
       state.map.on('idle', () => {
+        if (!state.map.getLayer('trazia-road-network')) addTraziaRoadLayer();
+        applyTraziaMapPalette();
         if (!state.map.getLayer('trazia-speed-cameras')) void renderSpeedCameras();
         if (state.liveTrafficEnabled && !state.liveTrafficBlocked && !state.map.getLayer(TRAFFIC_LAYER)) renderLiveTraffic();
       });
@@ -2552,6 +2575,7 @@ import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, conges
     applyTheme();
     setupEvents();
     renderSavedPlaces();
+    renderRecentDestinations();
     renderSavedReportCount();
     initializeMap();
     updateSpeedometer();
