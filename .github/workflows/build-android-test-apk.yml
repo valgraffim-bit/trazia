@@ -28,11 +28,16 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          set -euo pipefail
+          sdkmanager_path="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -type f -name sdkmanager | sort -V | tail -n 1)"
+          if [ -z "$sdkmanager_path" ]; then
+            echo "Android SDK command-line tools were not found."
+            exit 1
+          fi
+          for _ in {1..20}; do printf 'y\n'; done | "$sdkmanager_path" --licenses
+          "$sdkmanager_path" --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
