@@ -21,7 +21,7 @@ const {chromium}=require('playwright');const fs=require('node:fs');const path=re
   const ready=async()=>{await page.waitForFunction(()=>window.__savedReady);await page.locator('#app-splash').waitFor({state:'hidden'});await page.evaluate(()=>window.__savedReady());};
   await page.goto('https://trazia.test/');await ready();
   for(const [id,kind,address,point] of [['home','home','Carrera 15 #12-83, Cali',[-76.52895843,3.44289173]],['work','work','Calle 12 #11-49, Cali',[-76.5301456,3.4461346]],['add','shop','Diagonal 50 #7 Oeste-12, Cali',[-76.55865753,3.41612953]]]){
-   await page.evaluate(({address,point})=>window.__features=[{type:'Feature',geometry:{type:'Point',coordinates:point},properties:{name:address,housenumber:'12-83',city:'Cali'}}],{address,point});
+   await page.evaluate(({address,point,approximate})=>window.__features=[{type:'Feature',geometry:{type:'Point',coordinates:point},properties:{name:address,housenumber:'12-83',city:'Cali',approximate}}],{address,point,approximate:id==='add'});
    await page.locator(`#quick-places [data-place-id="${id}"]`).click();
    if(id==='add'){await page.locator('#saved-place-name').fill('Mi negocio');await page.locator('#saved-place-icon').selectOption(kind);}
    await page.locator('#saved-place-address').fill(address);await page.locator('#save-place').click();
@@ -29,12 +29,14 @@ const {chromium}=require('playwright');const fs=require('node:fs');const path=re
    await page.locator('#saved-place-dialog').waitFor({state:'hidden'});
    const marker=page.locator(`.saved-place-marker:has(img[src$="/${kind}.png"])`);
    assert.equal(await marker.count(),1);assert.deepEqual(JSON.parse(await marker.getAttribute('data-point')),point);
-   assert.equal(await marker.locator('img').evaluate(img=>img.complete&&img.naturalWidth===128),true);
+   await page.waitForFunction(kind=>{const img=document.querySelector(`.saved-place-marker img[src$="/${kind}.png"]`);return img?.complete&&img.naturalWidth===128;},kind);
   }
   assert.equal(await page.locator('.saved-place-marker').count(),3);
-  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('trazia:saved-places')));assert.equal(saved.length,3);assert.equal(saved[2].kind,'shop');
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('trazia:saved-places')));assert.equal(saved.length,3);assert.equal(saved[2].kind,'shop');assert.equal(saved[2].approximate,true);
   await page.locator('#quick-places [data-place-id="home"]').click();
   assert.deepEqual((await page.evaluate(()=>window.__chosen)).location,{lat:3.44289173,lng:-76.52895843});
+  await page.locator(`#quick-places [data-place-id="${saved[2].id}"]`).click();
+  assert.equal((await page.evaluate(()=>window.__chosen)).approximate,true);
   await page.reload();await ready();assert.equal(await page.locator('.saved-place-marker').count(),3);
   // Unknown addresses never silently create a marker at a guessed point.
   await page.locator('#quick-places [data-place-id="add"]').click();await page.locator('#saved-place-name').fill('No encontrado');await page.locator('#saved-place-address').fill('Dirección sin datos');
