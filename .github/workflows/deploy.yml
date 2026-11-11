@@ -39,6 +39,8 @@ jobs:
         with:
           path: data/addresses/cali
           key: cali-address-db-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Refresh official IGAC cadastre catalog
+        run: python3 scripts/update-cadastre-catalog.py
       - name: Refresh public ANSV camera locations
         run: python3 scripts/update-speed-cameras.py
       - name: Configure TomTom browser key
