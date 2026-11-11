@@ -533,3 +533,7 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 .report-popup { color: #243244; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
 .report-popup p { margin: 7px 0; white-space: pre-wrap; }
 .report-popup small { display: block; color: #586475; }
+
+.screen-lock-status { position: absolute; z-index: 6; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 132px); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 100px); min-height: 32px; padding: 6px 10px; border: 1px solid #ffffff40; border-radius: 12px; background: #202733; color: #ffd28a; font: inherit; font-size: 11px; cursor: pointer; }
+.screen-lock-status[data-held="true"] { color: #8ce4ca; }
+.screen-lock-status[hidden] { display: none; }

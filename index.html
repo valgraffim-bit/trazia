@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=32" />
+    <link rel="stylesheet" href="./styles.css?v=33" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -227,6 +227,7 @@
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">Data from © OpenStreetMap contributors · ODbL</a>
           </div>
 
+          <button id="screen-lock-status" class="screen-lock-status" type="button" aria-live="polite" hidden></button>
           <button id="finish-navigation" class="finish-navigation" type="button" data-i18n="finishNavigation" aria-label="Terminar navegación y volver al menú" hidden>Terminar</button>
 
           <div class="navigation-banner" id="navigation-banner" hidden>
@@ -358,7 +359,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=28"></script>
-    <script type="module" src="./app.js?v=42"></script>
+    <script type="module" src="./app.js?v=43"></script>
   </body>
 </html>
 

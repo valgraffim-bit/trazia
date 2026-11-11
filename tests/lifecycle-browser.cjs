@@ -6,7 +6,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
   for(const width of [320,390,1024]){
    const context=await browser.newContext({viewport:{width,height:844},locale:'es-CO',serviceWorkers:'block'});
    const page=await context.newPage();
-   await page.addInitScript(()=>{window.__wakeRequests=0;Object.defineProperty(navigator,'wakeLock',{configurable:true,value:{async request(){window.__wakeRequests++;return{released:false,addEventListener(){},async release(){this.released=true;}};}}});window.__spoken=[];Object.defineProperty(window,'speechSynthesis',{value:{cancel(){},resume(){},getVoices(){return[];},speak(u){window.__spoken.push(u.text);}}});window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};});
+   await page.addInitScript(()=>{window.__wakeRequests=0;Object.defineProperty(navigator,'wakeLock',{configurable:true,value:{async request(){window.__wakeRequests++;return{released:false,addEventListener(type,fn){window.__releaseLock=fn;},async release(){this.released=true;}};}}});window.__spoken=[];Object.defineProperty(window,'speechSynthesis',{value:{cancel(){},resume(){},getVoices(){return[];},speak(u){window.__spoken.push(u.text);}}});window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};});
    await page.route('**/*',async route=>{
     const url=new URL(route.request().url());
     if(url.hostname==='unpkg.com'&&url.pathname.endsWith('.mjs'))return route.fulfill({contentType:'text/javascript',body:'export class Map { constructor(){throw Error("Offline UI test");} }'});
@@ -26,11 +26,17 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
    const box=await page.locator('.map-area').boundingBox();
    assert.equal(Math.round(box.width),width);assert.equal(Math.round(box.height),844);
    assert.equal(await page.evaluate(()=>window.__wakeRequests),1);
+   assert.equal(await page.locator('#screen-lock-status').getAttribute('data-held'),'true');
+   await page.evaluate(()=>window.__releaseLock());
+   assert.equal(await page.locator('#screen-lock-status').getAttribute('data-held'),'false');
+   await page.waitForFunction(()=>window.__wakeRequests===2);
+   assert.equal(await page.locator('#screen-lock-status').getAttribute('data-held'),'true');
+
    await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
    await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));});
    assert.equal(await page.locator('#app-splash').isVisible(),true);
    await page.locator('#app-splash').waitFor({state:'hidden'});
-   assert.equal(await page.evaluate(()=>window.__wakeRequests),2);
+   assert.equal(await page.evaluate(()=>window.__wakeRequests),3);
    assert.equal(await page.locator('.side-panel').isVisible(),false);
    const finish=page.locator('#finish-navigation');assert.equal(await finish.isVisible(),true);
    const buttonBox=await finish.boundingBox();assert.ok(buttonBox.width<150&&buttonBox.height>=44);
