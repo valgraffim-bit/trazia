@@ -1,16 +1,16 @@
-const CACHE_NAME = 'trazia-shell-v36';
+const CACHE_NAME = 'trazia-shell-v37';
 const APP_FILES = [
   './',
   './index.html',
   './styles.css?v=28',
-  './app.js?v=36',
+  './app.js?v=37',
   './map-palette.mjs?v=33',
   './live-traffic.mjs?v=32',
   './speed-cameras.mjs?v=35',
   './data/speed-cameras.json?v=30',
   './assets/speed-camera.png',
   './config.js?v=28',
-  './tomtom-geocoding.mjs?v=28',
+  './tomtom-geocoding.mjs?v=37',
   './waze-links.mjs?v=27',
   './manifest.webmanifest',
   './assets/trazia-app-icon.png',

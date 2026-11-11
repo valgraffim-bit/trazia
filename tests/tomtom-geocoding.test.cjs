@@ -55,3 +55,25 @@ test('rejects malformed payloads and preserves request cancellation', async () =
   controller.abort();
   await assert.rejects(findTomtomCandidates(query, { apiKey: 'test-browser-key', signal: controller.signal, fetchFn: async () => { throw new DOMException('Aborted', 'AbortError'); } }), { name: 'AbortError' });
 });
+test('named places use fuzzy POI search and preserve name, address and routing coordinates', async () => {
+  const { findTomtomCandidates } = await modulePromise;
+  for (const name of ['Clínica de prueba', 'Negocio de prueba', 'Pista de patinaje']) {
+    let request;
+    const matches = await findTomtomCandidates(name, { apiKey: 'test-key', center: { lat: 3.45, lng: -76.53 }, fetchFn: async (url) => {
+      request = new URL(url);
+      return { ok: true, json: async () => ({ results: [
+        { type: 'POI', poi: { name }, position: { lat: 3.46, lon: -76.54 }, address: { countryCode: 'CO', streetName: 'Calle 1', streetNumber: '2', municipality: 'Cali' } },
+        { type: 'POI', poi: { name: 'Invalid' }, position: { lat: 200, lon: 0 }, address: { countryCode: 'CO' } },
+        { type: 'POI', position: { lat: 3, lon: -76 }, address: { countryCode: 'US' } },
+      ] }) };
+    } });
+    assert.match(request.pathname, /\/search\/2\/search\//);
+    assert.equal(decodeURIComponent(request.pathname.split('/').at(-1)), `${name}.json`);
+    assert.equal(request.searchParams.get('countrySet'), 'CO');
+    assert.equal(request.searchParams.get('lat'), '3.45');
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].properties.name, name);
+    assert.equal(matches[0].properties.city, 'Cali');
+    assert.deepEqual(matches[0].geometry.coordinates, [-76.54, 3.46]);
+  }
+});
