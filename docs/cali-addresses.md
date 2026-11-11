@@ -56,3 +56,11 @@ Las coordenadas se comprobaron contra la respuesta oficial, no mediante visita f
 - La réplica es de lectura. No incorpora correcciones de usuarios ni datos de TomTom/Esri. Conserva licencia, atribución y descripción de los cambios.
 
 Pruebas adicionales: `tests/test_address_database.py` valida publicación íntegra, datos mínimos, paginación parcial/inestable, recuperación de ZIP y conservación ante fallos; `tests/local-cali-addresses.test.cjs` verifica búsqueda, huellas, caché y rechazo de rutas externas; `tests/local-cali-browser.cjs` prueba selección sin enviar consultas a geocodificadores, en móvil y escritorio.
+
+## Recuperación de la primera publicación bloqueada
+
+Los dos primeros despliegues de la base fallaron porque el WFS devolvió HTTP 403 a GitHub Actions. La web continuó sirviendo v43 y el manifiesto de direcciones devolvía 404; la copia no estaba aplicada.
+
+`data/address-seed/cali/` incluye una única copia inicial, comprimida y dividida en 16 partes con SHA-256, derivada de la descarga completa ya validada. Si faltan tanto caché como copia publicada, el actualizador la reconstruye y valida antes de usarla. Así, una restricción de la fuente no impide la primera publicación. Esto complementa la regla de fallo inicial anterior: el flujo solo falla si no puede obtener **ninguna** copia válida, incluida la semilla.
+
+Se probó una ejecución inicial con todas las peticiones de recuperación y actualización bloqueadas por un 403 simulado: restauró las 294.361 entradas y terminó conservándolas. Playwright usa `TRAZIA_CALI_DB_ROOT` para comprobar el buscador contra esa copia completa, en móvil y escritorio, sin peticiones a geocodificadores. Los futuros bloqueos de IDESC siguen notificándose como advertencias y se conserva la última copia válida; no se afirma que el bloqueo externo haya desaparecido.
