@@ -22,7 +22,7 @@ test('starting navigation shows the correct arrow while speaking the full instru
  const instruction='Gira a la derecha hacia Calle 45. Después gira a la izquierda hacia Carrera 83C.';
  const ctx=vm.createContext({ $,state:{announcedCameras:new Set(),mapReady:true,route:{},routeCoordinates:[[0,0],[1,1]],navigationSteps:[{maneuverType:10,instructions:instruction}],voiceEnabled:true,language:'es',map:{flyTo(){}},is3d:true},
   window:{speechSynthesis:{cancel(){},resume(){},getVoices(){return[];},speak(u){spoken.push(u.text);}},SpeechSynthesisUtterance:class{constructor(text){this.text=text;}}},
-  navigator:{},t:key=>key,showToast(){},updateNavigationButton(){},collapseMobilePanel(){},setMap3d(){},getUserPosition:async()=>({lat:3.4,lng:-76.5}),compassBearing:()=>0,mobileMapOffset:()=>[0,0],console});
+  navigator:{},t:key=>key,showToast(){},updateNavigationButton(){},setNavigationView(){},collapseMobilePanel(){},setMap3d(){},getUserPosition:async()=>({lat:3.4,lng:-76.5}),compassBearing:()=>0,mobileMapOffset:()=>[0,0],console});
  for(const name of ['navigationArrow','updateNavigationInstruction','speak','toggleNavigation'])add(ctx,name);
  await ctx.toggleNavigation();
  assert.equal($('#navigation-banner').hidden,false);
@@ -36,7 +36,7 @@ test('stopping navigation clears the purple route and cancels late calculations,
  const sources=new Set(['trazia-route']);let aborted=0,markerRemoved=0;
  const elements=new Map();const $=selector=>{if(!elements.has(selector))elements.set(selector,{});return elements.get(selector);};
  const state={isNavigating:true,isRerouting:false,routeRequestId:7,routeSearchController:{abort(){aborted++;}},routeCoordinates:[[1,2],[3,4]],route:{},navigationSteps:[{}],currentRoutes:[{}],destinationMarker:{remove(){markerRemoved++;}},map:{stop(){},getLayer:id=>layers.has(id),removeLayer:id=>layers.delete(id),getSource:id=>sources.has(id),removeSource:id=>sources.delete(id)}};
- const ctx=vm.createContext({state,$,window:{speechSynthesis:{cancel(){}}},t:k=>k,updateNavigationButton(){},showToast(){}});
+ const ctx=vm.createContext({state,$,window:{speechSynthesis:{cancel(){}}},t:k=>k,updateNavigationButton(){},setNavigationView(){},showToast(){}});
  for(const name of ['clearRoutePolylines','stopNavigation'])add(ctx,name);
  ctx.stopNavigation();
  assert.equal(state.routeCoordinates.length,0);assert.equal(state.route,null);

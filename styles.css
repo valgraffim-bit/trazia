@@ -515,3 +515,11 @@ button.place-result-name { display: block; width: 100%; border: 0; padding: 0; c
 .place-result-details { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .place-result-contacts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 5px; font-size: 11px; }
 .place-result-contacts a { color: var(--teal); }
+
+/* Navigation fills the available browser viewport on every screen size. */
+.app-shell.navigation-fullscreen { display: block; position: relative; height: 100dvh; min-height: 0; --map-sheet-height: 0px; }
+.app-shell.navigation-fullscreen .side-panel { display: none; }
+.app-shell.navigation-fullscreen .map-area { position: absolute; inset: 0; width: 100%; height: 100%; }
+.app-shell.navigation-fullscreen .maplibregl-ctrl-bottom-right { bottom: 8px !important; }
+.finish-navigation { position: absolute; z-index: 6; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); min-height: 44px; padding: 10px 18px; border: 1px solid #ffffff40; border-radius: 24px; background: #202733; color: #fff; font: inherit; font-size: 14px; font-weight: 700; box-shadow: 0 3px 12px #0005; cursor: pointer; }
+.finish-navigation[hidden] { display: none; }
