@@ -2443,14 +2443,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     app.classList.toggle('navigation-fullscreen', active);
     $('#finish-navigation').hidden = !active;
     if (!active) {
-      $('.side-panel').classList.add('expanded');
-      app.classList.add('panel-expanded');
-      $('#toggle-panel').setAttribute('aria-expanded', 'true');
+      $('.side-panel').classList.remove('expanded');
+      app.classList.remove('panel-expanded');
+      $('#toggle-panel').setAttribute('aria-expanded', 'false');
+      $('.panel-scroll').scrollTop = 0;
     }
     state.map?.resize();
     window.requestAnimationFrame(() => state.map?.resize());
     if (active) $('#finish-navigation').focus({ preventScroll: true });
-    else $('#search-route').focus({ preventScroll: true });
+    else (window.matchMedia('(max-width: 820px)').matches ? $('#toggle-panel') : $('#search-route')).focus({ preventScroll: true });
   }
 
   function stopNavigation(showMessage = true) {
