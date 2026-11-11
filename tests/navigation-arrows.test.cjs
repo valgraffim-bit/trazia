@@ -43,5 +43,5 @@ test('stopping navigation clears the purple route and cancels late calculations,
  assert.equal(state.navigationSteps.length,0);assert.equal(state.routeRequestId,8);assert.equal(aborted,1);assert.equal(markerRemoved,1);
  assert.equal(layers.has('trazia-route-line'),false);assert.equal(layers.has('trazia-route-outline'),false);assert.equal(sources.has('trazia-route'),false);
  assert.equal(layers.has('trazia-congestion-red'),true);assert.equal(layers.has('trazia-speed-cameras'),true);
- assert.equal($('#navigation-banner').hidden,true);assert.equal($('#route-summary-overlay').hidden,true);assert.equal($('#start-navigation').disabled,true);
+ assert.equal($('#navigation-banner').hidden,true);assert.equal($('#camera-approach-alert').hidden,true);assert.equal($('#route-summary-overlay').hidden,true);assert.equal($('#start-navigation').disabled,true);
 });

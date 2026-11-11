@@ -27,12 +27,17 @@ export function projectOnRoute(point, route) {
   return best;
 }
 
-export function cameraAhead(user, route, cameras, announced = new Set()) {
+export function cameraApproach(user, route, cameras) {
   if (!user || !Array.isArray(route) || route.length < 2) return null;
   const progress = projectOnRoute(user, route);
   if (progress.distance > 60) return null;
-  return cameras.filter(camera => camera.status === 'Operando' && !announced.has(camera.id) && Math.abs(camera.lat - user.lat) < 0.004 && Math.abs(camera.lng - user.lng) < 0.005)
+  const nearest = cameras.filter(camera => camera.status === 'Operando' && Math.abs(camera.lat - user.lat) < 0.006 && Math.abs(camera.lng - user.lng) < 0.007)
     .map(camera => ({ camera, point: projectOnRoute(camera, route) }))
-    .filter(({ point }) => point.distance <= 40 && point.progress >= progress.progress + 15 && point.progress <= progress.progress + 350)
-    .sort((a, b) => a.point.progress - b.point.progress)[0]?.camera || null;
+    .filter(({ point }) => point.distance <= 40 && point.progress >= progress.progress - 15 && point.progress <= progress.progress + 500.000001)
+    .sort((a, b) => a.point.progress - b.point.progress)[0];
+  return nearest ? { camera: nearest.camera, distanceMeters: Math.max(0, nearest.point.progress - progress.progress) } : null;
+}
+
+export function cameraAhead(user, route, cameras, announced = new Set()) {
+  return cameraApproach(user, route, cameras.filter(camera => !announced.has(camera.id)))?.camera || null;
 }
