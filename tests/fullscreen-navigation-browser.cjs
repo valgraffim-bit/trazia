@@ -3,7 +3,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
 (async()=>{
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
  try{
-  for(const width of [390,1024]){
+  for(const width of [320,390,1024]){
    const context=await browser.newContext({viewport:{width,height:844},locale:'es-CO',serviceWorkers:'block'});
    const page=await context.newPage();
    await page.addInitScript(()=>{window.__spoken=[];Object.defineProperty(window,'speechSynthesis',{value:{cancel(){},resume(){},getVoices(){return[];},speak(u){window.__spoken.push(u.text);}}});window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};});
@@ -27,6 +27,16 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
    assert.equal(Math.round(box.width),width);assert.equal(Math.round(box.height),844);
    const finish=page.locator('#finish-navigation');assert.equal(await finish.isVisible(),true);
    const buttonBox=await finish.boundingBox();assert.ok(buttonBox.width<150&&buttonBox.height>=44);
+   if(width<=820){
+    for(const id of ['#open-music','#toggle-voice','#open-report-map']){
+     const control=await page.locator(id).boundingBox();
+     assert.ok(buttonBox.y+buttonBox.height+10<=control.y,`${id} must stay below Finish with a gap`);
+     assert.ok(await page.locator(id).evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),`${id} must be tappable`);
+    }
+    await page.locator('#open-music').click();
+    assert.equal(await page.locator('#music-dialog').isVisible(),true);
+    await page.locator('[data-close="music-dialog"]').click();
+   }
    await finish.click();
    assert.equal(await page.locator('.side-panel').isVisible(),true);
    assert.equal(await finish.isVisible(),false);
