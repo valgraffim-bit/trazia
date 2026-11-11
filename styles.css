@@ -557,25 +557,33 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
   .search-field-wrap input { font-size: 16px; }
 }
 
-/* In landscape navigation, keep the lock indicator beside the centered finish button. */
+/* Center both navigation controls together near the lower safe edge. */
+.navigation-bottom-controls { display: contents; }
 @media (orientation: landscape) {
   .route-summary-overlay {
     top: max(8px, env(safe-area-inset-top));
   }
 
-  .finish-navigation {
-    top: auto;
-    right: auto;
-    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 18px);
+  .navigation-bottom-controls {
+    position: absolute;
+    z-index: 6;
+    bottom: max(8px, env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    max-width: calc(100% - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));
+    width: max-content;
   }
 
-  .screen-lock-status {
-    top: auto;
-    right: calc(50% + 65px);
-    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 24px);
-    left: auto;
+  .navigation-bottom-controls .finish-navigation,
+  .navigation-bottom-controls .screen-lock-status {
+    position: relative;
+    inset: auto;
     transform: none;
+    flex: 0 1 auto;
+    max-width: 100%;
   }
 }

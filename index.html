@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=38" />
+    <link rel="stylesheet" href="./styles.css?v=39" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -229,8 +229,10 @@
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">Data from © OpenStreetMap contributors · ODbL</a>
           </div>
 
-          <button id="screen-lock-status" class="screen-lock-status" type="button" aria-live="polite" hidden></button>
-          <button id="finish-navigation" class="finish-navigation" type="button" data-i18n="finishNavigation" aria-label="Terminar navegación y volver al menú" hidden>Terminar</button>
+          <div class="navigation-bottom-controls">
+            <button id="screen-lock-status" class="screen-lock-status" type="button" aria-live="polite" hidden></button>
+            <button id="finish-navigation" class="finish-navigation" type="button" data-i18n="finishNavigation" aria-label="Terminar navegación y volver al menú" hidden>Terminar</button>
+          </div>
 
           <div class="navigation-banner" id="navigation-banner" hidden>
             <svg class="navigation-turn-icon" viewBox="0 0 32 32" aria-hidden="true"><path id="navigation-arrow-path" d="M16 28V5M8 13l8-8 8 8"/></svg>
