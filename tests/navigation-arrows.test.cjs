@@ -31,3 +31,17 @@ test('starting navigation shows the correct arrow while speaking the full instru
  assert.equal(spoken.at(-1),instruction);
  assert.equal(ctx.state.isNavigating,true);
 });
+test('stopping navigation clears the purple route and cancels late calculations, preserving traffic and cameras',()=>{
+ const layers=new Set(['trazia-route-line','trazia-route-outline','trazia-congestion-red','trazia-speed-cameras']);
+ const sources=new Set(['trazia-route']);let aborted=0,markerRemoved=0;
+ const elements=new Map();const $=selector=>{if(!elements.has(selector))elements.set(selector,{});return elements.get(selector);};
+ const state={isNavigating:true,isRerouting:false,routeRequestId:7,routeSearchController:{abort(){aborted++;}},routeCoordinates:[[1,2],[3,4]],route:{},navigationSteps:[{}],currentRoutes:[{}],destinationMarker:{remove(){markerRemoved++;}},map:{stop(){},getLayer:id=>layers.has(id),removeLayer:id=>layers.delete(id),getSource:id=>sources.has(id),removeSource:id=>sources.delete(id)}};
+ const ctx=vm.createContext({state,$,window:{speechSynthesis:{cancel(){}}},t:k=>k,updateNavigationButton(){},showToast(){}});
+ for(const name of ['clearRoutePolylines','stopNavigation'])add(ctx,name);
+ ctx.stopNavigation();
+ assert.equal(state.routeCoordinates.length,0);assert.equal(state.route,null);
+ assert.equal(state.navigationSteps.length,0);assert.equal(state.routeRequestId,8);assert.equal(aborted,1);assert.equal(markerRemoved,1);
+ assert.equal(layers.has('trazia-route-line'),false);assert.equal(layers.has('trazia-route-outline'),false);assert.equal(sources.has('trazia-route'),false);
+ assert.equal(layers.has('trazia-congestion-red'),true);assert.equal(layers.has('trazia-speed-cameras'),true);
+ assert.equal($('#navigation-banner').hidden,true);assert.equal($('#route-summary-overlay').hidden,true);assert.equal($('#start-navigation').disabled,true);
+});
