@@ -2,7 +2,7 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
-import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
+import { cameraFeatures, cameraApproach } from './speed-cameras.mjs?v=35';
 import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, congestionLayer } from './live-traffic.mjs?v=32';
 import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
@@ -1792,13 +1792,30 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function announceCameraAhead(user) {
-    if (!state.isNavigating || !state.voiceEnabled || !state.speedCameraDataset) return;
-    // Turn instructions have priority; never cancel them to announce a camera.
-    if (window.speechSynthesis?.speaking || window.speechSynthesis?.pending) return;
-    const camera = cameraAhead(user, state.routeCoordinates, state.speedCameraDataset.cameras, state.announcedCameras);
-    if (!camera) return;
-    state.announcedCameras.add(camera.id);
-    speak(state.language === 'es' ? 'Atención: cámara de fotomulta registrada más adelante.' : 'Traffic enforcement camera registered ahead.');
+    const alert = $('#camera-approach-alert');
+    if (!state.isNavigating || state.isRerouting || !state.speedCameraDataset) {
+      alert.hidden = true;
+      return;
+    }
+    const approach = cameraApproach(user, state.routeCoordinates, state.speedCameraDataset.cameras);
+    if (!approach) {
+      alert.hidden = true;
+      return;
+    }
+    const meters = approach.distanceMeters;
+    const rounded = Math.max(0, Math.round((meters + 0.000001) / (meters >= 100 ? 10 : 5)) * (meters >= 100 ? 10 : 5));
+    $('#camera-alert-title').textContent = state.language === 'es' ? 'Cámara de fotodetección' : 'Traffic camera';
+    $('#camera-alert-distance').textContent = `${rounded} m`;
+    alert.hidden = false;
+    // The visible countdown keeps updating even when voice is muted or busy.
+    if (!state.voiceEnabled || window.speechSynthesis?.speaking || window.speechSynthesis?.pending) return;
+    const stage = meters <= 20 ? 0 : meters <= 100 ? 100 : meters <= 300 ? 300 : 500;
+    const key = `${approach.camera.id}:${stage}`;
+    if (state.announcedCameras.has(key)) return;
+    state.announcedCameras.add(key);
+    speak(state.language === 'es'
+      ? `Atención: cámara de fotodetección a ${rounded} metros.`
+      : `Traffic enforcement camera ${rounded} meters ahead.`);
   }
 
   function updateRouteSummary(route) {
@@ -2322,6 +2339,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         state.offRouteFixes = 0;
         $('#route-note').textContent = t('rerouting');
         updateNavigationInstruction(t('rerouting'), null);
+        $('#camera-approach-alert').hidden = true;
         showToast(t('rerouting'));
         void searchRoute({ automatic: true });
         return;
@@ -2330,11 +2348,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const step = state.navigationSteps[state.activeStep];
     if (!step) {
       updateNavigationInstruction(t('navigationFollowRoute'), null);
+      announceCameraAhead(user);
       return;
     }
     const end = step.endLocation;
     const endPoint = typeof end?.lat === 'function' ? { lat: end.lat(), lng: end.lng() } : end;
-    if (!endPoint) return;
+    if (!endPoint) { announceCameraAhead(user); return; }
     const metersToManeuver = distanceMeters(user, endPoint);
     if (!step.alertSpoken && metersToManeuver <= 650) {
       step.alertSpoken = true;
@@ -2354,6 +2373,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         const finalInstruction = t('navigationFollowRoute');
         $('#route-note').textContent = finalInstruction;
         updateNavigationInstruction(finalInstruction, null);
+        announceCameraAhead(user);
         return;
       }
       $('#route-note').textContent = next.instructions;
@@ -2428,6 +2448,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#route-duration').innerHTML = `— <small>${t('minutes')}</small>`;
     $('#route-distance').innerHTML = `— <small>${t('kilometers')}</small>`;
     $('#navigation-banner').hidden = true;
+    $('#camera-approach-alert').hidden = true;
     if (state.updatePending) {
       state.updatePending = false;
       window.setTimeout(() => window.location.reload(), 400);

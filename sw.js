@@ -1,12 +1,12 @@
-const CACHE_NAME = 'trazia-shell-v34';
+const CACHE_NAME = 'trazia-shell-v35';
 const APP_FILES = [
   './',
   './index.html',
-  './styles.css?v=26',
-  './app.js?v=34',
+  './styles.css?v=27',
+  './app.js?v=35',
   './map-palette.mjs?v=33',
   './live-traffic.mjs?v=32',
-  './speed-cameras.mjs?v=30',
+  './speed-cameras.mjs?v=35',
   './data/speed-cameras.json?v=30',
   './assets/speed-camera.png',
   './config.js?v=28',

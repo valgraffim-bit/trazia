@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=26" />
+    <link rel="stylesheet" href="./styles.css?v=27" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -232,6 +232,11 @@
             <strong class="sr-only" id="navigation-instruction"></strong>
           </div>
 
+          <aside class="camera-approach-alert" id="camera-approach-alert" aria-label="Aviso de cámara de fotodetección" hidden>
+            <img src="./assets/speed-camera.png" alt="" width="24" height="24" />
+            <div><span id="camera-alert-title">Cámara de fotodetección</span><strong id="camera-alert-distance">500 m</strong></div>
+          </aside>
+
           <div class="speedometer" id="speedometer" aria-label="0 km/h">
             <strong id="speed-value">0</strong>
             <span id="speed-unit">km/h</span>
@@ -351,7 +356,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=28"></script>
-    <script type="module" src="./app.js?v=34"></script>
+    <script type="module" src="./app.js?v=35"></script>
   </body>
 </html>
 

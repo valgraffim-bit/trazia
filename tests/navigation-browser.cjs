@@ -14,7 +14,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
     const filename=path.resolve(__dirname,'..','.'+(url.pathname==='/'?'/index.html':url.pathname));
     if(!fs.existsSync(filename))return route.fulfill({status:404,body:''});
     let body=fs.readFileSync(filename);
-    if(url.pathname==='/app.js')body=Buffer.from(body.toString().replace('  initialize();','  window.__navTest = (type, text) => { state.voiceEnabled=true; updateNavigationInstruction(text, { maneuverType: type }); document.querySelector("#navigation-banner").hidden=false; speak(text); };\n  initialize();'));
+    if(url.pathname==='/app.js')body=Buffer.from(body.toString().replace('  initialize();','  window.__navTest = (type, text) => { state.voiceEnabled=true; updateNavigationInstruction(text, { maneuverType: type }); document.querySelector("#navigation-banner").hidden=false; speak(text); }; window.__cameraWarningTest = (meters) => { const lat=3.38,lng=-76.5175,scale=6371000*Math.PI/180*Math.cos(lat*Math.PI/180); state.isNavigating=true; state.isRerouting=false; state.speedCameraDataset={cameras:[{id:"test-camera",lat,lng,status:"Operando"}]}; state.routeCoordinates=[[lng-0.02,lat],[lng+0.02,lat]]; announceCameraAhead({lat,lng:lng-meters/scale}); };\n  initialize();'));
     return route.fulfill({body,contentType:({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(filename)]||'application/json'});
    });
    await page.goto('https://trazia.test/');
@@ -32,9 +32,21 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
    assert.equal(await banner.getAttribute('data-direction'),'right');
    await page.evaluate(()=>window.__navTest(15,'Gira a la izquierda.'));
    assert.equal(await banner.getAttribute('data-direction'),'left');
+   await page.evaluate(()=>window.__cameraWarningTest(495));
+   const cameraAlert=page.locator('#camera-approach-alert');
+   assert.equal(await cameraAlert.isVisible(),true);
+   assert.equal(await page.locator('#camera-alert-distance').innerText(),'500 m');
+   const cameraBox=await cameraAlert.boundingBox();
+   assert.ok(cameraBox.width<=242&&cameraBox.height<70);
+   assert.ok(cameraBox.y>geometry.top+geometry.height);
+   await page.evaluate(()=>window.__cameraWarningTest(95));
+   assert.equal(await page.locator('#camera-alert-distance').innerText(),'95 m');
+   assert.match((await page.evaluate(()=>window.__spoken)).at(-1),/fotodetección a 95 metros/);
    await page.screenshot({path:`/tmp/trazia-navigation-${width}.png`});
+   await page.evaluate(()=>window.__cameraWarningTest(-25));
+   assert.equal(await cameraAlert.isVisible(),false);
    await context.close();
   }
-  console.log('Arrow-only navigation passed on mobile and desktop; speech preserved, map/services simulated.');
+  console.log('Arrow-only navigation and compact 500m camera countdown passed on mobile and desktop; speech preserved, map/services simulated.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
