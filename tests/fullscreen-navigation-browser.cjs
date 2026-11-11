@@ -14,7 +14,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
     const filename=path.resolve(__dirname,'..','.'+(url.pathname==='/'?'/index.html':url.pathname));
     if(!fs.existsSync(filename))return route.fulfill({status:404,body:''});
     let body=fs.readFileSync(filename);
-    if(url.pathname==='/app.js')body=Buffer.from(body.toString().replace('  initialize();',`  window.__fullscreenTest=async()=>{state.mapReady=true;state.route={};state.routeCoordinates=[[0,0],[1,1]];state.navigationSteps=[];state.map={resize(){},stop(){},getZoom(){return 17;},easeTo(){},flyTo(){},getLayer(){return false;},getSource(){return false;}};getUserPosition=async()=>({lat:3.45,lng:-76.53});startLocationWatch=()=>{};await toggleNavigation();};
+    if(url.pathname==='/app.js')body=Buffer.from(body.toString().replace('  initialize();',`  window.__fullscreenTest=async()=>{state.mapReady=true;state.route={};state.routeCoordinates=[[0,0],[1,1]];state.navigationSteps=[];state.map={isStyleLoaded(){return false;},resize(){},stop(){},getZoom(){return 17;},easeTo(){},flyTo(){},getLayer(){return false;},getSource(){return false;}};getUserPosition=async()=>({lat:3.45,lng:-76.53});startLocationWatch=()=>{};await toggleNavigation();};
   initialize();`));
     return route.fulfill({body,contentType:({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(filename)]||'application/json'});
    });
