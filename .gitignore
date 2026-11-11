@@ -2,3 +2,8 @@ server.log
 server-error.log
 node_modules/
 .DS_Store
+
+# Generated, validated address snapshots are published as deployment artifacts.
+data/addresses/cali/
+data/addresses/cali.previous/
+__pycache__/
