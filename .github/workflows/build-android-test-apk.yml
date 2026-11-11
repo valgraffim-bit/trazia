@@ -1,0 +1,68 @@
+name: Build Android test APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/build-android-test-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-test-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Trazia
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "9.6.0"
+
+      - name: Build debug APK
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Prepare downloadable APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Trazia-Android-prueba.apk
+
+      - name: Save build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trazia-Android-prueba-APK
+          path: Trazia-Android-prueba.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish downloadable release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_tag="trazia-android-test"
+          if gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$release_tag" Trazia-Android-prueba.apk --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$release_tag" Trazia-Android-prueba.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Trazia para Android · APK de prueba" \
+              --notes-file android/README.md
+          fi
