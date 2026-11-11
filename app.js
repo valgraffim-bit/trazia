@@ -245,10 +245,17 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const progress = $('#splash-progress');
     const valueLabel = $('#splash-progress-value');
     if (!splash || !progress || !valueLabel) return;
+    window.clearInterval(state.splashTimer);
+    window.clearTimeout(state.splashHideTimer);
+    splash.hidden = false;
+    splash.classList.remove('is-finishing');
+    progress.style.width = '0%';
+    valueLabel.textContent = '0%';
+    $('#splash-progress-meter')?.setAttribute('aria-valuenow', '0');
     const startedAt = performance.now();
     const minimumTime = 2700;
     let value = 0;
-    const timer = window.setInterval(() => {
+    const timer = state.splashTimer = window.setInterval(() => {
       const elapsed = performance.now() - startedAt;
       const loadingValue = Math.min(92, Math.round((elapsed / 2300) * 92));
       value = document.readyState === 'complete' && elapsed >= minimumTime ? 100 : Math.max(value, loadingValue);
@@ -259,7 +266,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (value < 100) return;
       window.clearInterval(timer);
       splash.classList.add('is-finishing');
-      window.setTimeout(() => { splash.hidden = true; }, 360);
+      state.splashHideTimer = window.setTimeout(() => { splash.hidden = true; }, 360);
     }, 24);
   }
 
@@ -2335,9 +2342,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       setMap3d(true);
       if (state.userMarker) state.userMarker.setLngLat([position.lng, position.lat]);
       state.map.flyTo({ center: [position.lng, position.lat], zoom: 17, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
-      if ('wakeLock' in navigator) {
-        try { state.screenWakeLock = await navigator.wakeLock.request('screen'); } catch { /* Wake lock is optional. */ }
-      }
+      void requestNavigationWakeLock();
       showToast(t('navigationStarted'));
     } catch {
       showToast(t('navigationLocation'), true);
@@ -2463,6 +2468,50 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     button.setAttribute('aria-pressed', String(state.isNavigating));
   }
 
+  async function requestNavigationWakeLock() {
+    if (!state.isNavigating || document.hidden || !navigator.wakeLock || state.wakeLockPending || (state.screenWakeLock && !state.screenWakeLock.released)) return;
+    const generation = state.wakeLockGeneration || 0;
+    state.wakeLockPending = true;
+    try {
+      const lock = await navigator.wakeLock.request('screen');
+      if (!state.isNavigating || document.hidden || generation !== (state.wakeLockGeneration || 0)) {
+        await lock.release();
+        return;
+      }
+      state.screenWakeLock = lock;
+      lock.addEventListener('release', () => {
+        if (state.screenWakeLock === lock) state.screenWakeLock = null;
+      });
+    } catch { /* Device/browser power policies may decline screen wake lock. */ }
+    finally {
+      state.wakeLockPending = false;
+      if (generation !== (state.wakeLockGeneration || 0) && state.isNavigating && !document.hidden) void requestNavigationWakeLock();
+    }
+  }
+
+  function releaseNavigationWakeLock() {
+    state.wakeLockGeneration = (state.wakeLockGeneration || 0) + 1;
+    const lock = state.screenWakeLock;
+    state.screenWakeLock = null;
+    lock?.release?.()?.catch?.(() => {});
+  }
+
+  function suspendAppView() {
+    state.resumeSplashPending = true;
+    releaseNavigationWakeLock();
+  }
+
+  function resumeAppView() {
+    if (document.hidden) return;
+    if (state.resumeSplashPending) {
+      state.resumeSplashPending = false;
+      runSplashScreen();
+    }
+    if (state.theme === 'auto') applyTheme();
+    state.map?.resize();
+    void requestNavigationWakeLock();
+  }
+
   function setNavigationView(active) {
     app.classList.toggle('navigation-fullscreen', active);
     $('#finish-navigation').hidden = !active;
@@ -2506,9 +2555,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       window.setTimeout(() => window.location.reload(), 400);
     }
     window.speechSynthesis?.cancel();
-    const wakeLockRelease = state.screenWakeLock?.release?.();
-    wakeLockRelease?.catch?.(() => {});
-    state.screenWakeLock = null;
+    releaseNavigationWakeLock();
     updateNavigationButton();
     if (showMessage) $('#route-note').textContent = t('navigationStopped');
     if (showMessage) showToast(t('navigationStopped'));
@@ -2663,7 +2710,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     void locateMe({ silent: true });
     window.setInterval(() => { if (state.theme === 'auto') applyTheme(); }, 60_000);
     window.setInterval(refreshLiveTraffic, 60_000);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden && state.theme === 'auto') applyTheme(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) suspendAppView();
+      else resumeAppView();
+    });
+    window.addEventListener('pagehide', suspendAppView);
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) state.resumeSplashPending = true;
+      resumeAppView();
+    });
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       let refreshing = false;
       const wasControlled = Boolean(navigator.serviceWorker.controller);
