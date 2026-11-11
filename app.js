@@ -1,6 +1,7 @@
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
+import { findCaliCandidates } from './cali-addresses.mjs?v=44';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=37';
 import { cameraFeatures, cameraApproach } from './speed-cameras.mjs?v=35';
 import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, congestionLayer } from './live-traffic.mjs?v=32';
@@ -429,7 +430,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       main.textContent = parts.main;
       copyBlock.append(main);
       const approximate = /#/.test(state.autocompleteQuery) && !feature.properties?.housenumber;
-      const secondaryText = [feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
+      const secondaryText = [feature.properties?.geocoder === 'idesc' ? `IDESC Cali · ${feature.properties.certification || (state.language === 'es' ? 'Estado no indicado' : 'Status unavailable')}` : '',feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
       if (secondaryText) {
         const secondary = document.createElement('span');
         secondary.className = 'destination-suggestion-secondary';
@@ -450,6 +451,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const attribution = document.createElement('div');
     attribution.className = 'suggestion-attribution';
     attribution.textContent = state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'tomtom') ? 'Búsqueda © TomTom' : state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'esri') ? 'Geocodificación © Esri' : t('autocompleteAttribution');
+    if (state.autocompletePredictions.some((feature) => feature.properties?.geocoder === 'idesc')) {
+      const source = document.createElement('a');
+      source.href = 'https://mg-idesc.cali.gov.co/geonetwork/geonetwork/api/records/26efce58-37c7-44e4-9386-b925c92d17d1';
+      source.target = '_blank'; source.rel = 'noopener noreferrer';
+      source.textContent = 'Direcciones: Planeación / IDESC Cali · CC BY-SA 4.0';
+      attribution.replaceChildren(source);
+    }
     list.append(attribution);
   }
 
@@ -537,7 +545,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     state.autocompleteRequestId += 1;
     const [lng, lat] = feature.geometry.coordinates;
     const parts = photonFeatureParts(feature.properties || {}, state.autocompleteQuery);
-    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: ['esri', 'tomtom'].includes(feature.properties?.geocoder), query: state.autocompleteQuery };
+    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: ['esri', 'tomtom', 'idesc'].includes(feature.properties?.geocoder), query: state.autocompleteQuery };
     destinationInput.value = parts.label;
     closeDestinationSuggestions();
     collapseMobilePanel();
@@ -547,6 +555,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   function photonFeatureParts(properties, query = '') {
     if (['esri', 'tomtom'].includes(properties.geocoder) && properties.street && properties.housenumber) {
       const main = `${properties.street} # ${properties.housenumber}`;
+      const secondary = [properties.district, properties.city, properties.state, properties.country].filter(Boolean).join(', ');
+      return { main, secondary, label: [main, secondary].filter(Boolean).join(', ') };
+    }
+    if (properties.geocoder === 'idesc') {
+      const main = properties.fullAddress || properties.name;
       const secondary = [properties.district, properties.city, properties.state, properties.country].filter(Boolean).join(', ');
       return { main, secondary, label: [main, secondary].filter(Boolean).join(', ') };
     }
@@ -735,6 +748,21 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     let matches = [];
     let lastError = null;
     let completedSearch = false;
+    try {
+      state.idescCache ||= new Map();
+      const key = `${baseQuery.toLowerCase()}:${usableCenter ? [usableCenter.lat.toFixed(2), usableCenter.lng.toFixed(2)].join(',') : 'none'}`;
+      const cached = state.idescCache.get(key);
+      let addresses = cached && cached.expiresAt > Date.now() ? cached.features : null;
+      if (!addresses) {
+        addresses = await findCaliCandidates(baseQuery, { center: usableCenter, signal, fetchFn: (url, options) => fetchTimed(url, options, 4500) });
+        if (state.idescCache.size >= 50) state.idescCache.delete(state.idescCache.keys().next().value);
+        state.idescCache.set(key, { features: addresses, expiresAt: Date.now() + 5 * 60 * 1000 });
+      }
+      if (addresses.length) return addresses;
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      // A slow/unavailable municipal service must not block other providers.
+    }
     const tomtomKey = window.TRAZIA_CONFIG?.tomtomApiKey;
     if (tomtomKey) {
       try {
