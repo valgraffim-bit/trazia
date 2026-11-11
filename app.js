@@ -30,7 +30,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       nearbyFromLocation: 'Radio de 10 km desde tu ubicación', nearbyFromMap: 'Radio de 10 km desde el centro del mapa', nearbyResults: 'resultados', nearbyHours: 'Horario registrado', nearbyWebsite: 'Sitio web', nearbyEmpty10: 'No encontramos lugares de esta categoría dentro de 10 km.', nearbyUnavailable: 'No se pudo consultar los lugares cercanos. Intenta de nuevo.', nearbyDataNote: 'Hasta 30 resultados, ordenados por distancia en línea recta. Datos de OpenStreetMap: los horarios y contactos pueden estar incompletos o desactualizados.',
       showCongestion: 'Mostrar trancones en rojo', trafficCoverageNote: 'Tráfico según cobertura TomTom. La ausencia de rojo no confirma que la vía esté libre. El tiempo de ruta se calcula por separado.', trafficLoading: 'Consultando trancones…', trafficReady: 'Rojo: trancón · TomTom', trafficOff: 'Tráfico oculto', trafficUnavailable: 'Tráfico no disponible',
       importWaze: 'Importar ubicación de Waze', wazeInstructions: 'En Waze, selecciona el destino, pulsa Compartir y copia el enlace. Pégalo aquí para usar el mismo punto en Trazia.', wazeLinkLabel: 'Enlace compartido de Waze', useWazePoint: 'Usar ubicación en Trazia',
-      tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportar algo en la vía', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
+      tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportar algo en la vía', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savedPlaceIcon: 'Icono del lugar', placeShop: 'Tienda / negocio', placeClinic: 'Clínica', placeSchool: 'Estudio', placeFavorite: 'Favorito', placeOther: 'Otro lugar', chooseSavedLocation: 'Selecciona la ubicación correcta para guardar el lugar.', confirmSavedLocation: 'Pulsa Guardar y confirma la ubicación para mostrar su icono en el mapa.', savedLocationMissing: 'No se encontró la ubicación. Revisa la dirección e incluye la ciudad.', savedLocationError: 'No se pudo buscar la dirección. Intenta otra vez.', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
       vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
       destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Dirección, negocio, clínica o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones y lugares…', chooseAddress: 'Elige una dirección o establecimiento de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', startNavigation: 'Iniciar navegación', stopNavigation: 'Detener navegación', finishNavigation: 'Terminar', sampleTraffic: 'Tiempo estimado sin ajuste por tráfico', sampleNote: 'Ruta calculada con datos abiertos; el tiempo no se ajusta por tráfico.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
@@ -46,7 +46,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       nearbyFromLocation: '10 km radius from your location', nearbyFromMap: '10 km radius from the map center', nearbyResults: 'results', nearbyHours: 'Listed opening hours', nearbyWebsite: 'Website', nearbyEmpty10: 'No places in this category found within 10 km.', nearbyUnavailable: 'Nearby places could not be loaded. Please try again.', nearbyDataNote: 'Up to 30 results, ordered by straight-line distance. OpenStreetMap data: hours and contact details may be missing or outdated.',
       showCongestion: 'Show congestion in red', trafficCoverageNote: 'Traffic depends on TomTom coverage. No red line does not guarantee a clear road. Route travel time is calculated separately.', trafficLoading: 'Loading traffic…', trafficReady: 'Red: congestion · TomTom', trafficOff: 'Traffic hidden', trafficUnavailable: 'Traffic unavailable',
       importWaze: 'Import Waze location', wazeInstructions: 'In Waze, select the destination, choose Share and copy the link. Paste it here to use that point in Trazia.', wazeLinkLabel: 'Shared Waze link', useWazePoint: 'Use location in Trazia',
-      tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Report something on the road', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
+      tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Report something on the road', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savedPlaceIcon: 'Place icon', placeShop: 'Shop / business', placeClinic: 'Clinic', placeSchool: 'School', placeFavorite: 'Favorite', placeOther: 'Other place', chooseSavedLocation: 'Select the correct location to save this place.', confirmSavedLocation: 'Press Save and confirm the location to show its map icon.', savedLocationMissing: 'Location not found. Check the address and include the city.', savedLocationError: 'Address lookup failed. Please try again.', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
       vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
       destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Address, business, clinic or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses and places…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', startNavigation: 'Start navigation', stopNavigation: 'Stop navigation', finishNavigation: 'Finish', sampleTraffic: 'Travel time estimate excludes traffic', sampleNote: 'Open data route; travel time does not adjust for traffic.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
@@ -142,6 +142,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     recognition: null,
     reports: readReports(),
     savedPlaces: readSavedPlaces(),
+    savedPlaceMarkers: [],
+    savedPlaceSearchId: 0,
     recentDestinations: readRecentDestinations(),
     editingSavedPlaceId: null,
   };
@@ -1148,6 +1150,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#saved-place-dialog-title').textContent = saved?.name || (id === 'home' ? t('home') : id === 'work' ? t('work') : t('newPlace'));
     $('#saved-place-name').value = saved?.name || (id === 'home' ? t('home') : id === 'work' ? t('work') : '');
     $('#saved-place-address').value = saved?.address || '';
+    $('#saved-place-icon').value = savedPlaceKind(saved || { id });
+    $('#saved-place-icon').disabled = ['home', 'work'].includes(id);
+    resetSavedPlaceSearch();
+    if (saved && !validSavedPlaceLocation(saved.location)) {
+      $('#saved-place-results').hidden = false;
+      $('#saved-place-results').textContent = t('confirmSavedLocation');
+    }
     openDialog(savedPlaceDialog);
   }
 
@@ -1161,7 +1170,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       openSavedPlaceEditor(id);
       return;
     }
+    if (!validSavedPlaceLocation(saved.location)) { openSavedPlaceEditor(id); return; }
     setDestinationText(saved.address);
+    state.selectedDestination = { label: saved.address, location: { ...saved.location } };
     void searchRoute();
   }
 
@@ -1171,22 +1182,115 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     closeDestinationSuggestions();
   }
 
-  function saveSavedPlace() {
+  function validSavedPlaceLocation(location) {
+    return Number.isFinite(location?.lat) && Number.isFinite(location?.lng) && Math.abs(location.lat) <= 90 && Math.abs(location.lng) <= 180;
+  }
+
+  function savedPlaceKind(place) {
+    const kind = ['home', 'work'].includes(place.id) ? place.id : place.kind;
+    return ['home', 'work', 'shop', 'clinic', 'school', 'favorite', 'other'].includes(kind) ? kind : 'other';
+  }
+
+  function resetSavedPlaceSearch() {
+    state.savedPlaceSearchId += 1;
+    state.savedPlaceController?.abort();
+    state.savedPlaceController = null;
+    $('#saved-place-results').replaceChildren();
+    $('#saved-place-results').hidden = true;
+    $('#save-place').disabled = false;
+  }
+
+  function persistSavedPlace(saved) {
+    const places = state.savedPlaces.filter(place => place.id !== saved.id).concat(saved);
+    try { localStorage.setItem('trazia:saved-places', JSON.stringify(places)); }
+    catch { showToast(t('savedLocationError'), true); return; }
+    state.savedPlaces = places;
+    renderSavedPlaces();
+    renderSavedPlaceMarkers();
+    closeDialog(savedPlaceDialog);
+    if (state.mapReady && state.map && !state.isNavigating) {
+      state.followCamera = false;
+      collapseMobilePanel();
+      state.map.flyTo({ center: [saved.location.lng, saved.location.lat], zoom: 16, duration: 500 });
+    }
+    showToast(t('placeSaved'));
+  }
+
+  async function saveSavedPlace() {
     const name = $('#saved-place-name').value.trim();
     const address = $('#saved-place-address').value.trim();
-    if (!name || !address) {
-      showToast(t('placeRequired'), true);
-      return;
-    }
+    if (!name || !address) { showToast(t('placeRequired'), true); return; }
+    resetSavedPlaceSearch();
+    const requestId = state.savedPlaceSearchId;
     const id = state.editingSavedPlaceId || `custom-${Date.now()}`;
-    const existingIndex = state.savedPlaces.findIndex((place) => place.id === id);
-    const saved = { id, name, address };
-    if (existingIndex >= 0) state.savedPlaces[existingIndex] = saved;
-    else state.savedPlaces.push(saved);
-    localStorage.setItem('trazia:saved-places', JSON.stringify(state.savedPlaces));
-    renderSavedPlaces();
-    closeDialog(savedPlaceDialog);
-    showToast(t('placeSaved'));
+    const existing = state.savedPlaces.find(place => place.id === id);
+    const saved = { id, name, address, kind: savedPlaceKind({ id, kind: $('#saved-place-icon').value }) };
+    if (existing?.address === address && validSavedPlaceLocation(existing.location)) {
+      persistSavedPlace({ ...saved, location: existing.location }); return;
+    }
+    const results = $('#saved-place-results');
+    results.hidden = false; results.textContent = t('suggestionLoading');
+    $('#save-place').disabled = true;
+    const controller = new AbortController();
+    state.savedPlaceController = controller;
+    const searchTimeout = window.setTimeout(() => controller.abort(), 20000);
+    try {
+      const matches = await findDestinationCandidates(address, state.currentPosition || currentMapCenter(), controller.signal, { allowNominatimFallback: true });
+      if (requestId !== state.savedPlaceSearchId || !savedPlaceDialog.open) return;
+      results.replaceChildren();
+      // Do not silently place a house marker at a street-only approximation.
+      const candidates = matches.filter(feature => {
+        const [lng, lat] = feature.geometry?.coordinates || [];
+        return validSavedPlaceLocation({ lat, lng }) && (!address.includes('#') || feature.properties?.housenumber);
+      });
+      const note = document.createElement('p');
+      note.textContent = candidates.length ? t('chooseSavedLocation') : t('savedLocationMissing'); results.append(note);
+      candidates.slice(0, 5).forEach(feature => {
+        const parts = photonFeatureParts(feature.properties || {}, address);
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'saved-location-option';
+        const precision = feature.properties?.geocoder === 'idesc' ? feature.properties.certification : feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Punto aproximado' : 'Approximate point') : '';
+        button.textContent = [parts.main, precision, parts.secondary].filter(Boolean).join(' · ');
+        button.addEventListener('click', () => {
+          if (requestId !== state.savedPlaceSearchId || !savedPlaceDialog.open) return;
+          const [lng, lat] = feature.geometry.coordinates;
+          persistSavedPlace({ ...saved, location: { lat, lng } });
+        });
+        results.append(button);
+      });
+      if (candidates.length) {
+        const source = document.createElement('small');
+        source.textContent = candidates.some(feature => feature.properties?.geocoder === 'idesc') ? 'Direcciones: Planeación / IDESC Cali · CC BY-SA 4.0' : candidates.some(feature => feature.properties?.geocoder === 'tomtom') ? 'Búsqueda © TomTom' : candidates.some(feature => feature.properties?.geocoder === 'esri') ? 'Geocodificación © Esri' : t('autocompleteAttribution');
+        results.append(source);
+      }
+    } catch (error) {
+      if (requestId !== state.savedPlaceSearchId) return;
+      results.textContent = t('savedLocationError');
+    } finally {
+      window.clearTimeout(searchTimeout);
+      if (requestId === state.savedPlaceSearchId) { $('#save-place').disabled = false; state.savedPlaceController = null; }
+    }
+  }
+
+  function renderSavedPlaceMarkers() {
+    state.savedPlaceMarkers.forEach(marker => marker.remove());
+    state.savedPlaceMarkers = [];
+    if (!state.mapReady || !state.map) return;
+    state.savedPlaces.filter(place => validSavedPlaceLocation(place.location)).forEach(place => {
+      const element = document.createElement('button');
+      element.type = 'button'; element.className = 'saved-place-marker'; element.setAttribute('aria-label', place.name); element.title = place.name;
+      const image = document.createElement('img');
+      image.src = `./assets/saved-places/${savedPlaceKind(place)}.png`; image.width = 44; image.height = 44; image.alt = ''; element.append(image);
+      const content = document.createElement('div'); content.className = 'report-popup';
+      const title = document.createElement('strong'); title.textContent = place.name;
+      const address = document.createElement('p'); address.textContent = place.address;
+      const go = document.createElement('button'); go.type = 'button'; go.textContent = t('findRoute'); go.className = 'saved-location-option'; go.addEventListener('click', () => selectSavedPlace(place.id));
+      const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = state.language === 'es' ? 'Editar' : 'Edit'; edit.className = 'saved-location-option'; edit.addEventListener('click', () => openSavedPlaceEditor(place.id));
+      content.append(title, address, go, edit);
+      const marker = new maplibregl.Marker({ element, anchor: 'bottom' }).setLngLat([place.location.lng, place.location.lat])
+        .setPopup(new maplibregl.Popup({ offset: 28, maxWidth: '260px' }).setDOMContent(content)).addTo(state.map);
+      state.savedPlaceMarkers.push(marker);
+    });
   }
 
   function saveRecentDestination(destination) {
@@ -1445,6 +1549,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         applyTraziaMapPalette();
         updateConnectionLabels();
         renderSavedReportMarkers();
+        renderSavedPlaceMarkers();
         if (state.currentPosition) {
           updateUserMarker(state.currentPosition);
           state.map.jumpTo({
@@ -2674,7 +2779,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       const button = event.target.closest('[data-place-id]');
       if (button) selectSavedPlace(button.dataset.placeId);
     });
-    $('#save-place').addEventListener('click', saveSavedPlace);
+    $('#save-place').addEventListener('click', () => { void saveSavedPlace(); });
+    savedPlaceDialog.addEventListener('close', resetSavedPlaceSearch);
+    ['#saved-place-name', '#saved-place-address', '#saved-place-icon'].forEach(selector => $(selector).addEventListener('input', resetSavedPlaceSearch));
     $('#search-route').addEventListener('click', () => { void searchRoute(); });
     $('#recalculate-route').addEventListener('click', () => { void searchRoute(); });
     destinationInput.addEventListener('input', handleDestinationInput);
@@ -2761,6 +2868,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     applyTheme();
     setupEvents();
     renderSavedPlaces();
+    renderSavedPlaceMarkers();
     renderRecentDestinations();
     renderSavedReportCount();
     initializeMap();
