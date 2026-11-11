@@ -83,3 +83,7 @@ La búsqueda puede consultar TomTom Orbis Geocoding v2 desde el mismo campo de d
 El módulo conserva todos los números y sufijos de la vía, verifica país y coordenadas, y rechaza coincidencias de calle sin número cuando se escribió una dirección completa. La caché vive solo en memoria durante cinco minutos, con hasta 50 consultas, y se esperan 650 ms después de escribir para reducir solicitudes. Los resultados del proveedor no se guardan en el historial: se conserva el texto original del usuario. La cobertura real debe verificarse con una clave válida y la dirección de prueba antes de considerar resuelto el caso. No se ha consultado TomTom con credenciales reales durante la implementación.
 
 Pruebas TomTom: `node tests/tomtom-geocoding.test.cjs` y `node tests/tomtom-browser.cjs`. La prueba de navegador usa respuestas simuladas; no certifica cobertura real ni permisos de la clave.
+
+### Publicar después de configurar la clave
+
+Guardar o cambiar `TOMTOM_BROWSER_KEY` no publica el sitio automáticamente. Inicia una ejecución nueva de **Deploy Trazia to GitHub Pages** desde Actions → Run workflow. Si al reejecutar un job anterior aparece `Multiple artifacts named "github-pages"`, inicia un workflow nuevo en lugar de repetir ese job: la nueva ejecución tendrá su propio artefacto. Para verificar la activación, comprueba únicamente si la configuración publicada tiene una clave no vacía, sin copiar ni registrar su valor.
