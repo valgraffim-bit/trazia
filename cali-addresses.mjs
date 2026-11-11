@@ -34,16 +34,20 @@ export async function findCaliCandidates(query, { center, signal, fetchFn = fetc
   if (!response.ok) throw new Error(`IDESC unavailable (${response.status})`);
   const payload = await response.json();
   if (!Array.isArray(payload.features)) throw new Error('IDESC returned an invalid response');
+  return caliAddressFeatures(payload.features, address.key);
+}
+
+export function caliAddressFeatures(features, expectedKey) {
   const seen = new Set();
-  return payload.features.filter(feature => {
+  return features.filter(feature => {
     const [lng, lat] = feature.geometry?.coordinates || [];
     const source = parse(feature.properties?.nddirecc);
-    if (feature.geometry?.type !== 'Point' || !Number.isFinite(lat) || !Number.isFinite(lng) || lat < 3.25 || lat > 3.55 || lng < -76.65 || lng > -76.40 || source?.key !== address.key) return false;
+    if (feature.geometry?.type !== 'Point' || !Number.isFinite(lat) || !Number.isFinite(lng) || lat < 3.25 || lat > 3.55 || lng < -76.65 || lng > -76.40 || source?.key !== expectedKey) return false;
     const key = `${source.key}:${lng}:${lat}`;
     if (seen.has(key)) return false;
     seen.add(key); return true;
   }).sort((a,b) => Number(b.properties.ndestado === 'Certificada') - Number(a.properties.ndestado === 'Certificada')).slice(0, 5).map(feature => ({
     type: 'Feature', geometry: feature.geometry,
-    properties: { geocoder: 'idesc', name: feature.properties.nddirecc, fullAddress: feature.properties.nddirecc, district: feature.properties.ndbarrio || '', city: 'Cali', state: 'Valle del Cauca', country: 'Colombia', countrycode: 'CO', housenumber: address.house, certification: feature.properties.ndestado || '', sourceDate: feature.properties.ndfechcort || '' },
+    properties: { geocoder: 'idesc', name: feature.properties.nddirecc, fullAddress: feature.properties.nddirecc, district: feature.properties.ndbarrio || '', city: 'Cali', state: 'Valle del Cauca', country: 'Colombia', countrycode: 'CO', housenumber: parse(feature.properties.nddirecc).house, certification: feature.properties.ndestado || '', sourceDate: feature.properties.ndfechcort || '' },
   }));
 }

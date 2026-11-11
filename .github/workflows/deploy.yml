@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 7 * * 1' # Mondays 02:17 Colombia; GitHub may delay scheduled runs.
 
 permissions:
   contents: read
@@ -17,12 +19,26 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check out source
         uses: actions/checkout@v6
+      - name: Restore last valid address snapshot
+        uses: actions/cache/restore@v4
+        with:
+          path: data/addresses/cali
+          key: cali-address-db-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cali-address-db-v1-
+      - name: Build or refresh own Cali address database
+        run: python3 scripts/update-cali-addresses.py
+      - name: Preserve validated address snapshot
+        uses: actions/cache/save@v4
+        with:
+          path: data/addresses/cali
+          key: cali-address-db-v1-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Refresh public ANSV camera locations
         run: python3 scripts/update-speed-cameras.py
       - name: Configure TomTom browser key

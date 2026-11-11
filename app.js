@@ -1,7 +1,8 @@
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
-import { findCaliCandidates } from './cali-addresses.mjs?v=44';
+import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=45';
+import { findCaliCandidates } from './cali-addresses.mjs?v=45';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=37';
 import { cameraFeatures, cameraApproach } from './speed-cameras.mjs?v=35';
 import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, congestionLayer } from './live-traffic.mjs?v=32';
@@ -748,6 +749,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     let matches = [];
     let lastError = null;
     let completedSearch = false;
+    try {
+      const local = await findLocalCaliCandidates(baseQuery, { center: usableCenter, signal, fetchFn: (url, options) => fetchTimed(url, options, 2500) });
+      if (local.length) return local;
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      // Keep live official/commercial providers if a snapshot is missing or corrupt.
+    }
     try {
       state.idescCache ||= new Map();
       const key = `${baseQuery.toLowerCase()}:${usableCenter ? [usableCenter.lat.toFixed(2), usableCenter.lng.toFixed(2)].join(',') : 'none'}`;
