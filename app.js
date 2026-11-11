@@ -1,3 +1,4 @@
+import { setupAccountScreen } from './auth.mjs?v=57';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
@@ -2953,9 +2954,25 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     renderSavedPlaceMarkers();
     renderRecentDestinations();
     renderSavedReportCount();
-    initializeMap();
+    let mapStarted = false;
+    setupAccountScreen({
+      document,
+      config: window.TRAZIA_CONFIG?.firebase,
+      onEnter: () => {
+        if (!mapStarted) {
+          mapStarted = true;
+          initializeMap();
+          void locateMe({ silent: true });
+        } else {
+          state.map?.resize();
+        }
+      },
+      onLeave: () => {
+        if (state.isNavigating) stopNavigation(false);
+        [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog].forEach((dialog) => dialog.close());
+      },
+    });
     updateSpeedometer();
-    void locateMe({ silent: true });
     window.setInterval(() => { if (state.theme === 'auto') applyTheme(); }, 60_000);
     window.setInterval(refreshLiveTraffic, 60_000);
     window.setInterval(() => { if (state.isNavigating && !document.hidden) void requestNavigationWakeLock(); }, 15000);

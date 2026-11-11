@@ -587,3 +587,33 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
     max-width: 100%;
   }
 }
+
+/* Account access follows the logo and loading introduction. */
+.account-screen { position: fixed; z-index: 100; inset: 0; overflow: auto; overscroll-behavior: contain; display: flex; align-items: safe center; justify-content: center; padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); color: #eef6fc; background: radial-gradient(ellipse at top, #174c58, transparent 65%), #10243c; }
+.account-screen[hidden], .account-screen [hidden] { display: none !important; }
+.account-card { flex: 0 1 400px; min-width: 0; padding: 28px; border: 1px solid #ffffff24; border-radius: 24px; background: #152c44; box-shadow: 0 20px 60px #0004; }
+.account-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.account-brand img { border-radius: 14px; }
+.account-brand span { font-size: 26px; font-weight: 800; }
+.account-brand small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: #b6c8d4; }
+.account-card h1 { margin: 0 0 8px; font-size: 27px; letter-spacing: -.5px; }
+.account-intro { margin: 0 0 20px; color: #bed0df; font-size: 14px; line-height: 1.5; }
+.account-tabs { display: flex; gap: 6px; margin-bottom: 18px; padding: 4px; border-radius: 12px; background: #0c2036; }
+.account-tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 9px; color: #c6d6e3; background: transparent; font: inherit; font-size: 13px; cursor: pointer; }
+.account-tabs button[aria-pressed="true"] { background: #27445e; color: white; font-weight: 700; }
+.account-google, .account-primary { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 12px; border: 1px solid #d5dfe6; border-radius: 12px; padding: 10px 16px; color: #243244; background: white; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.account-google span { color: #4285f4; font-size: 23px; font-weight: 800; }
+.account-separator { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #adbfce; font-size: 12px; }
+.account-separator::before, .account-separator::after { content: ''; height: 1px; flex: 1; background: #ffffff24; }
+.account-card form { display: grid; gap: 15px; }
+.account-card label { display: grid; gap: 7px; color: #d9e6ef; font-size: 13px; font-weight: 600; }
+.account-card input { width: 100%; min-height: 48px; border: 1px solid #557085; border-radius: 11px; padding: 12px; color: white; background: #10243c; font: inherit; font-size: 16px; }
+.account-card input::placeholder { color: #9bb0c1; }
+.account-card input[readonly] { color: #b7cbdc; }
+.account-primary { margin-top: 5px; border-color: transparent; color: #082b28; background: #56ddc5; }
+.account-link { min-height: 44px; border: 0; color: #8ee8d9; background: transparent; font: inherit; font-size: 14px; cursor: pointer; }
+.account-card button:disabled { opacity: .55; cursor: wait; }
+.account-card :focus-visible { outline: 3px solid #82f2dc; outline-offset: 3px; }
+.account-status { margin: 16px 0 0; color: #ffd7b8; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.account-status:empty { display: none; }
+@media (max-width: 420px), (max-height: 500px) { .account-card { padding: 20px; } }

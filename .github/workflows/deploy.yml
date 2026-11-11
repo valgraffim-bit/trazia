@@ -43,15 +43,23 @@ jobs:
         run: python3 scripts/update-cadastre-catalog.py
       - name: Refresh public ANSV camera locations
         run: python3 scripts/update-speed-cameras.py
-      - name: Configure TomTom browser key
+      - name: Configure public browser services
         env:
           TOMTOM_BROWSER_KEY: ${{ vars.TOMTOM_BROWSER_KEY }}
+          FIREBASE_WEB_CONFIG: ${{ vars.FIREBASE_WEB_CONFIG }}
         run: |
           python3 - <<'PYTHON'
           import json, os
           from pathlib import Path
           key = os.environ.get('TOMTOM_BROWSER_KEY', '').strip()
-          config = json.dumps({'tomtomApiKey': key}, ensure_ascii=True)
+          firebase = json.loads(os.environ.get('FIREBASE_WEB_CONFIG', '').strip() or 'null')
+          if firebase is not None:
+              if not isinstance(firebase, dict) or not all(firebase.get(k) for k in ('apiKey', 'authDomain', 'projectId')):
+                  raise ValueError('FIREBASE_WEB_CONFIG must be a Firebase web config object')
+              forbidden = ('private_key', 'client_email', 'private_key_id')
+              if any(k in firebase for k in forbidden):
+                  raise ValueError('Use only public web configuration, never service account credentials')
+          config = json.dumps({'tomtomApiKey': key, 'firebase': firebase}, ensure_ascii=True)
           Path('config.js').write_text('window.TRAZIA_CONFIG = Object.freeze(' + config + ');\n')
           if not key:
               print('::warning::TomTom is not configured; existing address providers remain active.')

@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=39" />
+    <link rel="stylesheet" href="./styles.css?v=40" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -26,7 +26,34 @@
         </div>
       </div>
     </section>
-    <main class="app-shell">
+    <section class="account-screen" id="account-screen" aria-labelledby="account-title">
+      <div class="account-card">
+        <header class="account-brand"><img src="./assets/trazia-app-icon.png" alt="" width="52" height="52" /><span>Trazia<small>Tu ruta, más clara</small></span></header>
+        <h1 id="account-title">Creá tu cuenta</h1>
+        <p class="account-intro">Un solo acceso para comenzar tu recorrido.</p>
+        <div id="account-methods">
+          <div class="account-tabs" aria-label="Opciones de acceso"><button id="account-register" type="button" aria-pressed="true">Crear cuenta</button><button id="account-login" type="button" aria-pressed="false">Iniciar sesión</button></div>
+          <button class="account-google" id="account-google" type="button" disabled><span aria-hidden="true">G</span> Continuar con Google</button>
+          <div class="account-separator">o con tu correo</div>
+        </div>
+        <form id="account-form">
+          <label>Correo electrónico<input id="account-email" type="email" autocomplete="email" maxlength="254" placeholder="tu@correo.com" required /></label>
+          <label>Contraseña<input id="account-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Mínimo 8 caracteres" required /></label>
+          <label id="account-confirm-label">Confirmar contraseña<input id="account-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label>
+          <button class="account-primary" id="account-submit" type="submit" disabled>Crear cuenta</button>
+          <button class="account-link" id="account-reset" type="button" hidden>Olvidé mi contraseña</button>
+        </form>
+        <form id="account-profile" hidden>
+          <p class="account-intro">Confirmá tus datos para entrar a Trazia.</p>
+          <label>Nombre completo<input id="account-name" type="text" autocomplete="name" maxlength="100" required /></label>
+          <label>Correo electrónico<input id="account-profile-email" type="email" readonly /></label>
+          <button class="account-primary" id="account-accept" type="submit">Aceptar y entrar</button>
+          <button class="account-link" id="account-change" type="button">Usar otra cuenta</button>
+        </form>
+        <p class="account-status" id="account-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    <main class="app-shell" inert aria-hidden="true">
       <aside class="side-panel" aria-label="Panel de Trazia">
           <button class="mobile-panel-handle" id="toggle-panel" type="button" aria-label="Expandir o contraer el panel" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
         <div class="panel-scroll">
@@ -356,6 +383,7 @@
           <div><span class="modal-kicker" data-i18n="settingsKicker">CONFIGURACIÓN</span><h2 data-i18n="settingsTitle">Mapa Trazia</h2></div>
           <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="settings-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
         </div>
+        <button class="secondary-button" id="account-logout" type="button" hidden>Cerrar sesión</button>
         <p class="settings-intro" data-i18n="settingsIntro">Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.</p>
         <label class="form-label" for="theme-select" data-i18n="themeLabel">Apariencia</label>
         <select id="theme-select" class="form-control">
@@ -373,8 +401,8 @@
 
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="./config.js?v=28"></script>
-    <script type="module" src="./app.js?v=54"></script>
+    <script src="./config.js?v=57"></script>
+    <script type="module" src="./app.js?v=57"></script>
   </body>
 </html>
 
