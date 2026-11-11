@@ -559,6 +559,10 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 
 /* In landscape navigation, keep the lock indicator beside the centered finish button. */
 @media (orientation: landscape) {
+  .route-summary-overlay {
+    top: max(8px, env(safe-area-inset-top));
+  }
+
   .finish-navigation {
     top: auto;
     right: auto;
