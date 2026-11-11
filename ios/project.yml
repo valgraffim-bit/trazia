@@ -18,18 +18,12 @@ targets:
         SWIFT_VERSION: "5.0"
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
         TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Trazia
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Trazia usa tu ubicación para mostrarte en el mapa y calcular rutas desde donde estás."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Trazia puede usar el micrófono para que dictes una dirección."
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
-    info:
-      properties:
-        CFBundleDisplayName: Trazia
-        NSLocationWhenInUseUsageDescription: "Trazia usa tu ubicación para mostrarte en el mapa y calcular rutas desde donde estás."
-        NSMicrophoneUsageDescription: "Trazia puede usar el micrófono para que dictes una dirección."
-        UILaunchScreen: {}
-        UIUserInterfaceStyle: Automatic
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
