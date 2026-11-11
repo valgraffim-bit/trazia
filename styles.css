@@ -508,3 +508,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .camera-approach-alert span { font-size: 10px; line-height: 1.2; }
 .camera-approach-alert strong { font-size: 16px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 @media (max-width: 820px) { .camera-approach-alert { top: calc(max(12px, env(safe-area-inset-top)) + 116px); left: 12px; } }
+
+.nearby-summary { margin: 4px 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+button.place-result-name { display: block; width: 100%; border: 0; padding: 0; color: inherit; background: transparent; font: inherit; font-size: 12px; font-weight: 700; text-align: left; cursor: pointer; white-space: normal; }
+.place-result-meta { white-space: normal; line-height: 1.5; }
+.place-result-details { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.place-result-contacts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 5px; font-size: 11px; }
+.place-result-contacts a { color: var(--teal); }

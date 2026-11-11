@@ -25,6 +25,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   const copy = {
     es: {
+      nearbyFromLocation: 'Radio de 10 km desde tu ubicación', nearbyFromMap: 'Radio de 10 km desde el centro del mapa', nearbyResults: 'resultados', nearbyHours: 'Horario registrado', nearbyWebsite: 'Sitio web', nearbyEmpty10: 'No encontramos lugares de esta categoría dentro de 10 km.', nearbyUnavailable: 'No se pudo consultar los lugares cercanos. Intenta de nuevo.', nearbyDataNote: 'Hasta 30 resultados, ordenados por distancia en línea recta. Datos de OpenStreetMap: los horarios y contactos pueden estar incompletos o desactualizados.',
       showCongestion: 'Mostrar trancones en rojo', trafficCoverageNote: 'Tráfico según cobertura TomTom. La ausencia de rojo no confirma que la vía esté libre. El tiempo de ruta se calcula por separado.', trafficLoading: 'Consultando trancones…', trafficReady: 'Rojo: trancón · TomTom', trafficOff: 'Tráfico oculto', trafficUnavailable: 'Tráfico no disponible',
       importWaze: 'Importar ubicación de Waze', wazeInstructions: 'En Waze, selecciona el destino, pulsa Compartir y copia el enlace. Pégalo aquí para usar el mismo punto en Trazia.', wazeLinkLabel: 'Enlace compartido de Waze', useWazePoint: 'Usar ubicación en Trazia',
       tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportar algo en la vía', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
@@ -40,6 +41,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       categoryGas: 'Gasolineras', categoryClinic: 'Clínicas', categoryPharmacy: 'Farmacias', categoryBusiness: 'Negocios', nearbyPlaces: 'Lugares cercanos', rating: 'Calificación', noAddress: 'Dirección no disponible', incidentSaved: 'Reporte',
     },
     en: {
+      nearbyFromLocation: '10 km radius from your location', nearbyFromMap: '10 km radius from the map center', nearbyResults: 'results', nearbyHours: 'Listed opening hours', nearbyWebsite: 'Website', nearbyEmpty10: 'No places in this category found within 10 km.', nearbyUnavailable: 'Nearby places could not be loaded. Please try again.', nearbyDataNote: 'Up to 30 results, ordered by straight-line distance. OpenStreetMap data: hours and contact details may be missing or outdated.',
       showCongestion: 'Show congestion in red', trafficCoverageNote: 'Traffic depends on TomTom coverage. No red line does not guarantee a clear road. Route travel time is calculated separately.', trafficLoading: 'Loading traffic…', trafficReady: 'Red: congestion · TomTom', trafficOff: 'Traffic hidden', trafficUnavailable: 'Traffic unavailable',
       importWaze: 'Import Waze location', wazeInstructions: 'In Waze, select the destination, choose Share and copy the link. Paste it here to use that point in Trazia.', wazeLinkLabel: 'Shared Waze link', useWazePoint: 'Use location in Trazia',
       tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Report something on the road', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
@@ -1908,41 +1910,35 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function makeNearbySearchPlan(center) {
-    const coordinates = state.route && state.routeCoordinates.length > 1 ? state.routeCoordinates : [];
-    if (!coordinates.length) return { points: [center], radius: 12000, onRoute: false };
-    const routePoints = coordinates.map(([lng, lat]) => ({ lat, lng }));
-    const lengths = routePoints.slice(1).map((point, index) => distanceMeters(routePoints[index], point));
-    const totalLength = lengths.reduce((sum, length) => sum + length, 0);
-    if (!Number.isFinite(totalLength) || totalLength < 100) return { points: [center], radius: 12000, onRoute: false };
-    const pointCount = Math.min(14, Math.max(2, Math.ceil(totalLength / 2500) + 1));
-    const spacing = totalLength / (pointCount - 1);
-    const radius = Math.max(1100, Math.min(5000, spacing * 0.62));
-    const points = [];
-    for (let target = 0; target <= pointCount - 1; target += 1) {
-      const targetDistance = Math.min(totalLength, target * spacing);
-      let traversed = 0;
-      let segmentIndex = 0;
-      while (segmentIndex < lengths.length - 1 && traversed + lengths[segmentIndex] < targetDistance) {
-        traversed += lengths[segmentIndex];
-        segmentIndex += 1;
-      }
-      const segmentLength = lengths[segmentIndex] || 1;
-      const fraction = Math.max(0, Math.min(1, (targetDistance - traversed) / segmentLength));
-      const from = routePoints[segmentIndex];
-      const to = routePoints[segmentIndex + 1] || from;
-      const point = { lat: from.lat + (to.lat - from.lat) * fraction, lng: from.lng + (to.lng - from.lng) * fraction };
-      if (!points.some((candidate) => Math.abs(candidate.lat - point.lat) < 0.002 && Math.abs(candidate.lng - point.lng) < 0.002)) points.push(point);
-    }
-    return { points, radius, onRoute: true };
+    return { points: [center], radius: 10000, onRoute: false };
   }
 
-  function makeNearbyOverpassQuery(category, plan, boundaryId) {
-    const localSelector = (point) => boundaryId
-      ? `nwr(area.city)(around:${Math.round(plan.radius)},${point.lat},${point.lng})`
-      : `nwr(around:${Math.round(plan.radius)},${point.lat},${point.lng})`;
-    const areaQuery = boundaryId ? `area(${boundaryId})->.city;` : '';
-    const searches = plan.points.flatMap((point) => nearbyTagFilters(category).map((filter) => `${localSelector(point)}${filter};`)).join('\n');
-    return `[out:json][timeout:22];${areaQuery}(${searches});out center tags qt 200;`;
+  function makeNearbyOverpassQuery(category, plan) {
+    const point = plan.points[0];
+    const searches = nearbyTagFilters(category).map((filter) => `nwr(around:10000,${point.lat},${point.lng})${filter};`).join('\n');
+    return `[out:json][timeout:22];(${searches});out center tags qt 1500;`;
+  }
+
+  function nearbyFeaturesWithinRadius(features, center, radius = 10000) {
+    return features.map((feature) => {
+      const [lng, lat] = feature.geometry?.coordinates || [];
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return { feature, distance: distanceMeters(center, { lat, lng }) };
+    }).filter((item) => item && item.distance <= radius)
+      .sort((a, b) => a.distance - b.distance)
+      .map((item) => item.feature);
+  }
+
+  function nearbyFeatureCategory(feature, category) {
+    const properties = feature.properties || {};
+    const key = properties.osm_key;
+    const value = properties.osm_value;
+    return {
+      gas: key === 'amenity' && value === 'fuel',
+      clinic: key === 'amenity' && ['clinic', 'hospital', 'doctors'].includes(value) || key === 'healthcare' && ['clinic', 'hospital', 'doctor'].includes(value),
+      pharmacy: ['amenity', 'healthcare'].includes(key) && value === 'pharmacy',
+      business: ['shop', 'office'].includes(key) || key === 'amenity' && ['restaurant', 'cafe', 'bank', 'marketplace', 'bar', 'fast_food'].includes(value),
+    }[category] || false;
   }
 
   function overpassFeature(element) {
@@ -1951,6 +1947,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (!point.every(Number.isFinite)) return null;
     const properties = {
       name: tags.name || tags.brand || tags.operator || '',
+      fullAddress: tags['addr:full'] || '',
+      openingHours: tags.opening_hours || '',
+      phone: tags['contact:phone'] || tags.phone || '',
+      website: tags['contact:website'] || tags.website || '',
       housenumber: tags['addr:housenumber'] || '',
       street: tags['addr:street'] || tags['addr:place'] || '',
       city: tags['addr:city'] || tags['addr:town'] || tags['addr:village'] || '',
@@ -1980,26 +1980,17 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     results.textContent = t('connecting');
     clearPlaceMarkers();
     try {
-      if (!state.currentPosition) {
-        const position = await getUserPosition();
-        startLocationWatch();
-        state.map.easeTo({ center: [position.lng, position.lat], zoom: 13.5, duration: 450, offset: mobileMapOffset() });
-      }
       const center = state.currentPosition || currentMapCenter();
       if (!center) throw new Error('location-unavailable');
       const plan = makeNearbySearchPlan(center);
-      const route = state.routeCoordinates;
-      const routeKey = plan.onRoute && route.length
-        ? `${route[0][0].toFixed(3)},${route[0][1].toFixed(3)}:${route[route.length - 1][0].toFixed(3)},${route[route.length - 1][1].toFixed(3)}:${route.length}`
-        : 'city-radius';
-      const cacheKey = `${category}:${center.lat.toFixed(3)},${center.lng.toFixed(3)}:${routeKey}`;
+      const scope = state.currentPosition ? t('nearbyFromLocation') : t('nearbyFromMap');
+      const cacheKey = `${category}:${center.lat.toFixed(4)},${center.lng.toFixed(4)}:10km`;
       const cached = state.nearbyCache.get(cacheKey);
       let features;
       if (cached && cached.expiresAt > Date.now()) features = cached.features;
       else {
         try {
-          const boundaryId = await findCityBoundary(center);
-          const query = makeNearbyOverpassQuery(category, plan, boundaryId);
+          const query = makeNearbyOverpassQuery(category, plan);
           const payload = await requestOverpass(query, 30000);
           const unique = new Map();
           (payload.elements || []).forEach((element) => {
@@ -2017,31 +2008,21 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
           };
           const params = new URLSearchParams({ q: queries[category], limit: '30', lang: photonLanguage(), lat: String(center.lat), lon: String(center.lng), zoom: '14' });
           const payload = await fetchPhotonFeatures(params);
-          features = (payload.features || []).filter((feature) => {
-            const [lng, lat] = feature.geometry?.coordinates || [];
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
-            return plan.onRoute ? distanceFromRouteMeters({ lat, lng }, state.routeCoordinates) <= plan.radius : distanceMeters(center, { lat, lng }) <= plan.radius;
-          });
+          features = (payload.features || []).filter((feature) => nearbyFeatureCategory(feature, category));
         }
         state.nearbyCache.set(cacheKey, { expiresAt: Date.now() + 3 * 60 * 1000, features });
       }
       if (requestId !== state.nearbyRequestId) return;
-      features = features
-        .map((feature) => {
-          const [lng, lat] = feature.geometry.coordinates;
-          const point = { lat, lng };
-          return { feature, distance: distanceMeters(center, point), routeDistance: plan.onRoute ? distanceFromRouteMeters(point, state.routeCoordinates) : null };
-        })
-        .filter((item) => plan.onRoute ? item.routeDistance <= plan.radius + 100 : item.distance <= plan.radius + 500)
-        .sort((a, b) => plan.onRoute ? a.routeDistance - b.routeDistance : a.distance - b.distance)
-        .slice(0, 8)
-        .map((item) => item.feature);
-      state.nearbyCache.set(cacheKey, { expiresAt: Date.now() + 3 * 60 * 1000, features });
+      features = nearbyFeaturesWithinRadius(features, center, 10000).slice(0, 30);
       results.replaceChildren();
       if (!features.length) {
-        results.textContent = t('invalidCategory');
+        results.textContent = t('nearbyEmpty10');
         return;
       }
+      const summary = document.createElement('p');
+      summary.className = 'nearby-summary';
+      summary.textContent = `${scope} · ${features.length} ${t('nearbyResults')}`;
+      results.append(summary);
       features.forEach((feature) => {
         const coordinates = feature.geometry?.coordinates;
         const parts = photonFeatureParts(feature.properties || {});
@@ -2059,30 +2040,59 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         icon.textContent = categoryLabels[category].icon;
         const text = document.createElement('div');
         text.className = 'place-result-copy';
-        const name = document.createElement('div');
+        const name = document.createElement('button');
+        name.type = 'button';
         name.className = 'place-result-name';
         name.textContent = parts.main || t('nearbyPlaces');
         const meta = document.createElement('div');
         meta.className = 'place-result-meta';
         const [lng, lat] = coordinates;
         const point = { lat, lng };
-        const distance = plan.onRoute ? distanceFromRouteMeters(point, state.routeCoordinates) : distanceMeters(center, point);
+        const distance = distanceMeters(center, point);
         const distanceLabel = `${new Intl.NumberFormat(state.language === 'es' ? 'es-CO' : 'en-US', { maximumFractionDigits: 1 }).format(distance / 1000)} km`;
-        meta.textContent = [parts.secondary || parts.label || t('noAddress'), distanceLabel].filter(Boolean).join(' · ');
+        const properties = feature.properties || {};
+        const address = properties.fullAddress || [properties.street, properties.housenumber, properties.city].filter(Boolean).join(', ') || t('noAddress');
+        meta.textContent = [address, distanceLabel].join(' · ');
+        name.addEventListener('click', () => state.map.flyTo({ center: coordinates, zoom: 16, duration: 500, offset: mobileMapOffset() }));
         text.append(name, meta);
+        if (properties.openingHours) {
+          const hours = document.createElement('div');
+          hours.className = 'place-result-details';
+          hours.textContent = `${t('nearbyHours')}: ${properties.openingHours}`;
+          text.append(hours);
+        }
+        const contacts = document.createElement('div');
+        contacts.className = 'place-result-contacts';
+        if (properties.phone) {
+          const phone = document.createElement('a');
+          const dial = String(properties.phone).replace(/[^+\d;,]/g, '');
+          if (/\d/.test(dial)) { phone.href = `tel:${dial}`; phone.textContent = properties.phone; contacts.append(phone); }
+        }
+        if (properties.website) {
+          try {
+            const website = new URL(/^https?:\/\//i.test(properties.website) ? properties.website : `https://${properties.website}`);
+            if (['http:', 'https:'].includes(website.protocol) && !website.username && !website.password) {
+              const link = document.createElement('a');
+              link.href = website.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = t('nearbyWebsite'); contacts.append(link);
+            }
+          } catch { /* Invalid place URLs are not offered as links. */ }
+        }
+        text.append(contacts);
         row.append(icon, text);
-        row.addEventListener('click', () => {
-          state.map.flyTo({ center: coordinates, zoom: 16, duration: 500, offset: mobileMapOffset() });
-        });
         results.append(row);
       });
-      state.map.easeTo({ center: [center.lng, center.lat], zoom: Math.max(state.map.getZoom(), 13.5), duration: 500, offset: mobileMapOffset() });
+      const note = document.createElement('p');
+      note.className = 'nearby-summary'; note.textContent = t('nearbyDataNote'); results.append(note);
+      const latitudeRadius = 10000 / 111195;
+      const longitudeRadius = latitudeRadius / Math.max(0.1, Math.cos(center.lat * Math.PI / 180));
+      state.followCamera = false;
+      state.map.fitBounds([[center.lng - longitudeRadius, center.lat - latitudeRadius], [center.lng + longitudeRadius, center.lat + latitudeRadius]], { padding: 40, maxZoom: 13, duration: 500 });
       $('#clear-places').hidden = false;
     } catch (error) {
       if (requestId !== state.nearbyRequestId) return;
       console.error('Trazia open place search failed:', error);
-      results.textContent = t('invalidCategory');
-      showToast(t('invalidCategory'), true);
+      results.textContent = t('nearbyUnavailable');
+      showToast(t('nearbyUnavailable'), true);
     }
   }
 
@@ -2093,6 +2103,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function clearPlaces() {
+    state.nearbyRequestId += 1;
     clearPlaceMarkers();
     $('#place-results').replaceChildren();
     $('#place-results').hidden = true;
