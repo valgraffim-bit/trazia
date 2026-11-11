@@ -1704,7 +1704,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         return;
       }
       collapseMobilePanel();
-      updateRouteProgress(position);
       setMap3d(true);
       state.selectedDestination = selected;
       state.routeDestination = selected.label || typedDestination;
