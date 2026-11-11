@@ -38,3 +38,9 @@ Las direcciones se consultan en línea en el corte oficial seleccionado, con cac
 Prueba real del 11 de noviembre de 2026: Registro 1 devolvió `CL 27   17   83`, municipio 08078 (Baranoa). El código enlazó exactamente con U_TERRENO y devolvió centroide WGS84 `[-74.91911172290051, 10.788915843568581]`. La última medición observó 316 ms para el registro y 186 ms para el terreno, sin garantía de latencia futura. No se comprobó la entrada mediante visita física.
 
 Una prueba en Villanueva (Bolívar) no produjo una coincidencia y no se inventó resultado. La revisión real del catálogo encontró y validó el corte 09-2026. Se probó mediante unidades la selección municipal, homónimos, números y sufijos, unión exacta, coordenadas inválidas, respaldo rural, fallos y cancelación; Playwright móvil/escritorio verifica la referencia aproximada, atribución, selección y respaldo con servicios/mapa simulados. Tres pruebas Python cubren revisión oficial, rechazo de fuentes ajenas/esquemas cambiados y protección frente a retroceso de corte.
+
+## Verificación en la publicación y margen de espera
+
+La publicación de v48 terminó correctamente y sirvió el catálogo. Sin embargo, la primera búsqueda móvil real canceló la consulta del Registro 1 a los 2.502 ms y terminó en TomTom. Consultar el mismo registro y terreno después sí respondió con IGAC. El límite por petición era demasiado corto para una consulta inicial.
+
+v49 concede hasta 6,5 segundos por petición IGAC y hasta 30 segundos para el conjunto del autocompletado. Escribir otra consulta sigue cancelando la anterior. Además, una consulta de geometría fallida seguida de un resultado vacío en la otra capa se trata como fallo, no como ausencia definitiva susceptible de caché. La prueba móvil/escritorio incorpora una respuesta predial de tres segundos para reproducir el caso que antes fallaba.

@@ -12,6 +12,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
     if(url.hostname==='unpkg.com'&&url.pathname.endsWith('.mjs'))return route.fulfill({contentType:'text/javascript',body:'export class Map { constructor(){throw Error("Offline UI test");} }'});
     if(url.hostname==='ws-idesc.cali.gov.co')return route.fulfill({contentType:'application/json',body:JSON.stringify({features:page.__noOfficial?[]:[{type:'Feature',geometry:{type:'Point',coordinates:[-76.52895843,3.44289173]},properties:{nddirecc:'KR 15 # 12 - 83',ndbarrio:'San Pascual',ndestado:'Certificada',ndfechcort:'2026-09-03Z'}}]})});
     if(url.hostname==='services2.arcgis.com'){
+     if(url.pathname.includes('/17/')&&!page.__noPredial)await new Promise(resolve=>setTimeout(resolve,3000));
      const npn='08078'+'0'.repeat(25);
      const features=page.__noPredial?[]:url.pathname.includes('/17/')?[{attributes:{DIRECCION:'CL 27   17   83',MUNICIPIO:'08078',NUMERO_PREDIAL:npn}}]:[{attributes:{CODIGO:npn,codigo_municipio:'08078'},centroid:{x:-74.91911172290051,y:10.788915843568581}}];
      return route.fulfill({contentType:'application/json',body:JSON.stringify({features})});
