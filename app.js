@@ -1547,6 +1547,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
             const [beginLng, beginLat] = coordinates[beginIndex] || [origin.lng, origin.lat];
             navigationSteps.push({
               instructions: instruction,
+              maneuverType: maneuver.type,
               alertInstruction: maneuver.verbal_transition_alert_instruction || maneuver.instruction,
               preInstruction: maneuver.verbal_pre_transition_instruction || maneuver.instruction,
               endLocation: { lat, lng },
@@ -1591,7 +1592,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       $('#start-navigation').disabled = state.routeCoordinates.length < 2;
       if (state.isNavigating) {
         const instruction = state.navigationSteps[0]?.instructions || t('navigationFollowRoute');
-        $('#navigation-instruction').textContent = instruction;
+        updateNavigationInstruction(instruction);
         speak(instruction);
       }
       saveRecentDestination(selected.wazeLink || (selected.temporary ? selected.query : state.routeDestination));
@@ -2048,6 +2049,48 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
     recognition.start();
   }
 
+  function navigationArrow(type, instruction = '') {
+    // Valhalla maneuver types: use route data rather than a later turn in the
+    // spoken instruction (which may include both right and left).
+    const kinds = {
+      1: 'straight', 2: 'slight-right', 3: 'slight-left', 4: 'straight',
+      5: 'slight-right', 6: 'slight-left', 7: 'straight', 8: 'straight',
+      9: 'slight-right', 10: 'right', 11: 'sharp-right', 12: 'uturn-right',
+      13: 'uturn-left', 14: 'sharp-left', 15: 'left', 16: 'slight-left',
+      17: 'straight', 18: 'slight-right', 19: 'slight-left', 20: 'slight-right',
+      21: 'slight-left', 22: 'straight', 23: 'slight-right', 24: 'slight-left',
+      25: 'straight', 26: 'roundabout', 27: 'slight-right', 37: 'slight-right', 38: 'slight-left',
+    };
+    let kind = kinds[type];
+    if (!kind) {
+      const first = instruction.split(/\b(?:despu[eé]s|luego|then)\b/i)[0];
+      if (/rotonda|glorieta|roundabout/i.test(first)) kind = 'roundabout';
+      else if (/retorno|vuelta en u|u-turn/i.test(first)) kind = /izquierda|left/i.test(first) ? 'uturn-left' : 'uturn-right';
+      else if (/derecha|right/i.test(first)) kind = 'right';
+      else if (/izquierda|left/i.test(first)) kind = 'left';
+      else kind = 'straight';
+    }
+    const paths = {
+      straight: 'M16 28V5M8 13l8-8 8 8',
+      right: 'M8 28V16a5 5 0 0 1 5-5h14M20 4l7 7-7 7',
+      slight: 'M9 28V20c0-3 1-5 3-7L25 3M15 3h10v10',
+      sharp: 'M8 28V10c0-5 3-6 6-3l12 12M26 9v10H16',
+      uturn: 'M7 28V12a9 9 0 0 1 18 0v9M18 14l7 7 6-7',
+      roundabout: 'M16 29v-7a7 7 0 1 1 7-7h6M24 10l5 5-5 5',
+    };
+    const shape = kind.startsWith('uturn') ? 'uturn' : kind.startsWith('slight') ? 'slight' : kind.startsWith('sharp') ? 'sharp' : kind === 'left' ? 'right' : kind;
+    return { kind, path: paths[shape], transform: kind.endsWith('left') || kind === 'left' ? 'translate(32 0) scale(-1 1)' : '' };
+  }
+
+  function updateNavigationInstruction(instruction, step = state.navigationSteps[state.activeStep]) {
+    $('#navigation-instruction').textContent = instruction;
+    const arrow = navigationArrow(step?.maneuverType, instruction);
+    const path = $('#navigation-arrow-path');
+    path.setAttribute('d', arrow.path);
+    path.setAttribute('transform', arrow.transform);
+    $('#navigation-banner').dataset.direction = arrow.kind;
+  }
+
   function speak(text) {
     if (!state.voiceEnabled || !text) return;
     const speech = window.speechSynthesis;
@@ -2100,7 +2143,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       if (firstStep) firstStep.alertSpoken = true;
       const firstInstruction = firstStep?.instructions || t('navigationFollowRoute');
       $('#route-note').textContent = firstInstruction;
-      $('#navigation-instruction').textContent = firstInstruction;
+      updateNavigationInstruction(firstInstruction, firstStep);
       $('#navigation-banner').hidden = false;
       updateNavigationButton();
       speak(firstInstruction);
@@ -2149,7 +2192,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
         state.isRerouting = true;
         state.offRouteFixes = 0;
         $('#route-note').textContent = t('rerouting');
-        $('#navigation-instruction').textContent = t('rerouting');
+        updateNavigationInstruction(t('rerouting'), null);
         showToast(t('rerouting'));
         void searchRoute({ automatic: true });
         return;
@@ -2157,7 +2200,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
     }
     const step = state.navigationSteps[state.activeStep];
     if (!step) {
-      $('#navigation-instruction').textContent = t('navigationFollowRoute');
+      updateNavigationInstruction(t('navigationFollowRoute'), null);
       return;
     }
     const end = step.endLocation;
@@ -2172,7 +2215,7 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       step.preSpoken = true;
       const preInstruction = step.preInstruction || step.instructions;
       $('#route-note').textContent = preInstruction;
-      $('#navigation-instruction').textContent = preInstruction;
+      updateNavigationInstruction(preInstruction, step);
       speak(preInstruction);
     }
     if (metersToManeuver <= 65) {
@@ -2181,11 +2224,11 @@ import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=28';
       if (!next) {
         const finalInstruction = t('navigationFollowRoute');
         $('#route-note').textContent = finalInstruction;
-        $('#navigation-instruction').textContent = finalInstruction;
+        updateNavigationInstruction(finalInstruction, null);
         return;
       }
       $('#route-note').textContent = next.instructions;
-      $('#navigation-instruction').textContent = next.instructions;
+      updateNavigationInstruction(next.instructions, next);
       next.alertSpoken = true;
       speak(next.instructions);
     }
