@@ -537,3 +537,16 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 .screen-lock-status { position: absolute; z-index: 6; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 132px); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 100px); min-height: 32px; padding: 6px 10px; border: 1px solid #ffffff40; border-radius: 12px; background: #202733; color: #ffd28a; font: inherit; font-size: 11px; cursor: pointer; }
 .screen-lock-status[data-held="true"] { color: #8ce4ca; }
 .screen-lock-status[hidden] { display: none; }
+
+.saved-place-marker { display: block; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; touch-action: manipulation; }
+.saved-place-marker img { display: block; width: 44px; height: 44px; }
+.saved-place-marker:focus-visible { outline: 3px solid #5bd5bf; outline-offset: 2px; border-radius: 12px; }
+.saved-place-results { max-height: 240px; overflow-y: auto; font-size: 13px; }
+.saved-location-option { display: block; width: 100%; min-height: 44px; margin: 5px 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--text); font: inherit; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.saved-place-results small { display: block; margin: 8px 0; color: var(--muted); }
+/* Saved places remain available on desktop as well as mobile. */
+.mobile-shortcuts { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; scrollbar-width: none; }
+.mobile-shortcuts::-webkit-scrollbar { display: none; }
+.quick-place-button { display: inline-flex; min-width: 108px; min-height: 54px; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 0 12px; color: var(--text); background: var(--panel); cursor: pointer; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.quick-place-icon { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: 10px; color: #0e8576; background: #e6f6f1; font-size: 17px; }
+.quick-place-add { min-width: 90px; justify-content: center; color: #0c9b8a; }

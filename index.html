@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=33" />
+    <link rel="stylesheet" href="./styles.css?v=34" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -309,8 +309,19 @@
         </div>
         <label class="form-label" for="saved-place-name" data-i18n="savedPlaceName">Nombre</label>
         <input id="saved-place-name" class="form-control" maxlength="32" />
+        <label class="form-label" for="saved-place-icon" data-i18n="savedPlaceIcon">Icono del lugar</label>
+        <select id="saved-place-icon" class="form-control">
+          <option value="home" data-i18n="home">Casa</option>
+          <option value="work" data-i18n="work">Trabajo</option>
+          <option value="shop" data-i18n="placeShop">Tienda / negocio</option>
+          <option value="clinic" data-i18n="placeClinic">Clínica</option>
+          <option value="school" data-i18n="placeSchool">Estudio</option>
+          <option value="favorite" data-i18n="placeFavorite">Favorito</option>
+          <option value="other" data-i18n="placeOther">Otro lugar</option>
+        </select>
         <label class="form-label" for="saved-place-address" data-i18n="savedPlaceAddress">Dirección</label>
         <input id="saved-place-address" class="form-control" maxlength="180" placeholder="Calle, ciudad, país" />
+        <div id="saved-place-results" class="saved-place-results" aria-live="polite" hidden></div>
         <div class="modal-actions"><button class="secondary-button modal-cancel" type="button" data-close="saved-place-dialog" data-i18n="cancel">Cancelar</button><button class="primary-button" id="save-place" type="button" data-i18n="savePlace">Guardar</button></div>
       </form>
     </dialog>
@@ -360,7 +371,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=28"></script>
-    <script type="module" src="./app.js?v=45"></script>
+    <script type="module" src="./app.js?v=46"></script>
   </body>
 </html>
 
