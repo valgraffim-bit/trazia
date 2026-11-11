@@ -550,3 +550,9 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 .quick-place-button { display: inline-flex; min-width: 108px; min-height: 54px; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 0 12px; color: var(--text); background: var(--panel); cursor: pointer; font-size: 12px; font-weight: 800; white-space: nowrap; }
 .quick-place-icon { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: 10px; color: #0e8576; background: #e6f6f1; font-size: 17px; }
 .quick-place-add { min-width: 90px; justify-content: center; color: #0c9b8a; }
+
+
+/* Avoid iOS Safari zooming the page when the destination field receives focus. */
+@media (max-width: 820px) {
+  .search-field-wrap input { font-size: 16px; }
+}

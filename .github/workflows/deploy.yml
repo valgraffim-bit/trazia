@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '17 7 * * 1' # Mondays 02:17 Colombia; GitHub may delay scheduled runs.
+    - cron: '17 7 * * *' # Daily 02:17 Colombia; GitHub may delay scheduled runs.
 
 permissions:
   contents: read
@@ -32,9 +32,26 @@ jobs:
           path: data/addresses/cali
           key: cali-address-db-v1-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: cali-address-db-v1-
+      - name: Record current address snapshot
+        id: snapshot-before
+        shell: bash
+        run: |
+          if [ -f data/addresses/cali/manifest.json ]; then
+            version="$(python3 -c 'import json; print(json.load(open("data/addresses/cali/manifest.json"))["version"])')"
+          else
+            version=none
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Build or refresh own Cali address database
         run: python3 scripts/update-cali-addresses.py
+      - name: Record validated address snapshot
+        id: snapshot-after
+        shell: bash
+        run: |
+          version="$(python3 -c 'import json; print(json.load(open("data/addresses/cali/manifest.json"))["version"])')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Preserve validated address snapshot
+        if: steps.snapshot-before.outputs.version != steps.snapshot-after.outputs.version
         uses: actions/cache/save@v4
         with:
           path: data/addresses/cali

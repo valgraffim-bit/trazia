@@ -12,6 +12,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 (() => {
   'use strict';
 
+  // Prevent Safari from scaling the whole app; MapLibre keeps handling map touch gestures.
+  const preventViewportPinch = (event) => event.preventDefault();
+  document.addEventListener('gesturestart', preventViewportPinch, { passive: false });
+  document.addEventListener('gesturechange', preventViewportPinch, { passive: false });
+
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const app = $('.app-shell');
