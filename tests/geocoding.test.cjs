@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const source = readFileSync(require('node:path').join(__dirname, '../app.js'), 'utf8');
 const names = ['normalizeGeocodeText', 'normalizeColombianAddressQuery', 'colombianAddressQueryVariants', 'parseColombianStructuredAddress', 'photonFeatureParts', 'photonFeatureSearchText', 'rankPhotonFeatures', 'isWithinColombiaSearchArea', 'makePhotonSearchParams', 'photonLanguage', 'isColombiaFeature', 'findDestinationCandidates'];
 function setup(fetchPhotonFeatures) {
-  const context = vm.createContext({ URLSearchParams, state: { language: 'es', currentPosition: null }, COLOMBIA_SEARCH_BOUNDS: { west: -82, east: -66, south: -5, north: 14 }, distanceMeters: () => 0, findArcgisCandidates: async () => [], fetchPhotonFeatures, findNominatimCandidates: () => { throw Error('Autocomplete must not call Nominatim'); } });
+  const context = vm.createContext({ window: {}, URLSearchParams, state: { language: 'es', currentPosition: null }, COLOMBIA_SEARCH_BOUNDS: { west: -82, east: -66, south: -5, north: 14 }, distanceMeters: () => 0, findArcgisCandidates: async () => [], fetchPhotonFeatures, findNominatimCandidates: () => { throw Error('Autocomplete must not call Nominatim'); } });
   for (const name of names) {
     const start = source.search(new RegExp(`  (?:async )?function ${name}\\(`));
     assert.ok(start >= 0, name);
@@ -109,4 +109,22 @@ test('prioritizes a complete address over street-only Photon suggestions', async
   ctx.findArcgisCandidates = async () => [{ properties: { geocoder: 'esri', housenumber: '45-53' } }];
   const results = await ctx.findDestinationCandidates('Cra 83B # 45-53 Cali');
   assert.equal(results[0].properties.housenumber, '45-53');
+});
+test('uses configured TomTom first and caches repeated queries for the current session', async () => {
+  const ctx = setup(async () => { throw Error('Photon should not be requested'); });
+  ctx.window.TRAZIA_CONFIG = { tomtomApiKey: 'test-browser-key' };
+  ctx.state.tomtomCache = new Map();
+  ctx.DEFAULT_MAP_CENTER = [-76.532, 3.452];
+  let requests = 0;
+  ctx.findTomtomCandidates = async () => { requests++; return [{ properties: { geocoder: 'tomtom', housenumber: '45-53' } }]; };
+  for (let i = 0; i < 2; i++) assert.equal((await ctx.findDestinationCandidates('Cra 83B 3 # 45-53 Cali'))[0].properties.geocoder, 'tomtom');
+  assert.equal(requests, 1);
+});
+test('falls back to existing services if TomTom denies the key', async () => {
+  const ctx = setup(async () => ({ features: [street] }));
+  ctx.window.TRAZIA_CONFIG = { tomtomApiKey: 'test-browser-key' };
+  ctx.state.tomtomCache = new Map();
+  ctx.DEFAULT_MAP_CENTER = [-76.532, 3.452];
+  ctx.findTomtomCandidates = async () => { throw Error('TomTom unavailable (403)'); };
+  assert.equal((await ctx.findDestinationCandidates('Carrera 80 Cali')).length, 1);
 });

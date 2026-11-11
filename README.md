@@ -70,3 +70,16 @@ En Waze, selecciona el lugar y usa Compartir para copiar su enlace. En Trazia pu
 Se admiten enlaces Waze con `ll=latitud,longitud`, enlaces Live Map con `to=ll.latitud,longitud` y enlaces con geohash de al menos 8 caracteres (`h=` o `/ul/h…`). Los geohashes se indican como puntos aproximados. Los enlaces de búsqueda, favoritos sin coordenadas y acortadores opacos no permiten importar un destino y muestran instrucciones para compartir el lugar. No se consultan APIs privadas de Waze ni servicios externos para resolver enlaces. El historial conserva el enlace canónico para reutilizar el punto sin geocodificarlo.
 
 Pruebas: `node tests/waze-links.test.cjs`, `node tests/geocoding.test.cjs`. Prueba móvil automatizada: `node tests/waze-browser.cjs` (requiere Playwright y Chromium en `/usr/bin/chromium`; mapa y servicios externos simulados).
+
+## Activar TomTom para todos los usuarios
+
+La búsqueda puede consultar TomTom Orbis Geocoding v2 desde el mismo campo de destino. No se pide a cada usuario registrarse ni configurar claves. Sin clave configurada, continúan los proveedores existentes.
+
+1. En MyTomTom, abre **API & SDK Keys** y crea o selecciona una clave habilitada para **Geocoding API (Orbis)**. Mantén el plan gratuito y no actives facturación por exceso.
+2. Limita la clave de navegador al dominio `valgraffim-bit.github.io` en la lista de dominios permitidos de TomTom y habilita únicamente los productos necesarios.
+3. En el repositorio, abre **Settings → Secrets and variables → Actions → Variables → New repository variable**. Usa el nombre `TOMTOM_BROWSER_KEY` y pega allí la clave. No la publiques en conversaciones, issues o commits.
+4. Integra el cambio en `main` o ejecuta el workflow **Deploy Trazia to GitHub Pages**. Durante el despliegue se genera `config.js`; el repositorio mantiene una configuración vacía. La clave es de navegador y será visible en el sitio publicado, por lo que las restricciones de dominio y producto son obligatorias para esta configuración.
+
+El módulo conserva todos los números y sufijos de la vía, verifica país y coordenadas, y rechaza coincidencias de calle sin número cuando se escribió una dirección completa. La caché vive solo en memoria durante cinco minutos, con hasta 50 consultas, y se esperan 650 ms después de escribir para reducir solicitudes. Los resultados del proveedor no se guardan en el historial: se conserva el texto original del usuario. La cobertura real debe verificarse con una clave válida y la dirección de prueba antes de considerar resuelto el caso. No se ha consultado TomTom con credenciales reales durante la implementación.
+
+Pruebas TomTom: `node tests/tomtom-geocoding.test.cjs` y `node tests/tomtom-browser.cjs`. La prueba de navegador usa respuestas simuladas; no certifica cobertura real ni permisos de la clave.
