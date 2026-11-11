@@ -206,12 +206,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .compass-button .compass-north-needle { fill: #e95361; stroke: #e95361; }
 .compass-button .compass-south-needle { fill: #159b8e; stroke: #159b8e; }
 .compass-north-label { position: absolute; z-index: 1; top: 2px; color: #e95361; font-size: 7px; font-weight: 900; line-height: 1; }
-.navigation-banner { position: absolute; z-index: 3; top: 145px; left: 19px; display: flex; max-width: min(440px, calc(100% - 90px)); align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,.72); border-radius: 16px; padding: 12px 15px; color: #65788a; background: rgba(255,255,255,.96); box-shadow: 0 10px 28px rgba(18,42,61,.16); backdrop-filter: blur(12px); }
+.navigation-banner { position: absolute; z-index: 3; top: 76px; left: 19px; width: 54px; height: 54px; color: #6ee0cc; pointer-events: none; }
 .navigation-banner[hidden] { display: none; }
-.navigation-turn-icon { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 12px; color: #0b8275; background: #e5f7f2; font-size: 27px; font-weight: 800; }
-.navigation-banner div { display: grid; gap: 4px; min-width: 0; }
-.navigation-banner div span { color: #93a0aa; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.navigation-banner strong { overflow: hidden; color: #20354a; font-size: 13px; line-height: 1.3; text-overflow: ellipsis; }
+.navigation-turn-icon { display: block; width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px #16282e) drop-shadow(0 0 1px #16282e); }
 .speedometer { position: absolute; z-index: 3; top: 44%; left: 19px; display: grid; width: 78px; height: 78px; align-content: center; justify-items: center; border: 2px solid rgba(255,255,255,.7); border-radius: 50%; color: #fff; background: rgba(24,39,53,.88); box-shadow: 0 8px 25px rgba(10,20,30,.25); backdrop-filter: blur(8px); pointer-events: none; }
 .speedometer strong { font: 800 29px/1 Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: -1px; }
 .speedometer span { margin-top: 3px; font-size: 10px; font-weight: 600; opacity: .86; }
@@ -327,9 +324,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .compass-button { width: 38px; height: 38px; }
   .compass-button svg { width: 27px; height: 27px; }
   .map-action-stack { top: 65px; right: 12px; }
-  .navigation-banner { top: calc(max(12px, env(safe-area-inset-top)) + 116px); left: 12px; max-width: calc(100% - 78px); padding: 9px 11px; }
-  .navigation-turn-icon { width: 35px; height: 35px; border-radius: 11px; font-size: 23px; }
-  .navigation-banner strong { font-size: 11px; }
+  .navigation-banner { top: calc(max(12px, env(safe-area-inset-top)) + 54px); left: 12px; width: 50px; height: 50px; }
   .speedometer { top: auto; bottom: max(10px, env(safe-area-inset-bottom)); left: 12px; width: 68px; height: 68px; }
   .speedometer strong { font-size: 25px; }
   .speedometer span { font-size: 9px; }
@@ -450,10 +445,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 :root[data-theme="dark"] .demo-map { filter: brightness(.52) saturate(.9) contrast(1.12); }
 :root[data-theme="dark"] .live-map { filter: none; }
 :root[data-theme="dark"] .maplibregl-ctrl-attrib { color: #d6dee2 !important; background: rgba(32,34,38,.92) !important; }
-:root[data-theme="dark"] .navigation-banner { border-color: rgba(255,255,255,.09); color: #cbd3d8; background: rgba(32,34,38,.96); }
-:root[data-theme="dark"] .navigation-banner div span { color: #aab5bd; }
-:root[data-theme="dark"] .navigation-banner strong { color: #f0f4f5; }
-:root[data-theme="dark"] .navigation-turn-icon { color: #61d5c3; background: #213d39; }
+:root[data-theme="dark"] .navigation-turn-icon { color: #61d5c3; }
 :root[data-theme="dark"] .music-note { color: #aab5bd; }
 :root[data-theme="dark"] .music-service { border-color: var(--line); color: var(--text); background: #292c31; }
 :root[data-theme="dark"] .music-service:hover { border-color: #397b70; background: #263b39; }
