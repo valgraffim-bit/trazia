@@ -2469,7 +2469,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   async function requestNavigationWakeLock() {
-    if (!state.isNavigating || document.hidden || !navigator.wakeLock || state.wakeLockPending || (state.screenWakeLock && !state.screenWakeLock.released)) return;
+    if (!state.isNavigating || document.hidden) return;
+    if (!navigator.wakeLock) { updateScreenLockStatus(false); return; }
+    if (state.wakeLockPending || (state.screenWakeLock && !state.screenWakeLock.released)) return;
     const generation = state.wakeLockGeneration || 0;
     state.wakeLockPending = true;
     try {
@@ -2479,17 +2481,35 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         return;
       }
       state.screenWakeLock = lock;
+      updateScreenLockStatus(true);
       lock.addEventListener('release', () => {
-        if (state.screenWakeLock === lock) state.screenWakeLock = null;
+        if (state.screenWakeLock !== lock) return;
+        state.screenWakeLock = null;
+        updateScreenLockStatus(false);
+        if (state.isNavigating && !document.hidden) {
+          window.clearTimeout(state.wakeLockRetry);
+          state.wakeLockRetry = window.setTimeout(() => { void requestNavigationWakeLock(); }, 1200);
+        }
       });
-    } catch { /* Device/browser power policies may decline screen wake lock. */ }
+    } catch { updateScreenLockStatus(false); }
     finally {
       state.wakeLockPending = false;
       if (generation !== (state.wakeLockGeneration || 0) && state.isNavigating && !document.hidden) void requestNavigationWakeLock();
     }
   }
 
+  function updateScreenLockStatus(held) {
+    const button = $('#screen-lock-status');
+    if (!button) return;
+    button.hidden = !state.isNavigating;
+    button.dataset.held = String(held);
+    button.textContent = state.language === 'es'
+      ? (held ? 'Pantalla encendida' : 'Pantalla sin protección · toca para reintentar')
+      : (held ? 'Screen stays awake' : 'Screen may lock · tap to retry');
+  }
+
   function releaseNavigationWakeLock() {
+    window.clearTimeout(state.wakeLockRetry);
     state.wakeLockGeneration = (state.wakeLockGeneration || 0) + 1;
     const lock = state.screenWakeLock;
     state.screenWakeLock = null;
@@ -2515,6 +2535,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   function setNavigationView(active) {
     app.classList.toggle('navigation-fullscreen', active);
     $('#finish-navigation').hidden = !active;
+    updateScreenLockStatus(Boolean(state.screenWakeLock && !state.screenWakeLock.released));
     if (!active) {
       $('.side-panel').classList.remove('expanded');
       app.classList.remove('panel-expanded');
@@ -2563,6 +2584,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   function setupEvents() {
     $('#finish-navigation').addEventListener('click', () => stopNavigation());
+    $('#screen-lock-status').addEventListener('click', () => { void requestNavigationWakeLock(); });
     $('#language-select').addEventListener('change', (event) => applyLanguage(event.target.value));
     $$('.vehicle-choice').forEach((button) => button.addEventListener('click', () => setVehicleType(button.dataset.vehicle)));
     $('#theme-select').addEventListener('change', (event) => {
@@ -2710,6 +2732,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     void locateMe({ silent: true });
     window.setInterval(() => { if (state.theme === 'auto') applyTheme(); }, 60_000);
     window.setInterval(refreshLiveTraffic, 60_000);
+    window.setInterval(() => { if (state.isNavigating && !document.hidden) void requestNavigationWakeLock(); }, 15000);
+    window.addEventListener('focus', () => { void requestNavigationWakeLock(); });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) suspendAppView();
       else resumeAppView();
