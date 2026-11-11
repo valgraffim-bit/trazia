@@ -6,6 +6,7 @@ function normalized(value) {
 
 export async function findTomtomCandidates(query, { apiKey, center, signal, expectedAddress, language = 'es', fetchFn = fetch } = {}) {
   if (!apiKey) return [];
+  if (!expectedAddress) return findTomtomPlaces(query, { apiKey, center, signal, language, fetchFn });
   const url = new URL('https://api.tomtom.com/maps/orbis/places/geocode');
   url.searchParams.set('query', query);
   url.searchParams.set('countryCodesIso2', 'CO');
@@ -43,6 +44,41 @@ export async function findTomtomCandidates(query, { apiKey, center, signal, expe
       housenumber: result.address.houseNumber || '', district: result.address.municipalitySubdivision || '',
       city: result.address.municipality || '', state: result.address.countrySubdivision || '',
       country: result.address.country || 'Colombia', countrycode: 'CO',
+    },
+  }));
+}
+
+// Fuzzy Search includes named POIs (businesses, clinics, sports venues) and addresses.
+async function findTomtomPlaces(query, { apiKey, center, signal, language, fetchFn }) {
+  const url = new URL(`https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json`);
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('countrySet', 'CO');
+  url.searchParams.set('limit', '10');
+  url.searchParams.set('language', language === 'es' ? 'es-ES' : 'en-US');
+  if (Number.isFinite(center?.lat) && Number.isFinite(center?.lng)) {
+    url.searchParams.set('lat', String(center.lat));
+    url.searchParams.set('lon', String(center.lng));
+  }
+  let response;
+  try { response = await fetchFn(url.toString(), { signal }); }
+  catch (error) {
+    if (signal?.aborted) throw error;
+    throw new Error('TomTom connection unavailable');
+  }
+  if (!response.ok) throw new Error(`TomTom unavailable (${response.status})`);
+  const payload = await response.json();
+  if (!Array.isArray(payload.results)) throw new Error('TomTom returned an invalid response');
+  return payload.results.filter(result => {
+    const { lat, lon } = result.position || {};
+    return result.address?.countryCode === 'CO' && Number.isFinite(lat) && Number.isFinite(lon)
+      && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+  }).map(result => ({
+    type: 'Feature', geometry: { type: 'Point', coordinates: [result.position.lon, result.position.lat] },
+    properties: {
+      geocoder: 'tomtom', name: result.poi?.name || result.address.freeformAddress || '',
+      street: result.address.streetName || '', housenumber: result.address.streetNumber || '',
+      district: result.address.municipalitySubdivision || '', city: result.address.municipality || '',
+      state: result.address.countrySubdivision || '', country: result.address.country || 'Colombia', countrycode: 'CO',
     },
   }));
 }
