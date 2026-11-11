@@ -169,7 +169,6 @@ import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
     updateVoiceToggle();
     renderReportCount();
     renderSavedPlaces();
-    renderRecentDestinations();
     updateVehiclePicker();
     update3dButton();
     updateCompassControl();
@@ -465,25 +464,6 @@ import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
       : (state.language === 'es' ? 'Coordenadas importadas de Waze. Pulsa Buscar ruta para continuar.' : 'Coordinates imported from Waze. Select Find route to continue.');
     $('#route-note').textContent = message;
     showToast(message);
-  }
-
-  function importWazeFromDialog() {
-    const status = $('#waze-import-status');
-    try {
-      const imported = parseWazeLocation($('#waze-link-input').value);
-      if (!imported) {
-        status.textContent = state.language === 'es' ? 'Pega un enlace de ubicación de Waze.' : 'Paste a Waze location link.';
-        return;
-      }
-      state.autocompleteRequestId += 1;
-      window.clearTimeout(state.autocompleteTimer);
-      state.autocompleteController?.abort();
-      setWazeDestination(imported);
-      closeDialog($('#waze-import-dialog'));
-      destinationInput.focus();
-    } catch (error) {
-      status.textContent = wazeImportError(error);
-    }
   }
 
   function handleDestinationInput() {
@@ -1087,32 +1067,6 @@ import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
     container.append(add);
   }
 
-  function renderRecentDestinations() {
-    const section = $('#recent-destinations');
-    const list = $('#recent-list');
-    list.replaceChildren();
-    section.hidden = state.recentDestinations.length === 0;
-    state.recentDestinations.forEach((destination) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'recent-destination-button';
-      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      icon.setAttribute('viewBox', '0 0 24 24');
-      icon.setAttribute('aria-hidden', 'true');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M12 8v4l2.5 1.5M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5');
-      icon.append(path);
-      const text = document.createElement('span');
-      text.textContent = destination;
-      button.append(icon, text);
-      button.addEventListener('click', () => {
-        setDestinationText(destination);
-        void searchRoute();
-      });
-      list.append(button);
-    });
-  }
-
   function openSavedPlaceEditor(id = null) {
     const saved = state.savedPlaces.find((place) => place.id === id);
     state.editingSavedPlaceId = id;
@@ -1163,7 +1117,6 @@ import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
   function saveRecentDestination(destination) {
     state.recentDestinations = [destination, ...state.recentDestinations.filter((item) => item.toLowerCase() !== destination.toLowerCase())].slice(0, 5);
     localStorage.setItem('trazia:recent-destinations', JSON.stringify(state.recentDestinations));
-    renderRecentDestinations();
   }
 
   function getUserPosition() {
@@ -2433,13 +2386,6 @@ import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
       if (button) selectSavedPlace(button.dataset.placeId);
     });
     $('#save-place').addEventListener('click', saveSavedPlace);
-    $('#open-waze-import').addEventListener('click', () => {
-      $('#waze-import-status').textContent = '';
-      $('#waze-link-input').value = '';
-      openDialog($('#waze-import-dialog'));
-      $('#waze-link-input').focus();
-    });
-    $('#confirm-waze-import').addEventListener('click', importWazeFromDialog);
     $('#search-route').addEventListener('click', () => { void searchRoute(); });
     $('#recalculate-route').addEventListener('click', () => { void searchRoute(); });
     destinationInput.addEventListener('input', handleDestinationInput);
@@ -2518,7 +2464,6 @@ import { cameraFeatures, cameraAhead } from './speed-cameras.mjs?v=30';
     applyTheme();
     setupEvents();
     renderSavedPlaces();
-    renderRecentDestinations();
     renderSavedReportCount();
     initializeMap();
     updateSpeedometer();

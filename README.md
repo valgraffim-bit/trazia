@@ -63,13 +63,9 @@ Las direcciones con `#` consultan primero ArcGIS World Geocoding para buscar la 
 
 Las consultas ArcGIS usan `forStorage=false`: sus resultados se muestran temporalmente en el mapa y la ruta; el historial conserva únicamente el texto original escrito por la persona. No se guarda la respuesta del proveedor. Si ArcGIS falla o no encuentra la nomenclatura, continúa la búsqueda abierta de Photon y la sugerencia de vía aproximada.
 
-## Importar una ubicación de Waze
+## Buscar y consultar el destino
 
-En Waze, selecciona el lugar y usa Compartir para copiar su enlace. En Trazia pulsa **Importar ubicación de Waze**, pega el enlace y elige **Usar ubicación en Trazia**. Después pulsa **Buscar ruta**. También puedes pegar el enlace directamente en el buscador. El destino utiliza las coordenadas compartidas; no vuelve a buscar la dirección como texto.
-
-Se admiten enlaces Waze con `ll=latitud,longitud`, enlaces Live Map con `to=ll.latitud,longitud` y enlaces con geohash de al menos 8 caracteres (`h=` o `/ul/h…`). Los geohashes se indican como puntos aproximados. Los enlaces de búsqueda, favoritos sin coordenadas y acortadores opacos no permiten importar un destino y muestran instrucciones para compartir el lugar. No se consultan APIs privadas de Waze ni servicios externos para resolver enlaces. El historial conserva el enlace canónico para reutilizar el punto sin geocodificarlo.
-
-Pruebas: `node tests/waze-links.test.cjs`, `node tests/geocoding.test.cjs`. Prueba móvil automatizada: `node tests/waze-browser.cjs` (requiere Playwright y Chromium en `/usr/bin/chromium`; mapa y servicios externos simulados).
+El campo «¿A dónde quieres ir?», la búsqueda de ruta, el tiempo, la distancia, las opciones y el inicio de navegación están reunidos en una sola sección. El historial no se muestra en la interfaz; los registros existentes del dispositivo no se borran. No hay botón ni diálogo de importación de Waze. Los enlaces de coordenadas compatibles pueden pegarse directamente en el campo de destino.
 
 ## Activar TomTom para todos los usuarios
 

@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=23" />
+    <link rel="stylesheet" href="./styles.css?v=24" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -55,7 +55,7 @@
             </div>
           </header>
 
-          <section class="search-section" aria-labelledby="destination-label">
+          <section class="search-section destination-route-section" aria-labelledby="destination-label">
             <div class="vehicle-picker" role="group" aria-labelledby="vehicle-label">
               <span class="vehicle-picker-label" id="vehicle-label" data-i18n="vehicleLabel">Tu vehículo</span>
               <div class="vehicle-options">
@@ -79,7 +79,6 @@
               </div>
               <div class="destination-suggestions" id="destination-suggestions" role="listbox" aria-label="Sugerencias de destinos" hidden></div>
             </div>
-            <button class="waze-import-button" id="open-waze-import" type="button" data-i18n="importWaze">Importar ubicación de Waze</button>
             <div class="search-buttons">
               <button class="primary-button" id="search-route" type="button">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 9 5l6 14 5-14"/><circle cx="4" cy="19" r="1.5"/><circle cx="20" cy="5" r="1.5"/></svg>
@@ -90,11 +89,30 @@
                 <span data-i18n="myLocation">Mi ubicación</span>
               </button>
             </div>
+            <div class="route-details" id="route-details" role="group" aria-labelledby="route-title">
+              <h2 class="sr-only" id="route-title" data-i18n="sampleDestination">Tu destino</h2>
+              <div class="route-metrics">
+                <div><strong id="route-duration">— <small data-i18n="minutes">min</small></strong><span data-i18n="estimatedTime">Tiempo estimado</span></div>
+                <div class="metric-divider"></div>
+                <div><strong id="route-distance">— <small data-i18n="kilometers">km</small></strong><span data-i18n="distance">Distancia</span></div>
+                <button class="recalculate-button" id="recalculate-route" type="button" aria-label="Recalcular ruta" title="Recalcular ruta">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9a7 7 0 0 1 11.5-2L20 12M4 12l2.4 5a7 7 0 0 0 11.5-2"/></svg>
+                </button>
+              </div>
+              <div class="route-traffic-line"><span class="route-line-green"></span><span class="traffic-caption" data-i18n="sampleTraffic">Datos abiertos · sin tráfico en vivo</span></div>
+              <div class="route-options">
+                <label class="toggle-label" for="avoid-tolls">
+                  <span data-i18n="avoidTolls">Evitar peajes</span>
+                  <span class="toggle"><input id="avoid-tolls" type="checkbox" /><span class="toggle-slider"></span></span>
+                </label>
+                <button class="start-navigation" id="start-navigation" type="button" disabled>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 3 15 9-15 9z"/></svg>
+                  <span data-i18n="startNavigation">Iniciar navegación</span>
+                </button>
+              </div>
+              <p class="route-note" id="route-note" data-i18n="emptyRoute">Busca un destino para ver tu ruta.</p>
+            </div>
             <div class="mobile-shortcuts" id="quick-places" aria-label="Lugares guardados"></div>
-            <section class="recent-destinations" id="recent-destinations" hidden aria-labelledby="recent-title">
-              <h2 id="recent-title" data-i18n="recent">Recientes</h2>
-              <div id="recent-list"></div>
-            </section>
             <p class="voice-status" id="voice-status" aria-live="polite"></p>
           </section>
 
@@ -124,35 +142,7 @@
             <div class="place-results" id="place-results" aria-live="polite" hidden></div>
           </section>
 
-          <section class="route-card" aria-labelledby="route-title">
-            <div class="route-card-top">
-              <div>
-                <span class="route-kicker" data-i18n="suggestedRoute">RUTA DE EJEMPLO</span>
-                <h2 id="route-title" data-i18n="sampleDestination">Tu destino</h2>
-              </div>
-              <span class="route-score"><span class="score-dot"></span><span data-i18n="lessTraffic">Menos tráfico</span></span>
-            </div>
-            <div class="route-metrics">
-              <div><strong id="route-duration">— <small data-i18n="minutes">min</small></strong><span data-i18n="estimatedTime">Tiempo estimado</span></div>
-              <div class="metric-divider"></div>
-              <div><strong id="route-distance">— <small data-i18n="kilometers">km</small></strong><span data-i18n="distance">Distancia</span></div>
-              <button class="recalculate-button" id="recalculate-route" type="button" aria-label="Recalcular ruta" title="Recalcular ruta">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9a7 7 0 0 1 11.5-2L20 12M4 12l2.4 5a7 7 0 0 0 11.5-2"/></svg>
-              </button>
-            </div>
-            <div class="route-traffic-line"><span class="route-line-green"></span><span class="traffic-caption" data-i18n="sampleTraffic">Datos abiertos · sin tráfico en vivo</span></div>
-            <div class="route-options">
-              <label class="toggle-label" for="avoid-tolls">
-                <span data-i18n="avoidTolls">Evitar peajes</span>
-                <span class="toggle"><input id="avoid-tolls" type="checkbox" /><span class="toggle-slider"></span></span>
-              </label>
-              <button class="start-navigation" id="start-navigation" type="button" disabled>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 3 15 9-15 9z"/></svg>
-                <span data-i18n="startNavigation">Iniciar navegación</span>
-              </button>
-            </div>
-            <p class="route-note" id="route-note" data-i18n="emptyRoute">Busca un destino para ver tu ruta.</p>
-          </section>
+
 
           <section class="community-card" aria-labelledby="community-title">
             <div class="community-copy">
@@ -351,21 +341,10 @@
       </form>
     </dialog>
 
-    <dialog id="waze-import-dialog" class="app-dialog">
-      <div class="dialog-header">
-        <h2 data-i18n="importWaze">Importar ubicación de Waze</h2>
-        <button type="button" class="icon-button" data-close="waze-import-dialog" aria-label="Cerrar">✕</button>
-      </div>
-      <p data-i18n="wazeInstructions">En Waze, selecciona el destino, pulsa Compartir y copia el enlace. Pégalo aquí para usar el mismo punto en Trazia.</p>
-      <label for="waze-link-input" data-i18n="wazeLinkLabel">Enlace compartido de Waze</label>
-      <textarea id="waze-link-input" rows="3" placeholder="https://www.waze.com/ul?ll=…" autocomplete="off" spellcheck="false"></textarea>
-      <p id="waze-import-status" role="status" aria-live="polite"></p>
-      <button class="primary-button" id="confirm-waze-import" type="button" data-i18n="useWazePoint">Usar ubicación en Trazia</button>
-    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=28"></script>
-    <script type="module" src="./app.js?v=30"></script>
+    <script type="module" src="./app.js?v=31"></script>
   </body>
 </html>
 
