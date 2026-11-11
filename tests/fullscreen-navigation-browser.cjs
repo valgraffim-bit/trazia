@@ -30,8 +30,21 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
    await finish.click();
    assert.equal(await page.locator('.side-panel').isVisible(),true);
    assert.equal(await finish.isVisible(),false);
-   assert.equal(await page.locator('#toggle-panel').getAttribute('aria-expanded'),'true');
+   assert.equal(await page.locator('#toggle-panel').getAttribute('aria-expanded'),'false');
    assert.equal(await page.locator('#navigation-banner').isVisible(),false);
+   if(width<=820){
+    const mapAfter=await page.locator('.map-area').boundingBox();assert.ok(mapAfter.height>400);
+    const handle=page.locator('#toggle-panel');
+    for(let i=0;i<2;i++){
+     await handle.click();assert.equal(await handle.getAttribute('aria-expanded'),'true');
+     await page.locator('.panel-scroll').evaluate(el=>el.scrollTop=el.scrollHeight);
+     assert.equal(await handle.isVisible(),true);
+     await handle.click();assert.equal(await handle.getAttribute('aria-expanded'),'false');
+     await page.waitForTimeout(320);
+     const lowered=await page.locator('.map-area').boundingBox();assert.ok(lowered.height>400);
+    }
+   }
+
    await context.close();
   }
   console.log('Automatic full viewport navigation and finish/menu restoration passed on mobile and desktop; GPS and map simulated.');
