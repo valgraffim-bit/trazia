@@ -37,4 +37,17 @@ class AddressDatabaseTests(unittest.TestCase):
    with patch.object(sys,'argv',['updater','--output',str(root),'--force']),patch.object(db,'source_count',side_effect=OSError('source offline')):
     db.main()
    self.assertEqual((root/'manifest.json').read_bytes(),before);self.assertEqual(db.validate(root),manifest)
+ def test_bundled_seed_bootstraps_deployment_when_remote_sources_are_blocked(self):
+  import sys
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as directory:
+   original=Path(directory)/'original';original.mkdir();manifest=db.build(original,1,[[feature(1)]],minimum=1)
+   data=(original/'snapshot.zip').read_bytes();seed=Path(directory)/'seed';seed.mkdir();(seed/'part-00.bin').write_bytes(data)
+   seedmeta={'schema':1,'archiveSha256':db.digest(data),'archiveBytes':len(data),'recordCount':1,'parts':[{'path':'part-00.bin','bytes':len(data),'sha256':db.digest(data)}]}
+   (seed/'seed.json').write_bytes(db.encoded(seedmeta));target=Path(directory)/'published'
+   with patch.object(sys,'argv',['updater','--output',str(target),'--seed',str(seed),'--force']),patch.object(db,'get_bytes',side_effect=OSError('HTTP 403')),patch.object(db,'source_count',side_effect=OSError('HTTP 403')):
+    db.main()
+   self.assertEqual(db.validate(target),manifest)
+   (seed/'part-00.bin').write_bytes(data+b'corrupt')
+   with self.assertRaisesRegex(ValueError,'integrity'):db.recover_seed(Path(directory)/'bad',seed)
 if __name__=='__main__':unittest.main()

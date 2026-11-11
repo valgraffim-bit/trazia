@@ -82,8 +82,7 @@ def build(root,total,pages,minimum=100000,previous=None):
         for file in [root/'manifest.json',*sorted(folder.glob('*.json'))]:archive.write(file,file.relative_to(root))
     return manifest
 
-def recover(root,published):
-    data=get_bytes(published.rstrip('/')+'/data/addresses/cali/snapshot.zip')
+def restore_archive(root,data):
     with tempfile.TemporaryDirectory() as temp:
         staging=Path(temp)/'snapshot';staging.mkdir()
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
@@ -97,13 +96,35 @@ def recover(root,published):
         shutil.copytree(staging,root);(root/'snapshot.zip').write_bytes(data)
         return manifest
 
+def recover(root,published):
+    return restore_archive(root,get_bytes(published.rstrip('/')+'/data/addresses/cali/snapshot.zip'))
+
+def recover_seed(root,seed):
+    seed=Path(seed);manifest=json.loads((seed/'seed.json').read_text())
+    if manifest.get('schema')!=1 or not isinstance(manifest.get('parts'),list) or not 0<len(manifest['parts'])<=64 or not 0<manifest.get('archiveBytes',0)<=20_000_000:
+        raise ValueError('Invalid seed metadata')
+    parts=[]
+    for index,part in enumerate(manifest['parts']):
+        if part.get('path')!=f'part-{index:02d}.bin' or not 0<part.get('bytes',0)<=1_000_000:raise ValueError('Invalid seed part')
+        data=(seed/part['path']).read_bytes()
+        if len(data)!=part['bytes'] or digest(data)!=part['sha256']:raise ValueError('Seed part integrity failure')
+        parts.append(data)
+    data=b''.join(parts)
+    if len(data)!=manifest['archiveBytes'] or digest(data)!=manifest['archiveSha256']:raise ValueError('Seed archive integrity failure')
+    restored=restore_archive(root,data)
+    if restored['recordCount']!=manifest['recordCount']:raise ValueError('Seed record count mismatch')
+    print(f"Restored bundled seed: {restored['recordCount']} addresses.",flush=True)
+    return restored
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--output',default='data/addresses/cali');parser.add_argument('--published',default='https://valgraffim-bit.github.io/trazia');parser.add_argument('--force',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--output',default='data/addresses/cali');parser.add_argument('--published',default='https://valgraffim-bit.github.io/trazia');parser.add_argument('--force',action='store_true');parser.add_argument('--seed',default=str(Path(__file__).resolve().parents[1]/'data/address-seed/cali'));args=parser.parse_args()
     root=Path(args.output);previous=None
     try:previous=validate(root)
     except Exception:
         try:previous=recover(root,args.published)
-        except Exception:print('No valid previous snapshot available; attempting initial download.',flush=True)
+        except Exception:
+            try:previous=recover_seed(root,args.seed)
+            except Exception:print('No valid previous snapshot available; attempting initial download.',flush=True)
     if previous and not args.force:
         age=dt.datetime.now(dt.timezone.utc)-dt.datetime.fromisoformat(previous['updatedAt'])
         if age.total_seconds()<6*86400:

@@ -14,7 +14,13 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
    await page.route('**/*',async route=>{
     const url=new URL(route.request().url());
     if(url.hostname==='unpkg.com'&&url.pathname.endsWith('.mjs'))return route.fulfill({contentType:'text/javascript',body:'export class Map { constructor(){throw Error("Offline UI test");} }'});
-    if(url.pathname.startsWith('/data/addresses/cali/'))return route.fulfill({contentType:'application/json',body:url.pathname.endsWith('manifest.json')?JSON.stringify(manifest):bucketText});
+    if(url.pathname.startsWith('/data/addresses/cali/')){
+     if(process.env.TRAZIA_CALI_DB_ROOT){
+      const file=path.join(process.env.TRAZIA_CALI_DB_ROOT,url.pathname.replace('/data/addresses/cali/',''));
+      return route.fulfill({contentType:'application/json',body:fs.readFileSync(file)});
+     }
+     return route.fulfill({contentType:'application/json',body:url.pathname.endsWith('manifest.json')?JSON.stringify(manifest):bucketText});
+    }
     if(url.hostname==='ws-idesc.cali.gov.co'){page.__officialCalls=(page.__officialCalls||0)+1;return route.fulfill({contentType:'application/json',body:JSON.stringify({features:page.__noOfficial?[]:[{type:'Feature',geometry:{type:'Point',coordinates:[-76.52895843,3.44289173]},properties:{nddirecc:'KR 15 # 12 - 83',ndbarrio:'San Pascual',ndestado:'Certificada',ndfechcort:'2026-09-03Z'}}]})});}
     if(url.hostname==='api.tomtom.com'){page.__tomtomCalls=(page.__tomtomCalls||0)+1;return route.fulfill({contentType:'application/json',body:JSON.stringify({results:[{type:'address',title:'Fallback',position:{coordinates:[-76.53,3.44]},address:{countryCodeIso2:'CO',street:'Carrera 15',houseNumber:'12-83',municipality:'Cali'}}]})});}
     if(url.hostname!=='trazia.test')return route.abort();
@@ -38,6 +44,6 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
    assert.equal(page.__officialCalls||0,0);
    await context.close();
   }
-  console.log('Own database search and selection passed on mobile/desktop without any upstream geocoder request; snapshot/map simulated.');
+  console.log('Own database search and selection passed on mobile/desktop without upstream geocoder requests; map simulated; snapshot: ' + (process.env.TRAZIA_CALI_DB_ROOT ? 'full restored database' : 'fixture') + '');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
