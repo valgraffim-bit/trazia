@@ -2408,18 +2408,25 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function stopNavigation(showMessage = true) {
-    const wasRerouting = state.isRerouting;
     state.isNavigating = false;
     state.isRerouting = false;
     state.offRouteFixes = 0;
     state.followCamera = false;
     state.map?.stop();
-    if (wasRerouting) {
-      state.routeRequestId += 1;
-      state.routeSearchController?.abort();
-      state.routeSearchController = null;
-      $('#search-route').disabled = false;
-    }
+    // Invalidate every pending calculation so a late response cannot redraw
+    // the route after the user has stopped navigation.
+    state.routeRequestId += 1;
+    state.routeSearchController?.abort();
+    state.routeSearchController = null;
+    $('#search-route').disabled = false;
+    clearRoutePolylines();
+    state.route = null;
+    state.currentRoutes = [];
+    state.navigationSteps = [];
+    state.activeStep = 0;
+    $('#start-navigation').disabled = true;
+    $('#route-duration').innerHTML = `— <small>${t('minutes')}</small>`;
+    $('#route-distance').innerHTML = `— <small>${t('kilometers')}</small>`;
     $('#navigation-banner').hidden = true;
     if (state.updatePending) {
       state.updatePending = false;
