@@ -1,7 +1,7 @@
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
-import { findIgacCandidates } from './igac-cadastre.mjs?v=48';
+import { findIgacCandidates } from './igac-cadastre.mjs?v=49';
 import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=45';
 import { findCaliCandidates } from './cali-addresses.mjs?v=45';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=37';
@@ -533,7 +533,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   async function fetchDestinationSuggestions(query, requestId) {
     const controller = new AbortController();
     state.autocompleteController = controller;
-    const timeout = window.setTimeout(() => controller.abort(), 16000);
+    const timeout = window.setTimeout(() => controller.abort(), 30000);
     try {
       const features = await findDestinationCandidates(query, state.currentPosition, controller.signal);
       if (requestId !== state.autocompleteRequestId || destinationInput.value.trim() !== query) return;
@@ -787,7 +787,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       const cached = state.igacCache.get(key);
       let addresses = cached && cached.expiresAt > Date.now() ? cached.features : null;
       if (!addresses) {
-        addresses = await findIgacCandidates(baseQuery, { signal, fetchFn: (url, options) => fetchTimed(url, options, 2500) });
+        addresses = await findIgacCandidates(baseQuery, { signal, fetchFn: (url, options) => fetchTimed(url, options, 6500) });
         if (state.igacCache.size >= 50) state.igacCache.delete(state.igacCache.keys().next().value);
         state.igacCache.set(key, { features: addresses, expiresAt: Date.now() + 5 * 60 * 1000 });
       }

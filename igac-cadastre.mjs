@@ -50,16 +50,16 @@ export async function findIgacCandidates(query, { signal, fetchFn = fetch } = {}
   if (!matches.length) return [];
   const codes = [...new Set(matches.map(row=>row.NUMERO_PREDIAL))];
   const geometryWhere = `CODIGO IN (${codes.map(code=>`'${code}'`).join(',')})`;
-  let parcels = []; let completedGeometry = false;
+  let parcels = []; let completedGeometry = false; let geometryFailed = false;
   for (const layer of [config.urban,config.rural]) {
     try {
       const rows = await request(layer,{where:geometryWhere,outFields:'CODIGO,codigo_municipio',returnGeometry:false,returnCentroid:true,outSR:4326,resultRecordCount:20});
       completedGeometry = true;
       parcels = rows.filter(parcel=>matches.some(row=>row.NUMERO_PREDIAL===parcel.attributes?.CODIGO && row.MUNICIPIO===parcel.attributes.codigo_municipio) && Number.isFinite(parcel.centroid?.x) && Number.isFinite(parcel.centroid?.y) && parcel.centroid.x>=-82 && parcel.centroid.x<=-66 && parcel.centroid.y>=-5 && parcel.centroid.y<=14);
       if (parcels.length) break;
-    } catch (error) { if (signal?.aborted) throw error; }
+    } catch (error) { if (signal?.aborted) throw error; geometryFailed = true; }
   }
-  if (!completedGeometry) throw new Error('IGAC geometry unavailable');
+  if (!completedGeometry || (!parcels.length && geometryFailed)) throw new Error('IGAC geometry unavailable');
   const seen = new Set();
   return matches.flatMap(row=>{
     const name = config.municipalities[row.MUNICIPIO];

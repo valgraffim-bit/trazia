@@ -43,3 +43,9 @@ test('rejects provider errors and malicious catalog services; missing matches do
 test('preserves cancellation without showing an obsolete parcel',async()=>{
  const {findIgacCandidates}=await moduleForTest();const controller=new AbortController();const options=settings();options.signal=controller.signal;const original=options.fetchFn;options.fetchFn=async(url,init)=>{if(url.startsWith('./'))return original(url,init);controller.abort();throw new DOMException('Aborted','AbortError');};await assert.rejects(findIgacCandidates('CL 27 #17-83, Baranoa',options),{name:'AbortError'});
 });
+
+test('a failed urban query plus an empty rural query remains an outage rather than a cached no-match',async()=>{
+ const {findIgacCandidates}=await moduleForTest();const options=settings();const original=options.fetchFn;
+ options.fetchFn=async(url,init)=>{if(url.includes('/7/query'))throw Error('Timeout');if(url.includes('/14/query'))return{ok:true,json:async()=>({features:[]})};return original(url,init);};
+ await assert.rejects(findIgacCandidates('CL 27 #17-83, Baranoa',options),/geometry unavailable/);
+});
