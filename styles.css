@@ -556,3 +556,23 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 @media (max-width: 820px) {
   .search-field-wrap input { font-size: 16px; }
 }
+
+/* In landscape navigation, move the action buttons to the right edge, clear of the route center. */
+@media (orientation: landscape) {
+  .screen-lock-status,
+  .finish-navigation {
+    right: max(100px, calc(env(safe-area-inset-right) + 88px));
+    left: auto;
+    transform: none;
+  }
+
+  .screen-lock-status {
+    top: calc(50% - 40px);
+    bottom: auto;
+  }
+
+  .finish-navigation {
+    top: calc(50% + 4px);
+    bottom: auto;
+  }
+}
