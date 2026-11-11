@@ -20,7 +20,7 @@ test('starting navigation shows the correct arrow while speaking the full instru
  const elements=new Map();
  const $=selector=>{if(!elements.has(selector))elements.set(selector,{textContent:'',dataset:{},hidden:true,setAttribute(name,value){this[name]=value;}});return elements.get(selector);};
  const instruction='Gira a la derecha hacia Calle 45. Después gira a la izquierda hacia Carrera 83C.';
- const ctx=vm.createContext({ $,state:{mapReady:true,route:{},routeCoordinates:[[0,0],[1,1]],navigationSteps:[{maneuverType:10,instructions:instruction}],voiceEnabled:true,language:'es',map:{flyTo(){}},is3d:true},
+ const ctx=vm.createContext({ $,state:{announcedCameras:new Set(),mapReady:true,route:{},routeCoordinates:[[0,0],[1,1]],navigationSteps:[{maneuverType:10,instructions:instruction}],voiceEnabled:true,language:'es',map:{flyTo(){}},is3d:true},
   window:{speechSynthesis:{cancel(){},resume(){},getVoices(){return[];},speak(u){spoken.push(u.text);}},SpeechSynthesisUtterance:class{constructor(text){this.text=text;}}},
   navigator:{},t:key=>key,showToast(){},updateNavigationButton(){},collapseMobilePanel(){},setMap3d(){},getUserPosition:async()=>({lat:3.4,lng:-76.5}),compassBearing:()=>0,mobileMapOffset:()=>[0,0],console});
  for(const name of ['navigationArrow','updateNavigationInstruction','speak','toggleNavigation'])add(ctx,name);
