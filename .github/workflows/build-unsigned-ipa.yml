@@ -1,0 +1,78 @@
+name: Build downloadable unsigned iOS IPA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - ".github/workflows/build-unsigned-ipa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: unsigned-ios-ipa
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Check out Trazia
+        uses: actions/checkout@v6
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Prepare the Trazia app icon
+        run: |
+          mkdir -p ios/Sources/Assets.xcassets/AppIcon.appiconset
+          sips -z 1024 1024 assets/trazia-app-icon.png --out ios/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+
+      - name: Generate the Xcode project
+        run: xcodegen generate --spec ios/project.yml --project ios
+
+      - name: Build the unsigned iOS app
+        run: |
+          xcodebuild \
+            -project ios/Trazia.xcodeproj \
+            -scheme Trazia \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/trazia-build" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package the IPA
+        run: |
+          mkdir -p "$RUNNER_TEMP/trazia-ipa/Payload"
+          ditto "$RUNNER_TEMP/trazia-build/Build/Products/Release-iphoneos/Trazia.app" "$RUNNER_TEMP/trazia-ipa/Payload/Trazia.app"
+          cd "$RUNNER_TEMP/trazia-ipa"
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/Trazia-iOS-unsigned.ipa" Payload
+          unzip -l "$GITHUB_WORKSPACE/Trazia-iOS-unsigned.ipa"
+
+      - name: Save the build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trazia-iOS-unsigned-IPA
+          path: Trazia-iOS-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish downloadable release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_tag="trazia-ios-unsigned"
+          if gh release view "$release_tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$release_tag" Trazia-iOS-unsigned.ipa --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$release_tag" Trazia-iOS-unsigned.ipa \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Trazia para iPhone · IPA sin firmar" \
+              --notes-file ios/README.md
+          fi
