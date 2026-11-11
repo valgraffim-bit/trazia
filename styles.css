@@ -527,3 +527,9 @@ button.place-result-name { display: block; width: 100%; border: 0; padding: 0; c
 @media (max-width: 820px) {
   .mobile-panel-handle { flex: 0 0 44px; height: 44px; touch-action: manipulation; }
 }
+
+button.trazia-report-marker { padding: 0; cursor: pointer; touch-action: manipulation; }
+button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-offset: 3px; }
+.report-popup { color: #243244; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.report-popup p { margin: 7px 0; white-space: pre-wrap; }
+.report-popup small { display: block; color: #586475; }

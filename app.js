@@ -2147,12 +2147,36 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function addReportMarker(report) {
-    const markerElement = document.createElement('div');
+    const label = incidentLabels[report.type]?.[state.language] || t('report');
+    const markerElement = document.createElement('button');
+    markerElement.type = 'button';
     markerElement.className = `trazia-report-marker report-${report.type}`;
     markerElement.textContent = ({ traffic: '🚦', crash: '⚠️', hazard: '⚠️', closure: '🚧', place: '⌖' })[report.type] || '⚠️';
-    markerElement.title = `${t('incidentSaved')}: ${incidentLabels[report.type]?.[state.language] || t('report')}`;
+    markerElement.title = label;
+    markerElement.setAttribute('aria-label', label);
+    const details = document.createElement('div');
+    details.className = 'report-popup';
+    const title = document.createElement('strong');
+    title.textContent = label;
+    details.append(title);
+    if (report.details) {
+      const description = document.createElement('p');
+      description.textContent = report.details;
+      details.append(description);
+    }
+    const date = new Date(report.createdAt);
+    if (Number.isFinite(date.getTime())) {
+      const time = document.createElement('p');
+      time.textContent = date.toLocaleString(state.language === 'es' ? 'es-CO' : 'en-US');
+      details.append(time);
+    }
+    const source = document.createElement('small');
+    source.textContent = t('localReports');
+    details.append(source);
+    const popup = new maplibregl.Popup({ offset: 22, maxWidth: '260px' }).setDOMContent(details);
     const marker = new maplibregl.Marker({ element: markerElement, anchor: 'bottom' })
       .setLngLat([report.lng, report.lat])
+      .setPopup(popup)
       .addTo(state.map);
     if (!state.trafficEnabled) marker.getElement().style.display = 'none';
     state.reportMarkers.push(marker);
