@@ -655,3 +655,30 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 @media (prefers-reduced-motion: reduce) { .settings-browser[open] { animation: none; } }
 
 .settings-color-icon svg { width: 27px; height: 27px; }
+
+.voice-search-dialog { width: min(320px, calc(100vw - 32px)); max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); margin: auto; padding: 0; overflow-y: auto; border: 1px solid #ffffff20; border-radius: 30px; color: #eef0f3; background: #202226; box-shadow: 0 20px 70px #0006; }
+.voice-search-dialog::backdrop { background: #07132166; }
+.voice-listening-card { padding: 24px 20px; text-align: center; }
+.voice-cancel { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 16px; padding: 8px 0; border: 0; color: inherit; background: transparent; font: inherit; cursor: pointer; }
+.voice-listening-icon { width: 74px; height: 74px; margin-bottom: 8px; fill: none; stroke: #dfe5e8; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; animation: voice-listen-pulse 1.2s ease-in-out infinite; }
+.voice-cancel strong { color: #ff9292; font-size: 20px; }
+#voice-transcript { max-height: 100px; overflow-y: auto; font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
+#voice-transcript:empty { display: none; }
+#voice-cancel-label { color: #e0e4e9; font-size: 16px; }
+#voice-listening-hint { margin: 12px 0 0; color: #adb8c5; font-size: 13px; line-height: 1.5; }
+.voice-recovery-actions { display: grid; gap: 8px; }
+.voice-recovery-actions button { min-height: 44px; margin-top: 12px; padding: 10px; border: 1px solid #52606b; border-radius: 12px; color: #eff9fa; background: #304754; font: inherit; cursor: pointer; }
+.voice-recovery-actions button[hidden] { display: none; }
+.voice-search-error .voice-listening-icon { animation: none; }
+.voice-search-dialog :focus-visible { outline: 3px solid #57dcca; outline-offset: 3px; }
+.map-round-button.listening { color: #ffaaaa; background: #563735; }
+@keyframes voice-listen-pulse { 50% { opacity: .55; transform: scale(.95); } }
+@media (max-height: 430px) { .voice-listening-card { padding: 16px; } .voice-listening-icon { width: 46px; height: 46px; margin: 0; } .voice-cancel { gap: 10px; } }
+@media (prefers-reduced-motion: reduce) { .voice-listening-icon { animation: none; } }
+
+#wide-map-voice-search { display: none; }
+.map-action.listening { color: #db5e5e; background: #ffe8e5; }
+@media (min-width: 821px), (orientation: landscape) {
+  #wide-map-voice-search { display: grid; }
+  #map-voice-search { display: none; }
+}

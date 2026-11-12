@@ -1,3 +1,4 @@
+import { setupVoiceSearch } from './voice-search.mjs?v=59';
 import { loadPreferences, setupSettings } from './settings.mjs?v=58';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
@@ -149,7 +150,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     isRerouting: false,
     voiceEnabled: localStorage.getItem('trazia:voice') !== 'off',
     toastTimer: null,
-    recognition: null,
     reports: readReports(),
     savedPlaces: readSavedPlaces(),
     savedPlaceMarkers: [],
@@ -569,7 +569,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     destinationInput.value = parts.label;
     closeDestinationSuggestions();
     collapseMobilePanel();
-    void searchRoute();
+    if (state.isNavigating) setNavigationView(true);
+    void searchRoute({ automatic: state.isNavigating });
   }
 
   function photonFeatureParts(properties, query = '') {
@@ -2438,38 +2439,40 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     showToast(state.trafficEnabled ? t('trafficEnabled') : t('trafficDisabled'));
   }
 
-  function startVoiceSearch() {
-    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Recognition) {
-      showToast(t('voiceUnsupported'));
-      return;
+  async function searchSpokenDestination(query) {
+    setDestinationText(query);
+    if (state.isNavigating) setNavigationView(false);
+    app.classList.add('panel-expanded');
+    $('.side-panel').classList.add('expanded');
+    $('#toggle-panel').setAttribute('aria-expanded', 'true');
+    state.autocompleteRequestId += 1;
+    const requestId = state.autocompleteRequestId;
+    window.clearTimeout(state.autocompleteTimer);
+    state.autocompleteController?.abort();
+    const controller = new AbortController();
+    state.autocompleteController = controller;
+    showSuggestionMessage(t('suggestionLoading'), true);
+    destinationInput.focus({ preventScroll: true });
+    // Avoid opening the keyboard over spoken search results on a phone.
+    destinationInput.blur();
+    const timeout = window.setTimeout(() => controller.abort(), 30000);
+    try {
+      const features = await findDestinationCandidates(query, state.currentPosition, controller.signal, { allowNominatimFallback: true });
+      if (requestId !== state.autocompleteRequestId || destinationInput.value.trim() !== query) return;
+      state.autocompleteQuery = query;
+      renderDestinationSuggestions(features);
+      $('#voice-status').textContent = features.length
+        ? (state.language === 'es' ? 'Elegí el lugar correcto para calcular la ruta.' : 'Choose the correct place to calculate the route.')
+        : (state.language === 'es' ? 'Probá con otra dirección, negocio o municipio.' : 'Try another address, business or city.');
+    } catch {
+      if (requestId !== state.autocompleteRequestId || destinationInput.value.trim() !== query) return;
+      showSuggestionMessage(t('autocompleteUnavailable'));
+      appendSuggestionAttribution($('#destination-suggestions'));
+    } finally {
+      window.clearTimeout(timeout);
+      if (state.autocompleteController === controller) state.autocompleteController = null;
+      state.map?.resize();
     }
-    if (state.recognition) {
-      state.recognition.stop();
-      return;
-    }
-    const recognition = new Recognition();
-    recognition.lang = state.language === 'es' ? 'es-CO' : 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    state.recognition = recognition;
-    $('#voice-search').classList.add('listening');
-    $('#voice-status').textContent = t('voiceListening');
-    recognition.onresult = (event) => {
-      setDestinationText(event.results[0][0].transcript);
-      $('#voice-status').textContent = '';
-      void searchRoute();
-    };
-    recognition.onerror = () => {
-      $('#voice-status').textContent = t('voiceError');
-      showToast(t('voiceError'), true);
-    };
-    recognition.onend = () => {
-      state.recognition = null;
-      $('#voice-search').classList.remove('listening');
-      window.setTimeout(() => { $('#voice-status').textContent = ''; }, 1800);
-    };
-    recognition.start();
   }
 
   function navigationArrow(type, instruction = '') {
@@ -2515,7 +2518,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function speak(text) {
-    if (!state.voiceEnabled || !text) return;
+    if (!state.voiceEnabled || !text || $('#voice-search-dialog')?.open) return;
     const speech = window.speechSynthesis;
     const Utterance = window.SpeechSynthesisUtterance;
     if (!speech || !Utterance) {
@@ -2916,7 +2919,18 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         $('#toggle-map-credits').setAttribute('aria-expanded', 'false');
       }
     });
-    $('#voice-search').addEventListener('click', startVoiceSearch);
+    setupVoiceSearch({ window, document, language: () => state.language,
+      onQuery: searchSpokenDestination,
+      onManual: () => {
+        if (state.isNavigating) setNavigationView(false);
+        app.classList.add('panel-expanded');
+        $('.side-panel').classList.add('expanded');
+        $('#toggle-panel').setAttribute('aria-expanded', 'true');
+        destinationInput.focus();
+        state.map?.resize();
+      },
+      message: (text) => showToast(text, true),
+    });
     $('#locate-me').addEventListener('click', () => { void locateMe(); });
     $('#map-locate').addEventListener('click', () => { void locateMe(); });
     $('#traffic-toggle').addEventListener('change', toggleTraffic);
@@ -2953,7 +2967,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (event.target === dialog) closeDialog(dialog);
     }));
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && state.isNavigating) stopNavigation();
+      if (event.key === 'Escape' && state.isNavigating && !document.querySelector('dialog[open]')) stopNavigation();
     });
   }
 
@@ -3009,6 +3023,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        $('#voice-search-dialog').close();
         if (state.isNavigating) stopNavigation(false);
         [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog].forEach((dialog) => dialog.close());
       },

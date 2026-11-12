@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=58" />
+    <link rel="stylesheet" href="./styles.css?v=59" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -100,7 +100,7 @@
                   <svg viewBox="0 0 24 24"><path d="M19 10.1c0 5-7 11-7 11s-7-6-7-11a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>
                 </span>
                 <input id="destination-input" type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="destination-suggestions" placeholder="Dirección y municipio, negocio o lugar" data-i18n-placeholder="destinationPlaceholder" />
-                <button class="voice-button" id="voice-search" type="button" aria-label="Buscar destino por voz" title="Buscar por voz">
+                <button class="voice-button" id="voice-search" type="button" aria-pressed="false" aria-label="Buscar destino por voz" title="Buscar por voz">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"/></svg>
                 </button>
               </div>
@@ -277,6 +277,7 @@
           </div>
 
           <div class="map-action-stack">
+            <button class="map-action" id="wide-map-voice-search" type="button" aria-label="Buscar dirección o negocio por voz" aria-pressed="false" title="Buscar por voz"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"/></svg></button>
             <button class="map-action" id="zoom-in" type="button" aria-label="Acercar" title="Acercar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
             <button class="map-action" id="zoom-out" type="button" aria-label="Alejar" title="Alejar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
             <span class="map-action-divider"></span>
@@ -285,6 +286,7 @@
           </div>
 
           <div class="map-quick-actions">
+            <button class="map-round-button" id="map-voice-search" type="button" aria-label="Buscar dirección o negocio por voz" aria-pressed="false" title="Buscar por voz"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"/></svg></button>
             <button class="map-round-button music-map-button" id="open-music" type="button" aria-label="Conectar música" title="Conectar música"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
             <button class="map-round-button voice-map-button" id="toggle-voice" type="button" aria-label="Activar voz de navegación" title="Voz de navegación"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12"/></svg></button>
             <button class="map-round-button report-map-button" id="open-report-map" type="button" aria-label="Reportar algo en la vía" title="Reportar"><span aria-hidden="true">+</span></button>
@@ -377,6 +379,19 @@
       </form>
     </dialog>
 
+    <dialog class="voice-search-dialog" id="voice-search-dialog" aria-labelledby="voice-listening-title" aria-describedby="voice-listening-hint">
+      <div class="voice-listening-card">
+        <button id="voice-cancel" class="voice-cancel" type="button">
+          <svg class="voice-listening-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="17" y="4" width="14" height="27" rx="7"/><path d="M10 23a14 14 0 0 0 28 0M24 37v7m-8 0h16"/></svg>
+          <strong id="voice-listening-title" role="status" aria-live="polite">Escuchando…</strong>
+          <span id="voice-transcript"></span>
+          <span id="voice-cancel-label">Tocá para cancelar</span>
+        </button>
+        <p id="voice-listening-hint">Decí una dirección, un negocio o un lugar.</p>
+        <div class="voice-recovery-actions"><button id="voice-retry" type="button" hidden>Intentar de nuevo</button><button id="voice-type" type="button" hidden>Escribir destino</button></div>
+      </div>
+    </dialog>
+
     <dialog class="modal settings-browser" id="settings-dialog" aria-labelledby="settings-page-title">
       <div class="settings-browser-card">
         <header class="settings-browser-header">
@@ -407,7 +422,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=58"></script>
+    <script type="module" src="./app.js?v=59"></script>
   </body>
 </html>
 
