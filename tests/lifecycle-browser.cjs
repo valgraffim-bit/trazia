@@ -11,10 +11,11 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
     const url=new URL(route.request().url());
     if(url.hostname==='unpkg.com'&&url.pathname.endsWith('.mjs'))return route.fulfill({contentType:'text/javascript',body:'export class Map { constructor(){throw Error("Offline UI test");} }'});
     if(url.hostname!=='trazia.test')return route.abort();
+    if(url.pathname==='/auth.mjs')return route.fulfill({contentType:'text/javascript',body:`export function setupAccountScreen({document}){document.querySelector('#account-screen').hidden=true;const shell=document.querySelector('.app-shell');shell.inert=false;shell.removeAttribute('aria-hidden');}`});
     const filename=path.resolve(__dirname,'..','.'+(url.pathname==='/'?'/index.html':url.pathname));
     if(!fs.existsSync(filename))return route.fulfill({status:404,body:''});
     let body=fs.readFileSync(filename);
-    if(url.pathname==='/app.js')body=Buffer.from(body.toString().replace('  initialize();',`  window.__fullscreenTest=async()=>{state.mapReady=true;state.route={};state.routeCoordinates=[[0,0],[1,1]];state.navigationSteps=[];state.map={isStyleLoaded(){return false;},resize(){},stop(){},getZoom(){return 17;},easeTo(){},flyTo(){},getLayer(){return false;},getSource(){return false;}};getUserPosition=async()=>({lat:3.45,lng:-76.53});startLocationWatch=()=>{};await toggleNavigation();};
+    if(url.pathname==='/app.js')body=Buffer.from(body.toString().replace('  initialize();',`  window.__fullscreenTest=async()=>{state.mapReady=true;state.currentPosition={lat:3.45,lng:-76.53};state.lastLocationTimestamp=Date.now();state.route={};state.routeCoordinates=[[0,0],[1,1]];state.navigationSteps=[];state.map={isStyleLoaded(){return false;},resize(){},setStyle(){},stop(){},getZoom(){return 17;},easeTo(){},flyTo(){},getLayer(){return false;},getSource(){return false;}};getUserPosition=async()=>({lat:3.45,lng:-76.53});startLocationWatch=()=>{};await startNavigation();};
   initialize();`));
     return route.fulfill({body,contentType:({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(filename)]||'application/json'});
    });
@@ -47,8 +48,8 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
      assert.ok(await page.locator(id).evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),`${id} must be tappable`);
     }
     await page.locator('#open-music').click();
-    assert.equal(await page.locator('#music-dialog').isVisible(),true);
-    await page.locator('[data-close="music-dialog"]').click();
+    assert.equal(await page.locator('#music-shortcut-panel').isVisible(),true);
+    await page.locator('#music-shortcut-close').click();
    }
    await finish.click();
    assert.equal(await page.locator('.side-panel').isVisible(),true);

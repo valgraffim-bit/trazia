@@ -49,7 +49,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportes', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savedPlaceIcon: 'Icono del lugar', placeShop: 'Tienda / negocio', placeClinic: 'Clínica', placeSchool: 'Estudio', placeFavorite: 'Favorito', placeOther: 'Otro lugar', chooseSavedLocation: 'Selecciona la ubicación correcta para guardar el lugar.', confirmSavedLocation: 'Pulsa Guardar y confirma la ubicación para mostrar su icono en el mapa.', savedLocationMissing: 'No se encontró la ubicación. Revisa la dirección e incluye la ciudad.', savedLocationError: 'No se pudo buscar la dirección. Intenta otra vez.', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
       vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Música', musicKicker: 'MÚSICA', musicTitle: 'Elegí tu aplicación de música', musicIntegrationNote: 'Elegí qué aplicación querés tener a mano en el mapa. Al tocar su ícono podrás abrirla; la reproducción y sus controles permanecen en el servicio de música.', musicOpen: 'Elegir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
       destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Dirección y municipio, negocio o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones y lugares…', chooseAddress: 'Elige una dirección o establecimiento de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
-      gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', startNavigation: 'Iniciar navegación', stopNavigation: 'Detener navegación', finishNavigation: 'Terminar', sampleTraffic: 'Tiempo estimado sin ajuste por tráfico', sampleNote: 'Ruta calculada con datos abiertos; el tiempo no se ajusta por tráfico.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
+      gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', finishNavigation: 'Terminar', sampleTraffic: 'Tiempo estimado sin ajuste por tráfico', sampleNote: 'Ruta calculada con datos abiertos; el tiempo no se ajusta por tráfico.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
       communityTitle: 'Reportes', communityCopy: 'Compartí novedades de la vía durante 1 hora.', report: 'Reportar', sharedReportNote: 'Reporte de la comunidad · vigencia de 1 hora', localReportScope: 'Solo en este dispositivo', localReports: 'Los reportes se guardan en este dispositivo; todavía no se comparten con otras personas.', worldReady: 'Diseñada para usar en cualquier lugar', mapProviderLabel: 'Mapa Trazia', sampleMap: 'Mapa de Trazia', reportsLayer: 'Reportes', mapCaption: 'Mapa Trazia · datos abiertos de OpenStreetMap', mapCredits: 'Créditos del mapa',
       communityKicker: 'COMUNIDAD TRAZIA', reportTitle: 'Reportes', reportTypeLabel: 'Tipo de reporte', incidentTraffic: 'Tráfico detenido', incidentCrash: 'Choque', incidentHazard: 'Peligro u obstáculo', incidentClosure: 'Cierre de vía', incidentPlace: 'Lugar nuevo o incorrecto', reportDetailsLabel: 'Nota breve (opcional)', reportDetailsPlaceholder: 'Describe lo que ves', reportLocationNote: 'El reporte se asociará al centro del mapa. En esta versión solo queda guardado en este dispositivo.', cancel: 'Cancelar', publishReport: 'Guardar reporte',
       settingsKicker: 'CONFIGURACIÓN', settingsTitle: 'Mapa Trazia', settingsIntro: 'Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.', themeLabel: 'Apariencia', themeAuto: 'Automática: clara de día, oscura de noche', themeLight: 'Clara', themeDark: 'Oscura', mapDataNote: 'Mapa base: OpenStreetMap. Las sugerencias de direcciones vienen de datos abiertos; las rutas y el tiempo son aproximados y no tienen tráfico en vivo.', openStreetMapCredits: 'Créditos y licencia de OpenStreetMap', mapProviderLabel: 'Servicio OpenFreeMap',
@@ -65,7 +65,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Reports', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savedPlaceIcon: 'Place icon', placeShop: 'Shop / business', placeClinic: 'Clinic', placeSchool: 'School', placeFavorite: 'Favorite', placeOther: 'Other place', chooseSavedLocation: 'Select the correct location to save this place.', confirmSavedLocation: 'Press Save and confirm the location to show its map icon.', savedLocationMissing: 'Location not found. Check the address and include the city.', savedLocationError: 'Address lookup failed. Please try again.', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
       vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Music', musicKicker: 'MUSIC', musicTitle: 'Choose your music app', musicIntegrationNote: 'Choose the music app to keep handy on the map. Tap its icon to open the app; playback and its controls remain in the music service.', musicOpen: 'Choose', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
       destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Address and municipality, business or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses and places…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
-      gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', startNavigation: 'Start navigation', stopNavigation: 'Stop navigation', finishNavigation: 'Finish', sampleTraffic: 'Travel time estimate excludes traffic', sampleNote: 'Open data route; travel time does not adjust for traffic.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
+      gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', finishNavigation: 'Finish', sampleTraffic: 'Travel time estimate excludes traffic', sampleNote: 'Open data route; travel time does not adjust for traffic.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
       communityTitle: 'Reports', communityCopy: 'Share road updates for 1 hour.', report: 'Report', sharedReportNote: 'Community report · visible for 1 hour', localReportScope: 'On this device only', localReports: 'Reports are saved on this device; they are not yet shared with other people.', worldReady: 'Designed to work anywhere', mapProviderLabel: 'Trazia map', sampleMap: 'Trazia map', reportsLayer: 'Reports', mapCaption: 'Trazia map · open OpenStreetMap data', mapCredits: 'Map credits',
       communityKicker: 'TRAZIA COMMUNITY', reportTitle: 'Reports', reportTypeLabel: 'Report type', incidentTraffic: 'Stopped traffic', incidentCrash: 'Crash', incidentHazard: 'Hazard or obstacle', incidentClosure: 'Road closure', incidentPlace: 'New or incorrect place', reportDetailsLabel: 'Short note (optional)', reportDetailsPlaceholder: 'Describe what you see', reportLocationNote: 'The report will be linked to the center of the map. In this version it is saved only on this device.', cancel: 'Cancel', publishReport: 'Save report',
       settingsKicker: 'SETTINGS', settingsTitle: 'Trazia map', settingsIntro: 'Trazia uses open OpenStreetMap data, its own design, and open-source routing.', themeLabel: 'Appearance', themeAuto: 'Automatic: light by day, dark at night', themeLight: 'Light', themeDark: 'Dark', mapDataNote: 'Base map: OpenStreetMap. Address suggestions use open data; routes and travel time are estimates without live traffic.', openStreetMapCredits: 'OpenStreetMap credits and licence', mapProviderLabel: 'OpenFreeMap service',
@@ -123,6 +123,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     locationWatch: null,
     vehicleType: ['car', 'motorcycle', 'truck', 'bicycle'].includes(localStorage.getItem('trazia:vehicle-type')) ? localStorage.getItem('trazia:vehicle-type') : 'car',
     selectedDestination: null,
+    activeDestination: null,
     autocompleteTimer: null,
     autocompleteController: null,
     autocompleteRequestId: 0,
@@ -268,7 +269,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       $('#route-duration').innerHTML = `— <small>${t('minutes')}</small>`;
       $('#route-distance').innerHTML = `— <small>${t('kilometers')}</small>`;
       $('#route-note').textContent = t('vehicleChangedRoute');
-      $('#start-navigation').disabled = true;
     }
   }
 
@@ -1370,7 +1370,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   function saveRecentDestination(destination) {
     state.recentDestinations = [destination, ...state.recentDestinations.filter((item) => item.toLowerCase() !== destination.toLowerCase())].slice(0, 5);
-    localStorage.setItem('trazia:recent-destinations', JSON.stringify(state.recentDestinations));
+    try { localStorage.setItem('trazia:recent-destinations', JSON.stringify(state.recentDestinations)); }
+    catch { /* An unavailable history store must not prevent navigation. */ }
     renderRecentDestinations();
   }
 
@@ -1692,15 +1693,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
   }
 
-  async function searchRoute({ automatic = false } = {}) {
-    const typedDestination = destinationInput.value.trim();
+  async function searchRoute({ automatic = state.isNavigating, target = null } = {}) {
+    const typedDestination = target?.label || destinationInput.value.trim();
     if (!typedDestination) {
       showToast(t('noDestination'));
       destinationInput.focus();
       return;
     }
     // Recent and saved Waze links must bypass address geocoding too.
-    if (!state.selectedDestination) {
+    if (!target && !state.selectedDestination) {
       try {
         const imported = parseWazeLocation(typedDestination);
         if (imported) setWazeDestination(imported);
@@ -1712,6 +1713,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (!state.mapReady) {
       showToast(t('demoRoute'));
       return;
+    }
+    // Unlock speech while selection/search still has the user's tap gesture.
+    // Navigation itself starts only after the route has been validated.
+    if (!state.isNavigating && (target || state.selectedDestination)?.location) {
+      speak(t('voiceStarting'));
+      window.speechSynthesis?.resume?.();
     }
     const routeButton = $('#search-route');
     routeButton.disabled = true;
@@ -1727,7 +1734,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       state.activeStep = 0;
       $('#route-duration').innerHTML = `— <small>${t('minutes')}</small>`;
       $('#route-distance').innerHTML = `— <small>${t('kilometers')}</small>`;
-      $('#start-navigation').disabled = true;
       $('#route-summary-overlay').hidden = true;
     }
     $('#route-note').textContent = automatic ? t('rerouting') : t('connecting');
@@ -1735,10 +1741,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     window.clearTimeout(state.autocompleteTimer);
     state.autocompleteController?.abort();
     try {
-      const origin = state.currentPosition || await getUserPosition();
-      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
+      const recentPosition = state.currentPosition && Date.now() - state.lastLocationTimestamp <= 30_000;
+      const origin = recentPosition ? state.currentPosition : await getUserPosition();
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || searchRequestId !== state.autocompleteRequestId) return;
       updateUserMarker(origin);
-      let selected = state.selectedDestination;
+      let selected = target || state.selectedDestination;
       if (!selected?.location) {
         const matches = await findDestinationCandidates(typedDestination, origin, routeController.signal, { allowNominatimFallback: true });
         if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || destinationInput.value.trim() !== typedDestination || searchRequestId !== state.autocompleteRequestId) return;
@@ -1756,10 +1763,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       }
       collapseMobilePanel();
       setMap3d(true);
-      state.selectedDestination = selected;
-      state.routeDestination = selected.label || typedDestination;
-      destinationInput.value = state.routeDestination;
-      $('#route-title').textContent = state.routeDestination;
       const costing = { car: 'auto', motorcycle: 'motorcycle', truck: 'truck', bicycle: 'bicycle' }[state.vehicleType];
       const request = {
         locations: [
@@ -1786,6 +1789,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       let payload;
       try { payload = await response.json(); } catch { payload = {}; }
+      // Parsing the response also yields: a stop, new choice or typed search
+      // during that time must not apply a late route or start navigation.
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || searchRequestId !== state.autocompleteRequestId) return;
       if (!response.ok || payload.error || !payload.trip?.legs?.length) {
         const detail = `${payload.error || ''} ${payload.status_message || ''}`.toLowerCase();
         throw new Error(detail.includes('path could not') ? 'no-route' : 'route-service');
@@ -1832,6 +1838,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         legs: [{ steps: navigationSteps }],
       };
       clearRoutePolylines();
+      state.activeDestination = selected;
+      state.selectedDestination = selected;
+      state.routeDestination = selected.label || typedDestination;
+      destinationInput.value = state.routeDestination;
+      $('#route-title').textContent = state.routeDestination;
       state.currentRoutes = [route];
       state.routeCoordinates = coordinates;
       state.route = route;
@@ -1848,21 +1859,20 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       $('#route-note').textContent = (automatic ? t('rerouteReady') : t('routeReady')) + (selected.nearbyAddress ? (state.language === 'es' ? ' Destino: dirección cercana seleccionada; el número solicitado no está confirmado.' : ' Destination: selected nearby address; requested house number is unconfirmed.') : '') + (selected.approximate ? (state.language === 'es' ? ' Destino: referencia del predio; confirma el acceso.' : ' Destination: parcel reference; confirm the entrance.') : '');
       state.navigationSteps = navigationSteps;
       state.activeStep = 0;
-      $('#start-navigation').disabled = state.routeCoordinates.length < 2;
       if (state.isNavigating) {
+        setNavigationView(true);
         const instruction = state.navigationSteps[0]?.instructions || t('navigationFollowRoute');
         updateNavigationInstruction(instruction);
         speak(instruction);
       }
       saveRecentDestination(selected.wazeLink || (selected.temporary ? selected.query : state.routeDestination));
-      if (automatic) showToast(t('rerouteReady'));
-      else showToast(t('routeReady'));
+      if (state.isNavigating) showToast(t('rerouteReady'));
+      else await startNavigation({ position: origin, requestId: routeRequestId });
     } catch (error) {
-      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || searchRequestId !== state.autocompleteRequestId) return;
       console.error('Trazia route search failed:', error);
       const message = automatic ? t('rerouteFailed') : getRouteErrorMessage(error);
       $('#route-note').textContent = message;
-      $('#start-navigation').disabled = state.routeCoordinates.length < 2;
       if (automatic) {
         speak(message);
         showToast(message, true);
@@ -2634,20 +2644,17 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     speech.speak(utterance);
   }
 
-  async function toggleNavigation() {
-    if (state.isNavigating) {
-      stopNavigation();
-      return;
-    }
+  async function startNavigation({ position: initialPosition = state.currentPosition, requestId = state.routeRequestId } = {}) {
+    if (state.isNavigating) return;
     if (!state.mapReady || !state.route || state.routeCoordinates.length < 2) {
       showToast(t('navigationNeedsRoute'));
       return;
     }
-    // Start a short utterance inside the tap gesture so mobile browsers unlock speech output.
-    speak(t('voiceStarting'));
-    window.speechSynthesis?.resume?.();
+    const route = state.route;
     try {
-      const position = await getUserPosition();
+      const position = initialPosition || await getUserPosition();
+      if (state.isNavigating || requestId !== state.routeRequestId || route !== state.route || state.routeSearchController?.signal.aborted) return;
+      if (!Number.isFinite(position?.lat) || !Number.isFinite(position?.lng)) throw new Error('invalid-position');
       collapseMobilePanel();
       state.isNavigating = true;
       setNavigationView(true);
@@ -2661,7 +2668,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       $('#route-note').textContent = firstInstruction;
       updateNavigationInstruction(firstInstruction, firstStep);
       $('#navigation-banner').hidden = false;
-      updateNavigationButton();
       speak(firstInstruction);
       if (navigator.geolocation?.watchPosition) {
         startLocationWatch();
@@ -2673,7 +2679,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       void requestNavigationWakeLock();
       showToast(state.settings?.lightsReminder ? 'Recordá revisar las luces antes de salir.' : t('navigationStarted'));
     } catch {
-      showToast(t('navigationLocation'), true);
+      if (requestId === state.routeRequestId && route === state.route) showToast(t('navigationLocation'), true);
     }
   }
 
@@ -2693,14 +2699,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (!state.isNavigating) return;
     updateRouteProgress(user);
     const accuracy = Number.isFinite(state.lastLocationAccuracy) ? state.lastLocationAccuracy : 0;
-    const destination = state.selectedDestination?.location;
+    const destination = (state.activeDestination || state.selectedDestination)?.location;
     if (destination && distanceMeters(user, destination) <= Math.max(40, Math.min(70, accuracy))) {
       stopNavigation(false);
       speak(t('arrived'));
       showToast(t('arrived'));
       return;
     }
-    if (state.routeCoordinates.length >= 2 && !state.isRerouting) {
+    if (state.routeCoordinates.length >= 2 && !state.isRerouting && !state.routeSearchController) {
       const distanceFromRoute = distanceFromRouteMeters(user, state.routeCoordinates);
       const threshold = Math.max(45, Math.min(90, accuracy * 1.2 + 20));
       state.offRouteFixes = distanceFromRoute > threshold ? state.offRouteFixes + 1 : 0;
@@ -2711,7 +2717,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         updateNavigationInstruction(t('rerouting'), null);
         $('#camera-approach-alert').hidden = true;
         showToast(t('rerouting'));
-        void searchRoute({ automatic: true });
+        void searchRoute({ automatic: true, target: state.activeDestination });
         return;
       }
     }
@@ -2787,14 +2793,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       minimum = Math.min(minimum, Math.hypot(x, y));
     }
     return minimum;
-  }
-
-  function updateNavigationButton() {
-    const button = $('#start-navigation');
-    const label = button.querySelector('span');
-    label.textContent = state.isNavigating ? t('stopNavigation') : t('startNavigation');
-    button.classList.toggle('is-navigating', state.isNavigating);
-    button.setAttribute('aria-pressed', String(state.isNavigating));
   }
 
   async function requestNavigationWakeLock() {
@@ -2892,10 +2890,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#search-route').disabled = false;
     clearRoutePolylines();
     state.route = null;
+    state.activeDestination = null;
     state.currentRoutes = [];
     state.navigationSteps = [];
     state.activeStep = 0;
-    $('#start-navigation').disabled = true;
     $('#route-duration').innerHTML = `— <small>${t('minutes')}</small>`;
     $('#route-distance').innerHTML = `— <small>${t('kilometers')}</small>`;
     $('#navigation-banner').hidden = true;
@@ -2906,7 +2904,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
     window.speechSynthesis?.cancel();
     releaseNavigationWakeLock();
-    updateNavigationButton();
     if (showMessage) $('#route-note').textContent = t('navigationStopped');
     if (showMessage) showToast(t('navigationStopped'));
   }
@@ -3037,7 +3034,6 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#save-report').addEventListener('click', saveReport);
     $('#open-settings').addEventListener('click', () => openDialog(settingsDialog));
     $('#open-settings-footer').addEventListener('click', () => openDialog(settingsDialog));
-    $('#start-navigation').addEventListener('click', () => { void toggleNavigation(); });
     $('#zoom-in').addEventListener('click', () => {
       if (state.map) state.map.setZoom(state.map.getZoom() + 1);
       else showToast(t('demoNotice'));

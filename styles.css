@@ -156,10 +156,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .toggle-slider::after { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: #fff; content: ''; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .toggle input:checked + .toggle-slider { background: var(--teal); }
 .toggle input:checked + .toggle-slider::after { transform: translateX(13px); }
-.start-navigation { display: inline-flex; min-height: 33px; align-items: center; gap: 6px; border: 0; border-radius: 10px; padding: 0 10px; color: #fff; background: var(--teal-dark); cursor: pointer; font-size: 10px; font-weight: 800; transition: background .2s, transform .2s; }
-.start-navigation:hover:not(:disabled) { background: #087f72; transform: translateY(-1px); }
-.start-navigation:disabled { background: #bacac6; cursor: not-allowed; }
-.start-navigation svg { width: 12px; height: 12px; fill: currentColor; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
 .route-note { margin: 8px 0 0; color: #9aa7b0; font-size: 9px; line-height: 1.45; }
 
 .community-card { margin-top: 13px; border: 1px solid #edf0f1; border-radius: 15px; padding: 12px; background: #fbfcfc; }
