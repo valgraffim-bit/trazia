@@ -1946,8 +1946,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: remainingRouteCoordinates() } },
     });
     const labelLayer = (state.map.getStyle().layers || []).find((layer) => layer.type === 'symbol')?.id;
-    state.map.addLayer({ id: 'trazia-route-outline', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#34205f', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 8, 16, 17], 'line-opacity': 0.9 } }, labelLayer);
-    state.map.addLayer({ id: 'trazia-route-line', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#9364f4', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 4, 16, 10] } }, labelLayer);
+    state.map.addLayer({ id: 'trazia-route-outline', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#420078', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 11, 16, 22], 'line-opacity': 1 } }, labelLayer);
+    state.map.addLayer({ id: 'trazia-route-line', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#a020ff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 6, 16, 14], 'line-opacity': 1 } }, labelLayer);
     if (state.map.getLayer(TRAFFIC_LAYER)) state.map.moveLayer(TRAFFIC_LAYER, 'trazia-route-outline');
     const destination = state.routeCoordinates[state.routeCoordinates.length - 1];
     if (destination) {
