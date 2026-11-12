@@ -1,8 +1,9 @@
+import { setupMusicDock } from './music-dock.mjs?v=68';
 import { findSearchLocations } from './search-locations.mjs?v=66';
 import { createCommunityReportService, watchCommunityReports, communityReportError } from './community-reports.mjs?v=64';
 import { setupReportMenu } from './reports.mjs?v=64';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
-import { loadPreferences, setupSettings } from './settings.mjs?v=64';
+import { loadPreferences, setupSettings } from './settings.mjs?v=68';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
@@ -33,6 +34,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const savedPlaceDialog = $('#saved-place-dialog');
   const reportDialog = $('#report-dialog');
   const settingsDialog = $('#settings-dialog');
+  let musicDock;
   const musicDialog = $('#music-dialog');
   const DEFAULT_MAP_CENTER = [-76.532, 3.452];
   const COLOMBIA_SEARCH_BOUNDS = { west: -82.2, south: -5.1, east: -66.5, north: 14.3 };
@@ -43,7 +45,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       showCongestion: 'Mostrar trancones en rojo', trafficCoverageNote: 'Tráfico según cobertura TomTom. La ausencia de rojo no confirma que la vía esté libre. El tiempo de ruta se calcula por separado.', trafficLoading: 'Consultando trancones…', trafficReady: 'Rojo: trancón · TomTom', trafficOff: 'Tráfico oculto', trafficUnavailable: 'Tráfico no disponible',
       importWaze: 'Importar ubicación de Waze', wazeInstructions: 'En Waze, selecciona el destino, pulsa Compartir y copia el enlace. Pégalo aquí para usar el mismo punto en Trazia.', wazeLinkLabel: 'Enlace compartido de Waze', useWazePoint: 'Usar ubicación en Trazia',
       tagline: 'Tu ruta, más clara', language: 'Idioma', demoMode: 'Cargando mapa Trazia…', mapReadyLabel: 'Mapa Trazia activo', mapSettings: 'Mapa Trazia', locationOff: 'Ubicación apagada', locationOn: 'Ubicación activada', menuSearch: 'Buscar destino', menuReport: 'Reportes', menuSettings: 'Ajustes', menuNote: 'Navegación clara, hecha por Trazia.', voiceEnabled: 'Voz de navegación activada', voiceMuted: 'Voz de navegación silenciada', voiceStarting: 'Preparando la guía de voz.', voiceTest: 'La voz de Trazia está activada.', voicePlaybackError: 'No se pudo reproducir la voz. Revisa el volumen del teléfono.', home: 'Casa', work: 'Trabajo', addNew: 'Nuevo', newPlace: 'Nuevo lugar', recent: 'Recientes', savedPlaceTitle: 'LUGARES GUARDADOS', savedPlaceName: 'Nombre', savedPlaceAddress: 'Dirección', savedPlaceIcon: 'Icono del lugar', placeShop: 'Tienda / negocio', placeClinic: 'Clínica', placeSchool: 'Estudio', placeFavorite: 'Favorito', placeOther: 'Otro lugar', chooseSavedLocation: 'Selecciona la ubicación correcta para guardar el lugar.', confirmSavedLocation: 'Pulsa Guardar y confirma la ubicación para mostrar su icono en el mapa.', savedLocationMissing: 'No se encontró la ubicación. Revisa la dirección e incluye la ciudad.', savedLocationError: 'No se pudo buscar la dirección. Intenta otra vez.', savePlace: 'Guardar', placeRequired: 'Escribe un nombre y una dirección.', placeSaved: 'Lugar guardado.',
-      vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
+      vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Música', musicKicker: 'MÚSICA', musicTitle: 'Elegí tu aplicación de música', musicIntegrationNote: 'Elegí qué aplicación querés tener a mano en el mapa. Al tocar su ícono podrás abrirla; la reproducción y sus controles permanecen en el servicio de música.', musicOpen: 'Elegir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
       destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Dirección y municipio, negocio o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones y lugares…', chooseAddress: 'Elige una dirección o establecimiento de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', startNavigation: 'Iniciar navegación', stopNavigation: 'Detener navegación', finishNavigation: 'Terminar', sampleTraffic: 'Tiempo estimado sin ajuste por tráfico', sampleNote: 'Ruta calculada con datos abiertos; el tiempo no se ajusta por tráfico.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
       communityTitle: 'Reportes', communityCopy: 'Compartí novedades de la vía durante 1 hora.', report: 'Reportar', sharedReportNote: 'Reporte de la comunidad · vigencia de 1 hora', localReportScope: 'Solo en este dispositivo', localReports: 'Los reportes se guardan en este dispositivo; todavía no se comparten con otras personas.', worldReady: 'Diseñada para usar en cualquier lugar', mapProviderLabel: 'Mapa Trazia', sampleMap: 'Mapa de Trazia', reportsLayer: 'Reportes', mapCaption: 'Mapa Trazia · datos abiertos de OpenStreetMap', mapCredits: 'Créditos del mapa',
@@ -59,7 +61,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       showCongestion: 'Show congestion in red', trafficCoverageNote: 'Traffic depends on TomTom coverage. No red line does not guarantee a clear road. Route travel time is calculated separately.', trafficLoading: 'Loading traffic…', trafficReady: 'Red: congestion · TomTom', trafficOff: 'Traffic hidden', trafficUnavailable: 'Traffic unavailable',
       importWaze: 'Import Waze location', wazeInstructions: 'In Waze, select the destination, choose Share and copy the link. Paste it here to use that point in Trazia.', wazeLinkLabel: 'Shared Waze link', useWazePoint: 'Use location in Trazia',
       tagline: 'A clearer way there', language: 'Language', demoMode: 'Loading Trazia map…', mapReadyLabel: 'Trazia map ready', mapSettings: 'Trazia map', locationOff: 'Location off', locationOn: 'Location enabled', menuSearch: 'Find a destination', menuReport: 'Reports', menuSettings: 'Settings', menuNote: 'Clear navigation, made by Trazia.', voiceEnabled: 'Navigation voice on', voiceMuted: 'Navigation voice muted', voiceStarting: 'Starting voice guidance.', voiceTest: 'Trazia voice guidance is on.', voicePlaybackError: 'Voice could not play. Check your phone volume.', home: 'Home', work: 'Work', addNew: 'New', newPlace: 'New place', recent: 'Recent', savedPlaceTitle: 'SAVED PLACES', savedPlaceName: 'Name', savedPlaceAddress: 'Address', savedPlaceIcon: 'Place icon', placeShop: 'Shop / business', placeClinic: 'Clinic', placeSchool: 'School', placeFavorite: 'Favorite', placeOther: 'Other place', chooseSavedLocation: 'Select the correct location to save this place.', confirmSavedLocation: 'Press Save and confirm the location to show its map icon.', savedLocationMissing: 'Location not found. Check the address and include the city.', savedLocationError: 'Address lookup failed. Please try again.', savePlace: 'Save', placeRequired: 'Enter a name and address.', placeSaved: 'Place saved.',
-      vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
+      vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Music', musicKicker: 'MUSIC', musicTitle: 'Choose your music app', musicIntegrationNote: 'Choose the music app to keep handy on the map. Tap its icon to open the app; playback and its controls remain in the music service.', musicOpen: 'Choose', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
       destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Address and municipality, business or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses and places…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', startNavigation: 'Start navigation', stopNavigation: 'Stop navigation', finishNavigation: 'Finish', sampleTraffic: 'Travel time estimate excludes traffic', sampleNote: 'Open data route; travel time does not adjust for traffic.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
       communityTitle: 'Reports', communityCopy: 'Share road updates for 1 hour.', report: 'Report', sharedReportNote: 'Community report · visible for 1 hour', localReportScope: 'On this device only', localReports: 'Reports are saved on this device; they are not yet shared with other people.', worldReady: 'Designed to work anywhere', mapProviderLabel: 'Trazia map', sampleMap: 'Trazia map', reportsLayer: 'Reports', mapCaption: 'Trazia map · open OpenStreetMap data', mapCredits: 'Map credits',
@@ -126,7 +128,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     autocompleteQuery: '',
     activeSuggestionIndex: -1,
     autocompleteUnavailable: false,
-    musicService: localStorage.getItem('trazia:music-service') || '',
+    musicService: ['spotify', 'apple', 'youtube', 'deezer'].includes(localStorage.getItem('trazia:music-service')) ? localStorage.getItem('trazia:music-service') : 'youtube',
     placeMarkers: [],
     speedCameraDataset: null,
     speedCameraPromise: null,
@@ -363,22 +365,17 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       button.setAttribute('aria-pressed', String(selected));
       button.querySelector('.music-service-action').textContent = t(selected ? 'musicChosen' : 'musicOpen');
     });
+    musicDock?.refresh();
   }
 
-  function openMusicService(service) {
-    const urls = {
-      spotify: 'https://open.spotify.com/',
-      apple: 'https://music.apple.com/',
-      youtube: 'https://music.youtube.com/',
-      deezer: 'https://www.deezer.com/',
-    };
-    const url = urls[service];
-    if (!url) return;
+  function openMusicService(service, event) {
+    if (!['spotify', 'apple', 'youtube', 'deezer'].includes(service)) return;
     state.musicService = service;
-    localStorage.setItem('trazia:music-service', service);
+    try { localStorage.setItem('trazia:music-service', service); }
+    catch { showToast(state.language === 'es' ? 'La elección se usará en esta sesión.' : 'Your choice will be used for this session.'); }
     updateMusicOptions();
-    showToast(t('musicOpening'));
-    window.open(url, '_blank', 'noopener,noreferrer');
+    closeDialog(musicDialog);
+    musicDock?.open(event);
   }
 
   function setMap3d(enabled) {
@@ -2926,9 +2923,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       $('#toggle-panel').setAttribute('aria-expanded', 'true');
       destinationInput.focus({ preventScroll: true });
     });
-    $('#menu-music').addEventListener('click', () => {
+    $('#menu-music').addEventListener('click', (event) => {
       closeDialog(menuDialog);
-      openDialog(musicDialog);
+      musicDock?.open(event);
     });
     $('#menu-reports').addEventListener('click', () => {
       closeDialog(menuDialog);
@@ -2950,8 +2947,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       event.currentTarget.setAttribute('aria-expanded', String(!credits.hidden));
     });
     $('#open-report-map').addEventListener('click', () => openDialog(reportDialog));
-    $('#open-music').addEventListener('click', () => openDialog(musicDialog));
-    $$('.music-service').forEach((button) => button.addEventListener('click', () => openMusicService(button.dataset.musicService)));
+    $$('.music-service').forEach((button) => button.addEventListener('click', (event) => openMusicService(button.dataset.musicService, event)));
     $('#toggle-voice').addEventListener('click', () => {
       state.voiceEnabled = !state.voiceEnabled;
       localStorage.setItem('trazia:voice', state.voiceEnabled ? 'on' : 'off');
@@ -3066,6 +3062,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     applyLanguage(state.language);
     applyTheme();
     setupEvents();
+    musicDock = setupMusicDock({ window, document, getService: () => state.musicService, language: () => state.language, onChoose: () => openDialog(musicDialog) });
     reportMenu = setupReportMenu({ document, language: () => state.language,
       center: currentMapCenter, position: () => state.currentPosition,
       reports: () => [...state.reports.filter((report) => report.authorId === state.communityUser?.uid), ...state.legacyReports],
@@ -3096,7 +3093,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       testVoice: () => speak(t('voiceTest'), true),
       tolls: (enabled) => { $('#avoid-tolls').checked = enabled; $('#avoid-tolls').dispatchEvent(new Event('change')); },
       fuel: () => { void searchNearby('gas'); },
-      audio: () => openDialog(musicDialog),
+      audio: () => musicDock?.open(),
       recents: () => state.recentDestinations,
       clearRecents: () => { localStorage.removeItem('trazia:recent-destinations'); state.recentDestinations = []; renderRecentDestinations(); showToast('Ubicaciones recientes borradas.'); },
       change: (key) => {
@@ -3129,6 +3126,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        musicDock?.close();
         state.reportFeed?.stop();
         state.reportSession += 1;
         state.reportFeed = null;

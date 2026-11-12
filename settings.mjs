@@ -127,7 +127,7 @@ export function setupSettings({document, storage, preferences, hooks}) {
    select(group('Preferencia'),'Combustible',preferences.fuel,[['gasoline','Gasolina'],['diesel','Diésel'],['gas','Gas'],['electric','Eléctrico']],value=>change('fuel',value));button(group(),'Buscar gasolineras cerca',()=>{dialog.close();hooks.fuel();});content.append(note('Se muestran las estaciones disponibles en los datos del mapa. No hay precios en vivo ni filtro verificado por combustible.'));
   }
   if(page==='audio'){
-   const box=group('Tu música');button(box,'Abrir reproductor de audio',()=>{dialog.close();hooks.audio();});content.append(note('Elegí tu servicio de música. La reproducción se abre en la aplicación del proveedor.'));
+   const box=group('Tu música');button(box,'Abrir acceso a música',()=>{dialog.close();hooks.audio();});content.append(note('Elegí tu servicio de música. Su ícono abre un acceso rápido; la reproducción y los controles se usan en la aplicación del proveedor.'));
   }
   if(page==='trips')renderTrips();
   if(page==='privacy'){
