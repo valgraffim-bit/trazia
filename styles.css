@@ -617,3 +617,41 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 .account-status { margin: 16px 0 0; color: #ffd7b8; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 .account-status:empty { display: none; }
 @media (max-width: 420px), (max-height: 500px) { .account-card { padding: 20px; } }
+
+/* Settings slide out from the menu and keep a visible back/close header. */
+.modal.settings-browser { position: fixed; inset: 0 0 0 auto; width: min(100%, 560px); max-width: none; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-left: 1px solid #ffffff20; border-radius: 0; color: #eef0f3; background: #101214; box-shadow: -20px 0 70px #0005; }
+.settings-browser[open] { animation: settings-arrive .18s ease-out; }
+.settings-browser-card { height: 100%; display: flex; flex-direction: column; }
+.settings-browser-header { flex-shrink: 0; display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left)); border-bottom: 1px solid #ffffff24; background: #202226; }
+.settings-browser-header h2 { margin: 0; color: #eef0f3; text-align: center; font-size: 21px; font-weight: 750; line-height: 1.25; }
+.settings-browser-header button { width: 44px; height: 44px; border: 0; border-radius: 12px; color: #eef0f3; background: transparent; font: inherit; font-size: 35px; cursor: pointer; }
+.settings-browser-scroll { overflow-y: auto; overscroll-behavior: contain; flex: 1; min-height: 0; padding: 12px max(0px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(0px, env(safe-area-inset-left)); }
+.settings-group { margin: 0 0 24px; padding: 0 16px; background: #202226; border-block: 1px solid #ffffff15; }
+.settings-group-title { margin: 25px 20px 14px; color: #adb2bb; font-size: 15px; font-weight: 650; }
+.settings-nav-row { display: grid; grid-template-columns: 42px 1fr 16px; align-items: center; gap: 14px; width: 100%; min-height: 74px; border: 0; border-bottom: 1px solid #ffffff20; padding: 12px 0; color: #eef0f3; background: transparent; text-align: left; font: inherit; font-size: 17px; font-weight: 650; cursor: pointer; }
+.settings-nav-row:last-child, .settings-control-row:last-child, .settings-action:last-child { border-bottom: 0; }
+.settings-color-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; color: white; font-size: 28px; }
+.settings-chevron { color: #82878f; font-size: 29px; font-weight: 500; }
+.settings-control-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 70px; border-bottom: 1px solid #ffffff20; padding: 14px 0; font-size: 16px; font-weight: 600; }
+.settings-control-row > span { flex: 1; min-width: 0; }
+.settings-control-row input:not([type="checkbox"]), .settings-control-row select, .settings-browser .form-control { min-width: 0; width: 48%; min-height: 44px; border: 1px solid #6b7078; border-radius: 9px; padding: 8px; color: #eef0f3; background: #2d3035; font: inherit; font-size: 16px; }
+.settings-control-row input[type="checkbox"], .settings-browser .toggle-label input { appearance: none; width: 52px; height: 30px; flex: 0 0 52px; margin: 0; padding: 3px; border: 0; border-radius: 18px; background: #62666d; cursor: pointer; }
+.settings-control-row input[type="checkbox"]::before, .settings-browser .toggle-label input::before { display: block; width: 24px; height: 24px; border-radius: 50%; background: white; content: ''; transition: transform .15s; }
+.settings-control-row input[type="checkbox"]:checked, .settings-browser .toggle-label input:checked { background: #18bdd4; }
+.settings-control-row input[type="checkbox"]:checked::before, .settings-browser .toggle-label input:checked::before { transform: translateX(22px); }
+.settings-action { display: block; width: 100%; min-height: 56px; border: 0; border-bottom: 1px solid #ffffff20; padding: 14px 0; color: #ecf0f4; background: transparent; text-align: left; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; }
+.settings-danger { color: #ff9d9d; }
+.settings-help { margin: 12px 20px 24px; color: #b3b9c3; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.settings-group .settings-help { margin-inline: 0; }
+.settings-browser .form-label { display: block; color: #eef0f3; padding-top: 15px; font-size: 16px; }
+.settings-browser .form-control { width: 100%; margin: 10px 0 18px; }
+.settings-browser .toggle-label { min-height: 70px; color: #eef0f3; gap: 16px; font-size: 16px; }
+.settings-browser :focus-visible { outline: 3px solid #56d9e9; outline-offset: 3px; }
+.settings-browser h2:focus { outline: none; }
+.settings-trip { padding: 18px 0; border-bottom: 1px solid #ffffff20; overflow-wrap: anywhere; }
+.settings-trip .settings-help { margin: 8px 0; }
+.speedometer[hidden] { display: none; }
+@keyframes settings-arrive { from { transform: translateX(32px); opacity: .5; } to { transform: translateX(0); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .settings-browser[open] { animation: none; } }
+
+.settings-color-icon svg { width: 27px; height: 27px; }

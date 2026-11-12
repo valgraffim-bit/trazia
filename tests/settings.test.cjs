@@ -1,0 +1,3 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const modulePromise=import('../settings.mjs');
+test('settings tolerate missing or damaged storage and reject invalid preferences',async()=>{const {loadPreferences}=await modulePromise;assert.equal(loadPreferences({getItem(){throw Error('disabled')}}).units,'km');assert.equal(loadPreferences({getItem:()=>'{broken'}).keepAwake,true);const value=loadPreferences({getItem:()=>JSON.stringify({units:'bad',keepAwake:'false',cameraDistance:999,passes:['flypass','invalid'],plate:'ABCDEFGHIJKLMNO'})});assert.equal(value.units,'km');assert.equal(value.keepAwake,true);assert.equal(value.cameraDistance,500);assert.deepEqual(value.passes,['flypass']);assert.equal(value.plate.length,12);});

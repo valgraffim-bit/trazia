@@ -35,6 +35,7 @@ const splash = app.slice(start, app.indexOf('\n  }', start) + 4);
           async resetPassword() {stats.reset++;},
           async completeProfile(user, name) {stats.savedName = name;},
           async logout() {notify(null);},
+          async deleteAccount() {if(window.failDelete) throw {code: 'auth/requires-recent-login'}; notify(null);},
         };
         window.accountScreen = module.setupAccountScreen({document, config: null,
           serviceFactory: async () => {if (missing) throw Error('auth/not-configured'); return service;},
@@ -90,6 +91,12 @@ const splash = app.slice(start, app.indexOf('\n  }', start) + 4);
     assert.equal(await page.locator('.app-shell').evaluate(el => el.inert), true);
     await page.locator('#account-accept').click();
     assert.equal(await page.evaluate(() => stats.google), 1);
+    await page.locator('#account-screen').waitFor({state: 'hidden'});
+    await page.evaluate(() => {window.failDelete = true; document.querySelector('#account-delete').click();});
+    await page.waitForFunction(() => document.querySelector('#account-operation-status').textContent.includes('cerrá sesión'));
+    assert.equal(await page.locator('#account-screen').isVisible(), false);
+    await page.evaluate(() => {window.failDelete = false; document.querySelector('#account-delete').click();});
+    await page.locator('#account-screen').waitFor({state: 'visible'});
     await setup({restore: true});
     await page.locator('#app-splash').waitFor({state: 'hidden'});
     assert.equal(await page.locator('#account-name').inputValue(), 'Nombre guardado');

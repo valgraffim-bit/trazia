@@ -17,11 +17,13 @@ export async function createAccountService(config) {
     completeProfile: (user, name) => sdk.updateProfile(user, { displayName: name }),
     resetPassword: (email) => sdk.sendPasswordResetEmail(auth, email),
     logout: () => sdk.signOut(auth),
+    deleteAccount: (user) => sdk.deleteUser(user),
   };
 }
 
 export function accountError(error) {
   const messages = {
+    'auth/requires-recent-login': 'Para eliminar la cuenta, cerrá sesión, volvé a entrar y repetí la solicitud.',
     'auth/email-already-in-use': 'Este correo ya tiene una cuenta. Seleccioná Iniciar sesión o recuperá tu contraseña.',
     'auth/invalid-email': 'Revisá la dirección de correo.',
     'auth/weak-password': 'Usá una contraseña de al menos 8 caracteres.',
@@ -82,7 +84,10 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     if (busy || !service) return;
     status.textContent = '';
     setBusy(true);
-    try { await callback(); } catch (error) { status.textContent = accountError(error); }
+    try { await callback(); } catch (error) {
+      status.textContent = accountError(error);
+      if (entered && $('account-operation-status')) $('account-operation-status').textContent = accountError(error);
+    }
     finally { setBusy(false); }
   }
   lock(true);
@@ -133,6 +138,7 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     });
   });
   $('account-change').addEventListener('click', () => { void action(() => service.logout()); });
+  $('account-delete')?.addEventListener('click', () => { if (user) void action(() => service.deleteAccount(user)); });
   $('account-logout').addEventListener('click', () => { void action(() => service.logout()); });
   setMode('register');
   status.textContent = 'Preparando el acceso…';

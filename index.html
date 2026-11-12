@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=40" />
+    <link rel="stylesheet" href="./styles.css?v=58" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -377,32 +377,37 @@
       </form>
     </dialog>
 
-    <dialog class="modal" id="settings-dialog">
-      <form class="modal-card settings-card" method="dialog" onsubmit="return false">
-        <div class="modal-header">
-          <div><span class="modal-kicker" data-i18n="settingsKicker">CONFIGURACIÓN</span><h2 data-i18n="settingsTitle">Mapa Trazia</h2></div>
-          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="settings-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <dialog class="modal settings-browser" id="settings-dialog" aria-labelledby="settings-page-title">
+      <div class="settings-browser-card">
+        <header class="settings-browser-header">
+          <button id="settings-back" type="button" aria-label="Volver al mapa">‹</button>
+          <h2 id="settings-page-title" tabindex="-1">Ajustes</h2>
+          <button type="button" aria-label="Cerrar ajustes" data-close="settings-dialog">×</button>
+        </header>
+        <div class="settings-browser-scroll" id="settings-scroll"><div id="settings-content"></div><p id="account-operation-status" class="settings-help" role="status" aria-live="polite"></p></div>
+        <div id="settings-control-store" hidden>
+          <div id="settings-appearance-controls">
+            <label class="form-label" for="theme-select" data-i18n="themeLabel">Apariencia</label>
+            <select id="theme-select" class="form-control">
+              <option value="auto" data-i18n="themeAuto">Automática: clara de día, oscura de noche</option>
+              <option value="light" data-i18n="themeLight">Clara</option>
+              <option value="dark" data-i18n="themeDark">Oscura</option>
+            </select>
+          </div>
+          <div id="settings-traffic-controls">
+            <label class="toggle-label" for="live-traffic-toggle"><span data-i18n="showCongestion">Mostrar trancones en rojo</span><input id="live-traffic-toggle" type="checkbox" checked /></label>
+            <p class="settings-help" data-i18n="trafficCoverageNote">Tráfico según cobertura TomTom. La ausencia de rojo no confirma que la vía esté libre.</p>
+          </div>
+          <button class="settings-action" id="account-logout" type="button" hidden>Cerrar sesión</button>
+          <button id="account-delete" type="button" hidden>Eliminar cuenta</button>
         </div>
-        <button class="secondary-button" id="account-logout" type="button" hidden>Cerrar sesión</button>
-        <p class="settings-intro" data-i18n="settingsIntro">Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.</p>
-        <label class="form-label" for="theme-select" data-i18n="themeLabel">Apariencia</label>
-        <select id="theme-select" class="form-control">
-          <option value="auto" data-i18n="themeAuto">Automática: clara de día, oscura de noche</option>
-          <option value="light" data-i18n="themeLight">Clara</option>
-          <option value="dark" data-i18n="themeDark">Oscura</option>
-        </select>
-        <label class="toggle-label" for="live-traffic-toggle"><span data-i18n="showCongestion">Mostrar trancones en rojo</span><input id="live-traffic-toggle" type="checkbox" checked /></label>
-        <p class="modal-note" data-i18n="trafficCoverageNote">Tráfico según cobertura TomTom. La ausencia de rojo no confirma que la vía esté libre. El tiempo de ruta se calcula por separado.</p>
-        <p class="modal-note" data-i18n="mapDataNote">Mapa base: OpenStreetMap. Las sugerencias de direcciones vienen de datos abiertos; las rutas y el tiempo son aproximados y no tienen tráfico en vivo.</p>
-        <a class="docs-link" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" data-i18n="openStreetMapCredits">Créditos y licencia de OpenStreetMap</a>
-        <a class="docs-link" href="https://openfreemap.org/" target="_blank" rel="noreferrer" data-i18n="mapProviderLabel">Servicio de mapas abiertos</a>
-      </form>
+      </div>
     </dialog>
 
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=57"></script>
+    <script type="module" src="./app.js?v=58"></script>
   </body>
 </html>
 

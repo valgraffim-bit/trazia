@@ -1,4 +1,5 @@
-import { setupAccountScreen } from './auth.mjs?v=57';
+import { loadPreferences, setupSettings } from './settings.mjs?v=58';
+import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
@@ -83,6 +84,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   };
 
   const state = {
+    settings: loadPreferences(localStorage),
     language: localStorage.getItem('trazia:language') || (navigator.language?.toLowerCase().startsWith('en') ? 'en' : 'es'),
     theme: localStorage.getItem('trazia:theme') || 'auto',
     map: null,
@@ -138,14 +140,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     currentRoutes: [],
     route: null,
     routeDestination: '',
-    avoidTolls: false,
+    avoidTolls: localStorage.getItem('trazia:avoid-tolls') === 'on',
     navigationSteps: [],
     activeStep: 0,
     isNavigating: false,
     offRouteFixes: 0,
     lastRerouteAt: 0,
     isRerouting: false,
-    voiceEnabled: true,
+    voiceEnabled: localStorage.getItem('trazia:voice') !== 'off',
     toastTimer: null,
     recognition: null,
     reports: readReports(),
@@ -1434,9 +1436,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       state.lastSpeedFix = { timestamp, position: { lat: position.coords.latitude, lng: position.coords.longitude } };
       state.currentSpeed = Math.round(metersPerSecond === null || metersPerSecond < 0.55 ? 0 : metersPerSecond * 3.6);
     }
-    $('#speed-value').textContent = String(state.currentSpeed);
+    const imperial = state.settings?.units === 'mi';
+    const displayedSpeed = imperial ? Math.round(state.currentSpeed / 1.609344) : state.currentSpeed;
+    $('#speed-value').textContent = String(displayedSpeed);
+    $('#speedometer').hidden = state.settings?.showSpeed === false;
+    $('#speedometer span').textContent = imperial ? 'mph' : 'km/h';
     $('#speedometer').classList.toggle('gps-active', Boolean(state.currentPosition));
-    $('#speedometer').setAttribute('aria-label', `${state.currentSpeed} km/h`);
+    $('#speedometer').setAttribute('aria-label', `${displayedSpeed} ${imperial ? 'mph' : 'km/h'}`);
   }
 
   function startLocationWatch() {
@@ -1724,6 +1730,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (state.avoidTolls && ['auto', 'motorcycle', 'truck'].includes(costing)) {
         request.costing_options = { [costing]: { use_tolls: 0.05, toll_booth_penalty: 1200 } };
       }
+      const options = { ...(request.costing_options?.[costing] || {}) };
+      if (state.settings?.avoidFerries) options.use_ferry = 0;
+      if (['auto', 'motorcycle', 'truck'].includes(costing)) {
+        if (state.settings?.avoidHighways) options.use_highways = 0;
+        if (state.settings?.unpaved === 'avoid') options.exclude_unpaved = true;
+        if (state.settings?.avoidDifficult) options.maneuver_penalty = 30;
+      }
+      if (Object.keys(options).length) request.costing_options = { [costing]: options };
       const response = await fetchValhallaRoute(request, routeController.signal);
       if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       let payload;
@@ -1783,9 +1797,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       collapseMobilePanel();
       drawRouteOnMap();
       const duration = route.durationMillis ? Math.max(1, Math.round(route.durationMillis / 60000)) : null;
-      const distance = route.distanceMeters ? route.distanceMeters / 1000 : null;
+      const distance = route.distanceMeters ? route.distanceMeters / (state.settings?.units === 'mi' ? 1609.344 : 1000) : null;
       $('#route-duration').innerHTML = `${duration ?? '—'} <small>${t('minutes')}</small>`;
-      $('#route-distance').innerHTML = `${distance !== null ? new Intl.NumberFormat(state.language === 'es' ? 'es' : 'en', { maximumFractionDigits: 1 }).format(distance) : '—'} <small>${t('kilometers')}</small>`;
+      $('#route-distance').innerHTML = `${distance !== null ? new Intl.NumberFormat(state.language === 'es' ? 'es' : 'en', { maximumFractionDigits: 1 }).format(distance) : '—'} <small>${state.settings?.units === 'mi' ? 'mi' : t('kilometers')}</small>`;
       updateRouteSummary(route);
       $('#route-note').textContent = (automatic ? t('rerouteReady') : t('routeReady')) + (selected.approximate ? (state.language === 'es' ? ' Destino: referencia del predio; confirma el acceso.' : ' Destination: parcel reference; confirm the entrance.') : '');
       state.navigationSteps = navigationSteps;
@@ -2024,12 +2038,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   function announceCameraAhead(user) {
     const alert = $('#camera-approach-alert');
-    if (!state.isNavigating || state.isRerouting || !state.speedCameraDataset) {
+    if (!state.isNavigating || state.isRerouting || !state.speedCameraDataset || state.settings?.cameraAlerts === false) {
       alert.hidden = true;
       return;
     }
     const approach = cameraApproach(user, state.routeCoordinates, state.speedCameraDataset.cameras);
-    if (!approach) {
+    if (!approach || approach.distanceMeters > (state.settings?.cameraDistance ?? 500)) {
       alert.hidden = true;
       return;
     }
@@ -2053,9 +2067,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const durationMillis = route.durationMillis || 0;
     const arrival = new Date(Date.now() + durationMillis);
     const locale = state.language === 'es' ? 'es-CO' : 'en-US';
-    const distance = route.distanceMeters ? route.distanceMeters / 1000 : 0;
+    const distance = route.distanceMeters ? route.distanceMeters / (state.settings?.units === 'mi' ? 1609.344 : 1000) : 0;
     $('#arrival-time').textContent = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(arrival);
-    $('#summary-distance').textContent = `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(distance)} km`;
+    $('#summary-distance').textContent = `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(distance)} ${state.settings?.units === 'mi' ? 'mi' : 'km'}`;
     $('#summary-duration').textContent = `${Math.max(1, Math.round(durationMillis / 60000))} ${t('minutes')}`;
     $('#route-summary-overlay').hidden = false;
   }
@@ -2566,7 +2580,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (state.userMarker) state.userMarker.setLngLat([position.lng, position.lat]);
       state.map.flyTo({ center: [position.lng, position.lat], zoom: 18, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
       void requestNavigationWakeLock();
-      showToast(t('navigationStarted'));
+      showToast(state.settings?.lightsReminder ? 'Recordá revisar las luces antes de salir.' : t('navigationStarted'));
     } catch {
       showToast(t('navigationLocation'), true);
     }
@@ -2693,14 +2707,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   async function requestNavigationWakeLock() {
-    if (!state.isNavigating || document.hidden) return;
+    if (state.settings?.keepAwake === false || !state.isNavigating || document.hidden) return;
     if (!navigator.wakeLock) { updateScreenLockStatus(false); return; }
     if (state.wakeLockPending || (state.screenWakeLock && !state.screenWakeLock.released)) return;
     const generation = state.wakeLockGeneration || 0;
     state.wakeLockPending = true;
     try {
       const lock = await navigator.wakeLock.request('screen');
-      if (!state.isNavigating || document.hidden || generation !== (state.wakeLockGeneration || 0)) {
+      if (state.settings?.keepAwake === false || !state.isNavigating || document.hidden || generation !== (state.wakeLockGeneration || 0)) {
         await lock.release();
         return;
       }
@@ -2851,6 +2865,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $$('.music-service').forEach((button) => button.addEventListener('click', () => openMusicService(button.dataset.musicService)));
     $('#toggle-voice').addEventListener('click', () => {
       state.voiceEnabled = !state.voiceEnabled;
+      localStorage.setItem('trazia:voice', state.voiceEnabled ? 'on' : 'off');
       if (!state.voiceEnabled) window.speechSynthesis?.cancel();
       updateVoiceToggle();
       if (state.voiceEnabled) {
@@ -2913,7 +2928,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       renderLiveTraffic();
       updateLiveTrafficStatus();
     });
-    $('#avoid-tolls').addEventListener('change', (event) => { state.avoidTolls = event.target.checked; });
+    $('#avoid-tolls').checked = state.avoidTolls;
+    $('#avoid-tolls').addEventListener('change', (event) => { state.avoidTolls = event.target.checked; localStorage.setItem('trazia:avoid-tolls', state.avoidTolls ? 'on' : 'off'); });
     $$('.category-button').forEach((button) => button.addEventListener('click', () => { void searchNearby(button.dataset.category); }));
     $('#clear-places').addEventListener('click', clearPlaces);
     $('#open-report').addEventListener('click', () => openDialog(reportDialog));
@@ -2950,6 +2966,31 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     applyLanguage(state.language);
     applyTheme();
     setupEvents();
+    setupSettings({ document, storage: localStorage, preferences: state.settings, hooks: {
+      state: () => state,
+      message: (text) => showToast(text),
+      language: applyLanguage,
+      vehicle: setVehicleType,
+      view: setMap3d,
+      compass: (mode) => { if (mode !== state.compassMode) toggleCompassMode(); },
+      voice: (enabled) => { if (enabled !== state.voiceEnabled) $('#toggle-voice').click(); },
+      testVoice: () => { if (state.voiceEnabled) speak(t('voiceTest')); else showToast('Activá la guía por voz para probarla.'); },
+      tolls: (enabled) => { $('#avoid-tolls').checked = enabled; $('#avoid-tolls').dispatchEvent(new Event('change')); },
+      fuel: () => { void searchNearby('gas'); },
+      audio: () => openDialog(musicDialog),
+      recents: () => state.recentDestinations,
+      clearRecents: () => { localStorage.removeItem('trazia:recent-destinations'); state.recentDestinations = []; renderRecentDestinations(); showToast('Ubicaciones recientes borradas.'); },
+      change: (key) => {
+        updateSpeedometer();
+        if (key === 'keepAwake') { if (state.settings.keepAwake) void requestNavigationWakeLock(); else releaseNavigationWakeLock(); }
+        if (key === 'cameraAlerts' && !state.settings.cameraAlerts) $('#camera-approach-alert').hidden = true;
+        if (key === 'units' && state.route) {
+          updateRouteSummary(state.route);
+          const value = state.route.distanceMeters / (state.settings.units === 'mi' ? 1609.344 : 1000);
+          $('#route-distance').textContent = `${new Intl.NumberFormat(state.language, {maximumFractionDigits: 1}).format(value)} ${state.settings.units}`;
+        }
+      },
+    }});
     renderSavedPlaces();
     renderSavedPlaceMarkers();
     renderRecentDestinations();

@@ -36,3 +36,5 @@ test('an unexpected release while visible schedules a new lock and records real 
  released();assert.equal(state.screenWakeLock,null);assert.equal(stats.held,false);
  stats.retry();await new Promise(setImmediate);assert.equal(stats.requests,2);assert.equal(stats.held,true);
 });
+
+test('screen lock preference prevents new wake-lock requests',async()=>{const {ctx,state,stats}=setup();state.settings={keepAwake:false};await ctx.requestNavigationWakeLock();assert.equal(stats.requests,0);});

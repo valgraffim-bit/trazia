@@ -8,7 +8,7 @@ for (const automatic of [false, true]) {
     const origin = {lat: 3.42, lng: -76.53};
     const destination = {lat: 3.43, lng: -76.54};
     const state = {mapReady: true, currentPosition: origin, selectedDestination: {label: 'Destino', location: destination},
-      routeRequestId: 0, autocompleteRequestId: 0, vehicleType: 'car', language: 'es', routeCoordinates: [], isNavigating: automatic};
+      routeRequestId: 0, autocompleteRequestId: 0, settings: {avoidFerries: true, avoidHighways: true, unpaved: 'avoid', avoidDifficult: true}, avoidTolls: true, vehicleType: 'car', language: 'es', routeCoordinates: [], isNavigating: automatic};
     const elements = new Map();
     const errors = [];
     let calls = 0;
@@ -19,6 +19,11 @@ for (const automatic of [false, true]) {
       clearRoutePolylines() {state.routeCoordinates = [];}, updateUserMarker() {}, collapseMobilePanel() {}, setMap3d() {},
       async fetchValhallaRoute(request) {
         calls++;
+        assert.equal(request.costing_options.auto.use_tolls, 0.05);
+        assert.equal(request.costing_options.auto.use_ferry, 0);
+        assert.equal(request.costing_options.auto.use_highways, 0);
+        assert.equal(request.costing_options.auto.exclude_unpaved, true);
+        assert.equal(request.costing_options.auto.maneuver_penalty, 30);
         assert.equal(request.locations[0].lat, origin.lat);
         assert.equal(request.locations[1].lon, destination.lng);
         return {ok: true, async json() {return {trip: {summary: {length: 2, time: 300}, legs: [{shape: 'test', maneuvers: []}]}};}};
