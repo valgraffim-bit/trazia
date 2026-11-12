@@ -7,6 +7,12 @@ const ADDRESS = Object.freeze({
   source: 'https://www.waze.com/es-MX/live-map/directions/co/valle-del-cauca/cali/cra.-83b-3-45-53?to=place.ChIJa_eLJRahMI4RX7x1pcEZXCM',
 });
 
+const BMX = Object.freeze({
+  name: 'Pista BMX William Alexander Jiménez',
+  location: Object.freeze({lat:3.4106992,lng:-76.550425}),
+  source: 'https://www.waze.com/es-MX/live-map/directions?to=ll.3.4106992%2C-76.550425',
+});
+
 export function knownSharedWazePlace(placeId) {
   return placeId===ADDRESS.placeId?{label:ADDRESS.label,location:{...ADDRESS.location}}:null;
 }
@@ -16,6 +22,14 @@ export function findSearchLocations(query) {
   const parts=plain.split(',').map(part=>part.trim()).filter(Boolean);
   if(parts.slice(1).some(part=>!['CALI','SANTIAGO DE CALI','VALLE DEL CAUCA','COLOMBIA','COMUNA 17'].includes(part)))return [];
   const street=(parts[0]||'').replace(/\s+(?:SANTIAGO DE )?CALI(?:\s+VALLE DEL CAUCA)?(?:\s+COLOMBIA)?$/,'');
+  const words=street.replace(/[^A-Z0-9 ]/g,' ').split(/\s+/).filter(word=>word&&!['DE','DEL','LA','EL','EN'].includes(word));
+  const nameWords=['PISTA','BMX','WILLIAM','ALEXANDER','JIMENEZ'];
+  const distinctive=words.some(word=>['BMX','WILLIAM','ALEXANDER','JIMENEZ'].some(name=>name.startsWith(word)));
+  if(street.length>=3&&distinctive&&words.every(word=>nameWords.some(name=>name.startsWith(word))))return [{
+    type:'Feature',geometry:{type:'Point',coordinates:[BMX.location.lng,BMX.location.lat]},properties:{
+      geocoder:'shared-location',name:BMX.name,fullAddress:BMX.name,city:'Cali',state:'Valle del Cauca',country:'Colombia',countrycode:'CO',sharedLocation:true,sourceUrl:BMX.source,
+    },
+  }];
   const match=street.match(/^(?:CARRERA|CRA|CR|KR)\.?\s*83\s*B\s*3(?=$|[\s#-])(.*)$/);
   if(!match)return [];
   let tail=match[1].trim().replace(/^[-–—]\s*#/,'#').replace(/^(?:#|NUMERO|NO\.?|N[°º])\s*/,'');

@@ -1,4 +1,4 @@
-import { findSearchLocations } from './search-locations.mjs?v=65';
+import { findSearchLocations } from './search-locations.mjs?v=66';
 import { createCommunityReportService, watchCommunityReports, communityReportError } from './community-reports.mjs?v=64';
 import { setupReportMenu } from './reports.mjs?v=64';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
@@ -6,7 +6,7 @@ import { loadPreferences, setupSettings } from './settings.mjs?v=64';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
-import { parseWazeLocation } from './waze-links.mjs?v=65';
+import { parseWazeLocation } from './waze-links.mjs?v=66';
 import { findIgacCandidates } from './igac-cadastre.mjs?v=49';
 import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=63';
 import { findCaliCandidates, findNearbyCaliCandidates } from './cali-addresses.mjs?v=63';
@@ -493,7 +493,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
     if (state.autocompletePredictions.some(feature => feature.properties?.sharedLocation)) {
       const source = document.createElement('a');
-      source.href = 'https://www.waze.com/es-MX/live-map/directions/co/valle-del-cauca/cali/cra.-83b-3-45-53?to=place.ChIJa_eLJRahMI4RX7x1pcEZXCM';
+      const shared = state.autocompletePredictions.find(feature => feature.properties?.sharedLocation);
+      const sourceUrl = shared.properties.sourceUrl;
+      source.href = typeof sourceUrl === 'string' && sourceUrl.startsWith('https://www.waze.com/') ? sourceUrl : 'https://www.waze.com/live-map';
       source.target = '_blank'; source.rel = 'noopener noreferrer';
       source.textContent = state.language === 'es' ? 'Ubicación aportada mediante enlace compartido' : 'Location provided through a shared link';
       attribution.replaceChildren(source);

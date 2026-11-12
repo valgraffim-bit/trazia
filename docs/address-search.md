@@ -23,3 +23,9 @@ Las direcciones cercanas continúan siendo destinos separados y nunca se tratan 
 Pruebas: `node --test tests/*.test.cjs` y `node tests/nearby-address-browser.cjs`. Comprueban sufijos, separadores, fuente y coordenadas reales, exclusión de otras vías/cruces, prioridades, etiqueta de cercanía, ausencia de marcador permanente y selección para ruta en móvil/escritorio. También se comprobó el adaptador con una respuesta real de la fuente oficial.
 
 `node tests/search-location-browser.cjs` comprueba la etiqueta, la atribución al enlace, la ausencia de marcador permanente y la selección del destino en móvil y escritorio. `node --test tests/search-locations.test.cjs` comprueba variantes y la importación del mismo place ID.
+
+## Segundo destino: Pista BMX William Alexander Jiménez
+
+El usuario nombró el segundo enlace `https://www.waze.com/es-MX/live-map/directions?to=ll.3.4106992%2C-76.550425` como **Pista BMX William Alexander Jiménez**. Se usa exactamente ese punto: latitud 3.4106992, longitud -76.550425. Es una referencia independiente de Carrera 83B3 #45-53 y no reemplaza su ubicación.
+
+Se encuentra por el nombre completo, sin tildes, por BMX William o Pista de BMX. La coincidencia conserva el nombre y el enlace propios del destino. No se asigna una dirección postal no proporcionada, no se agrega marcador fijo y no se publica un reporte comunitario. Las pruebas de interfaz verifican ambas referencias, sus fuentes y los destinos seleccionados en móvil/escritorio.

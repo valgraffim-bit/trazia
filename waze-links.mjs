@@ -1,4 +1,4 @@
-import { knownSharedWazePlace } from './search-locations.mjs?v=65';
+import { knownSharedWazePlace } from './search-locations.mjs?v=66';
 const WAZE_HOSTS = new Set(['waze.com', 'www.waze.com']);
 
 function importError(code) {
