@@ -1,4 +1,4 @@
-export const defaults = Object.freeze({units:'km', keepAwake:true, showSpeed:true, cameraAlerts:true, cameraDistance:500, lightsReminder:false, avoidFerries:false, avoidHighways:false, unpaved:'allow', avoidDifficult:false, fuel:'gasoline', electric:false, plate:'', passes:[]});
+export const defaults = Object.freeze({voiceURI:'',units:'km', keepAwake:true, showSpeed:true, cameraAlerts:true, cameraDistance:500, lightsReminder:false, avoidFerries:false, avoidHighways:false, unpaved:'allow', avoidDifficult:false, fuel:'gasoline', electric:false, plate:'', passes:[]});
 export function loadPreferences(storage) {
   let data; try { data = JSON.parse(storage.getItem('trazia:preferences') || '{}'); } catch { data = {}; }
   const result = {...defaults};
@@ -8,6 +8,7 @@ export function loadPreferences(storage) {
   }
   for (const [key, values] of Object.entries({units:['km','mi'], fuel:['gasoline','diesel','gas','electric'], unpaved:['allow','avoid']})) if(values.includes(data?.[key])) result[key]=data[key];
   if ([100,300,500].includes(data?.cameraDistance)) result.cameraDistance=data.cameraDistance;
+  if (typeof data?.voiceURI==='string' && data.voiceURI.length <= 500) result.voiceURI=data.voiceURI;
   if (typeof data?.plate==='string') result.plate=data.plate.slice(0,12);
   result.passes=Array.isArray(data?.passes)?data.passes.filter(x=>['facilpass','flypass','quickpass','motos'].includes(x)):[];
   return result;
@@ -39,6 +40,9 @@ export function setupSettings({document, storage, preferences, hooks}) {
  const $=id=>document.getElementById(id);
  const content=$('settings-content');
  let current='root'; const history=[];
+ let refreshVoices = null;
+ const speech = document.defaultView?.speechSynthesis;
+ speech?.addEventListener?.('voiceschanged', () => { if (current === 'voice' && dialog.open) refreshVoices?.(); });
  const title=$('settings-page-title');
  const el=(tag,text,cls)=>{const node=document.createElement(tag);if(text)node.textContent=text;if(cls)node.className=cls;return node;};
  const note=(text)=>el('p',text,'settings-help');
@@ -74,7 +78,30 @@ export function setupSettings({document, storage, preferences, hooks}) {
    select(box,'Orientación',hooks.state().compassMode,[['follow','Seguir el rumbo'],['north','Norte arriba']],hooks.compass);
   }
   if(page==='voice'){
-   const box=group('Indicaciones');const input=el('input');input.type='checkbox';input.checked=hooks.state().voiceEnabled;input.setAttribute('role','switch');input.addEventListener('change',()=>hooks.voice(input.checked));row(box,'Guía por voz',input);button(box,'Probar la voz',hooks.testVoice);content.append(note('El volumen se controla con los botones del teléfono.'));
+   const box=group('Indicaciones');const input=el('input');input.type='checkbox';input.checked=hooks.state().voiceEnabled;input.setAttribute('role','switch');input.addEventListener('change',()=>hooks.voice(input.checked));row(box,'Guía por voz',input);
+   const voiceBox=group('Voces del teléfono · gratis');
+   const voiceSelect=el('select');voiceSelect.id='settings-device-voice';row(voiceBox,'Voz para las indicaciones',voiceSelect);
+   const availability=note('');availability.id='settings-voice-availability';content.append(availability);
+   const supported=Boolean(speech && document.defaultView?.SpeechSynthesisUtterance);
+   refreshVoices=()=>{
+    const seen=new Set();let voices=[];
+    try { voices=(speech?.getVoices()||[]).filter(voice=>voice.voiceURI&&!seen.has(voice.voiceURI)&&seen.add(voice.voiceURI)); } catch { /* Automatic voice remains usable if enumeration fails. */ }
+    const lang=hooks.state().language;
+    voices.sort((a,b)=>Number(b.lang.toLowerCase().startsWith(lang))-Number(a.lang.toLowerCase().startsWith(lang))||a.name.localeCompare(b.name));
+    voiceSelect.replaceChildren();
+    const automatic=el('option','Automática · idioma de Trazia');automatic.value='';voiceSelect.append(automatic);
+    for(const voice of voices){const option=el('option',`${voice.name} · ${voice.lang}${voice.localService?' · en el dispositivo':''}`);option.value=voice.voiceURI;voiceSelect.append(option);}
+    const missing=preferences.voiceURI&&!voices.some(voice=>voice.voiceURI===preferences.voiceURI);
+    if(missing){const option=el('option','Voz guardada · no disponible aquí');option.value=preferences.voiceURI;option.disabled=true;voiceSelect.append(option);}
+    voiceSelect.value=preferences.voiceURI;
+    voiceSelect.disabled=!supported;
+    availability.textContent=!supported?'Este navegador no ofrece lectura por voz.':missing?'La voz guardada no está disponible en este navegador. Trazia usará la voz automática hasta que vuelva a estar disponible.':voices.length?`${voices.length} voces disponibles. La elección se guarda en este dispositivo.`:'El teléfono todavía no mostró su lista de voces. Podés usar Automática o tocar Actualizar voces.';
+   };
+   voiceSelect.addEventListener('change',()=>{change('voiceURI',voiceSelect.value);refreshVoices();});
+   refreshVoices();
+   const actions=group();button(actions,'Probar la voz',hooks.testVoice).disabled=!supported;button(actions,'Actualizar voces',()=>refreshVoices()).disabled=!supported;
+   content.append(note('Son las voces que ofrece tu teléfono o navegador. Algunas necesitan conexión a internet. El volumen se controla con los botones del teléfono. Para obtener más voces, revisá las opciones de voz en Accesibilidad del teléfono.'));
+
   }
   if(page==='navigation'){
    const box=group('Preferencias de ruta');const input=el('input');input.type='checkbox';input.checked=hooks.state().avoidTolls;input.setAttribute('role','switch');input.addEventListener('change',()=>hooks.tolls(input.checked));row(box,'Evitar peajes',input);

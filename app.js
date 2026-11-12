@@ -1,6 +1,6 @@
 import { setupReportMenu } from './reports.mjs?v=60';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
-import { loadPreferences, setupSettings } from './settings.mjs?v=58';
+import { loadPreferences, setupSettings } from './settings.mjs?v=61';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
@@ -2527,8 +2527,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#navigation-banner').dataset.direction = arrow.kind;
   }
 
-  function speak(text) {
-    if (!state.voiceEnabled || !text || $('#voice-search-dialog')?.open) return;
+  function speak(text, preview = false) {
+    if ((!state.voiceEnabled && !preview) || !text || $('#voice-search-dialog')?.open) return;
     const speech = window.speechSynthesis;
     const Utterance = window.SpeechSynthesisUtterance;
     if (!speech || !Utterance) {
@@ -2544,12 +2544,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     utterance.pitch = 1;
     const preferredLanguage = state.language === 'es' ? /^es(?:-|$)/i : /^en(?:-|$)/i;
     const voices = speech.getVoices();
-    const preferredVoice = voices.find((voice) => voice.lang.toLowerCase() === (state.language === 'es' ? 'es-co' : 'en-us'))
+    const selectedVoice = voices.find((voice) => voice.voiceURI && voice.voiceURI === state.settings?.voiceURI);
+    const preferredVoice = selectedVoice || voices.find((voice) => voice.lang.toLowerCase() === (state.language === 'es' ? 'es-co' : 'en-us'))
       || voices.find((voice) => preferredLanguage.test(voice.lang));
-    if (preferredVoice) utterance.voice = preferredVoice;
+    if (preferredVoice) { utterance.voice = preferredVoice; utterance.lang = preferredVoice.lang; }
     utterance.onerror = (event) => {
       if (!['canceled', 'interrupted'].includes(event.error)) {
         console.info('Trazia speech playback failed:', event.error);
+        if (preview && $('#settings-voice-availability')) $('#settings-voice-availability').textContent = t('voicePlaybackError');
         if (state.isNavigating) showToast(t('voicePlaybackError'), true);
       }
     };
@@ -3011,7 +3013,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       view: setMap3d,
       compass: (mode) => { if (mode !== state.compassMode) toggleCompassMode(); },
       voice: (enabled) => { if (enabled !== state.voiceEnabled) $('#toggle-voice').click(); },
-      testVoice: () => { if (state.voiceEnabled) speak(t('voiceTest')); else showToast('Activá la guía por voz para probarla.'); },
+      testVoice: () => speak(t('voiceTest'), true),
       tolls: (enabled) => { $('#avoid-tolls').checked = enabled; $('#avoid-tolls').dispatchEvent(new Event('change')); },
       fuel: () => { void searchNearby('gas'); },
       audio: () => openDialog(musicDialog),
