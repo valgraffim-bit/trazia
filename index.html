@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=70" />
+    <link rel="stylesheet" href="./styles.css?v=71" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -273,6 +273,8 @@
             <span id="speed-unit">km/h</span>
           </div>
 
+          <button class="sos-map-button" id="open-sos" type="button" aria-label="SOS · llamar a emergencias o Policía" aria-haspopup="dialog" aria-controls="sos-dialog" title="SOS · Emergencias"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 3 4 4-2.5 3a15 15 0 0 0 6.5 6.5L17 14l4 4-2 3C10 22 2 14 3 5Z"/></svg><span>SOS</span></button>
+
           <div class="map-action-stack">
             <button class="map-action" id="wide-open-music" type="button" aria-label="Abrir acceso a música" aria-expanded="false" title="Música"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
             <button class="map-action" id="wide-map-voice-search" type="button" aria-label="Buscar dirección o negocio por voz" aria-pressed="false" title="Buscar por voz"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"/></svg></button>
@@ -319,6 +321,24 @@
         <button class="menu-item" id="menu-reports" type="button"><span class="menu-item-icon">＋</span><span data-i18n="menuReport">Reportar algo en la vía</span></button>
         <button class="menu-item" id="menu-settings" type="button"><span class="menu-item-icon">⚙</span><span data-i18n="menuSettings">Ajustes</span></button>
         <p class="menu-footnote" data-i18n="menuNote">Navegación clara, hecha por Trazia.</p>
+      </div>
+    </dialog>
+
+    <dialog class="modal sos-dialog" id="sos-dialog" aria-labelledby="sos-title" aria-describedby="sos-scope-note">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="sos-title">Llamada SOS</h2>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar SOS" data-close="sos-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <p id="sos-location-status" class="sos-detail" role="status">Selecciona el país donde estás.</p>
+        <label id="sos-country-label" class="sos-country-label" for="sos-country">País o región de la llamada</label>
+        <select id="sos-country" class="sos-country"><option value="">Selecciona el país</option></select>
+        <button class="sos-locate" id="sos-locate" type="button">Usar mi ubicación</button>
+        <p id="sos-service" class="sos-service"></p>
+        <a class="sos-call" id="sos-call" aria-disabled="true">Selecciona el país para llamar</a>
+        <a class="sos-source" id="sos-source" target="_blank" rel="noopener noreferrer" hidden>Ver fuente oficial</a>
+        <p id="sos-speaker-note" class="sos-detail">Cuando se abra la llamada, activa Altavoz en el teléfono. Trazia no puede activarlo automáticamente.</p>
+        <p id="sos-scope-note" class="sos-detail">Confirma el país donde estás antes de llamar. La cobertura puede variar por región. Trazia no envía tu ubicación a emergencias.</p>
       </div>
     </dialog>
 
@@ -457,7 +477,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=70"></script>
+    <script type="module" src="./app.js?v=71"></script>
   </body>
 </html>
 

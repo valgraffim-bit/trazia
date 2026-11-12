@@ -762,3 +762,32 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 @media (orientation: landscape) {
   .map-stage:has(> .route-summary-overlay:not([hidden])) .weather-badge { position: absolute; top: 54px; left: 60px; }
 }
+
+/* SOS opens a country and phone-number panel; it never places a call by itself. */
+.sos-map-button { position: absolute; z-index: 5; bottom: max(18px, env(safe-area-inset-bottom)); left: max(19px, env(safe-area-inset-left)); display: inline-flex; width: 60px; min-height: 46px; align-items: center; justify-content: center; gap: 4px; border: 1px solid #ffffffa8; border-radius: 15px; padding: 8px 6px; color: #fff; background: #bc2634; box-shadow: 0 5px 18px #56151b3b; font: inherit; font-size: 12px; font-weight: 850; cursor: pointer; touch-action: manipulation; }
+.sos-map-button svg { width: 16px; height: 16px; flex: 0 0 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sos-map-button:hover { background: #a41e2b; }
+.sos-map-button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 6px #ad2634; }
+.sos-dialog { max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; }
+.sos-dialog .modal-header { align-items: center; }
+.sos-dialog .modal-header h2 { margin: 0; }
+.sos-detail { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.sos-country-label { color: var(--text); font-size: 13px; font-weight: 750; }
+.sos-country { display: block; width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 11px; padding: 9px 12px; color: var(--text); background: var(--panel); font: inherit; font-size: 14px; }
+.sos-locate { min-height: 44px; border: 1px solid var(--line); border-radius: 11px; padding: 9px 12px; color: var(--teal-dark); background: var(--panel); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.sos-locate:disabled { opacity: .65; cursor: wait; }
+.sos-service { min-height: 20px; margin: 2px 0; color: var(--text); font-size: 14px; font-weight: 750; line-height: 1.4; }
+.sos-call { display: flex; min-height: 50px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 12px; padding: 11px 14px; color: #fff; background: #bc2634; font-size: 17px; font-weight: 800; text-align: center; text-decoration: none; }
+.sos-call[aria-disabled="true"] { color: var(--muted); background: var(--canvas); border-color: var(--line); cursor: default; }
+.sos-call:focus-visible, .sos-source:focus-visible { outline: 3px solid #bc2634; outline-offset: 3px; }
+.sos-source { min-height: 36px; padding-top: 8px; color: var(--teal-dark); font-size: 12px; line-height: 1.4; }
+:root[data-theme="dark"] .sos-map-button { border-color: #ffffff4d; background: #bd3040; }
+:root[data-theme="dark"] .sos-map-button:hover, :root[data-theme="dark"] .sos-call { background: #a51f30; }
+:root[data-theme="dark"] .sos-source, :root[data-theme="dark"] .sos-locate { color: #72d5c4; }
+:root[data-theme="dark"] .sos-call[aria-disabled="true"] { color: var(--muted); background: var(--canvas); }
+@media (max-width: 820px) {
+  .sos-map-button { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 82px); left: max(12px, env(safe-area-inset-left)); }
+}
+@media (max-width: 820px) and (orientation: landscape) {
+  .app-shell:not(.navigation-fullscreen) .sos-map-button { top: min(calc(100% - 138px), calc(100dvh - 56px - env(safe-area-inset-bottom))); bottom: auto; }
+}

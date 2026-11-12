@@ -1,3 +1,4 @@
+import { setupSOS } from './sos.mjs?v=71';
 import { setupWeatherBadge } from './weather.mjs?v=69';
 import { setupMusicDock } from './music-dock.mjs?v=68';
 import { findSearchLocations } from './search-locations.mjs?v=66';
@@ -36,6 +37,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const reportDialog = $('#report-dialog');
   const settingsDialog = $('#settings-dialog');
   const weatherDialog = $('#weather-dialog');
+  const sosDialog = $('#sos-dialog');
   let musicDock;
   const musicDialog = $('#music-dialog');
   const DEFAULT_MAP_CENTER = [-76.532, 3.452];
@@ -217,6 +219,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     updateCompassControl();
     updateMusicOptions();
     state.weatherBadge?.render();
+    state.sos?.refreshLanguage();
     renderRecentDestinations();
     $('#toggle-map-credits').setAttribute('aria-label', t('mapCredits'));
     $('#toggle-map-credits').title = t('mapCredits');
@@ -3046,7 +3049,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#compass-control').addEventListener('click', toggleCompassMode);
     updateCompassControl();
     $$('[data-close]').forEach((button) => button.addEventListener('click', () => closeDialog($(`#${button.dataset.close}`))));
-    [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog, weatherDialog].forEach((dialog) => dialog.addEventListener('click', (event) => {
+    [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog, weatherDialog, sosDialog].forEach((dialog) => dialog.addEventListener('click', (event) => {
       if (event.target === dialog) closeDialog(dialog);
     }));
     document.addEventListener('keydown', (event) => {
@@ -3063,6 +3066,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     applyLanguage(state.language);
     applyTheme();
     setupEvents();
+    state.sos = setupSOS({ window, document, openDialog, language: () => state.language,
+      getPosition: async ({ request }) => {
+        if (request) return getUserPosition();
+        return state.currentPosition && Date.now() - state.lastLocationTimestamp <= 60_000 ? state.currentPosition : null;
+      },
+    });
     state.weatherBadge = setupWeatherBadge({ window, document, openDialog,
       getContext: () => ({
         position: state.currentPosition || currentMapCenter() || { lng: DEFAULT_MAP_CENTER[0], lat: DEFAULT_MAP_CENTER[1] },
@@ -3137,6 +3146,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        state.sos.close();
         state.weatherBadge.stop();
         musicDock?.close();
         state.reportFeed?.stop();
@@ -3148,7 +3158,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         updateCommunityReportStatus('signedout');
         $('#voice-search-dialog').close();
         if (state.isNavigating) stopNavigation(false);
-        [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog, weatherDialog].forEach((dialog) => dialog.close());
+        [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog, weatherDialog, sosDialog].forEach((dialog) => dialog.close());
       },
     });
     updateSpeedometer();

@@ -1,0 +1,604 @@
+[
+  {
+    "countryCode": "CO",
+    "countryName": {
+      "es": "Colombia",
+      "en": "Colombia"
+    },
+    "number": "123",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www1.funcionpublica.gov.co/preguntas-frecuentes/-/asset_publisher/sqxafjubsrEu/content/linea-unica-de-emergencias-nacional-123/28585938",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "MX",
+    "countryName": {
+      "es": "México",
+      "en": "Mexico"
+    },
+    "number": "911",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.gob.mx/911/es/articulos/que-es-el-911emergencias?idiom=es",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "US",
+    "countryName": {
+      "es": "Estados Unidos",
+      "en": "United States"
+    },
+    "number": "911",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.911.gov/calling-911/",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "CA",
+    "countryName": {
+      "es": "Canadá",
+      "en": "Canada"
+    },
+    "number": "911",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://rcmp.ca/en/bc/safety-tips/emergency-services/tips-calling-emergency-services",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "AR",
+    "countryName": {
+      "es": "Argentina",
+      "en": "Argentina"
+    },
+    "number": "911",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.argentina.gob.ar/tema/emergencias",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "CL",
+    "countryName": {
+      "es": "Chile",
+      "en": "Chile"
+    },
+    "number": "133",
+    "service": {
+      "es": "Carabineros · emergencias",
+      "en": "Carabineros police emergency"
+    },
+    "source": "https://www.consulado.gob.cl/emergencias-en-chile",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "PE",
+    "countryName": {
+      "es": "Perú",
+      "en": "Peru"
+    },
+    "number": "105",
+    "service": {
+      "es": "Policía · emergencias",
+      "en": "Police emergency"
+    },
+    "source": "https://www.gob.pe/547-telefonos-de-emergencia",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "EC",
+    "countryName": {
+      "es": "Ecuador",
+      "en": "Ecuador"
+    },
+    "number": "911",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.ecu911.gob.ec/servicio-integrado-de-seguridad-ecu-911/",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "BR",
+    "countryName": {
+      "es": "Brasil",
+      "en": "Brazil"
+    },
+    "number": "190",
+    "service": {
+      "es": "Policía Militar · emergencias",
+      "en": "Military Police emergency"
+    },
+    "source": "https://www.gov.br/mcom/pt-br/noticias/noticias_alt/2026/setembro/emergencia-voce-sabe-para-quem-ligar-quando-precisa-de-ajuda",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "UY",
+    "countryName": {
+      "es": "Uruguay",
+      "en": "Uruguay"
+    },
+    "number": "911",
+    "service": {
+      "es": "Policía · emergencias",
+      "en": "Police emergency"
+    },
+    "source": "https://www.gub.uy/ministerio-interior/comunicacion/campanas/denunciar-0",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "CR",
+    "countryName": {
+      "es": "Costa Rica",
+      "en": "Costa Rica"
+    },
+    "number": "911",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://diccionariousual.poder-judicial.go.cr/index.php/diccionario/sistema-de-emergencias-9-1-1",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "PA",
+    "countryName": {
+      "es": "Panamá",
+      "en": "Panama"
+    },
+    "number": "104",
+    "service": {
+      "es": "Policía · emergencias",
+      "en": "Police emergency"
+    },
+    "source": "https://policia.gob.pa/home25.php",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "GB",
+    "countryName": {
+      "es": "Reino Unido",
+      "en": "United Kingdom"
+    },
+    "number": "999",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.gov.uk/contact-police",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "AU",
+    "countryName": {
+      "es": "Australia",
+      "en": "Australia"
+    },
+    "number": "000",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.infrastructure.gov.au/media-communications/phone/triple-zero/how-call-triple-zero-000",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "NZ",
+    "countryName": {
+      "es": "Nueva Zelanda",
+      "en": "New Zealand"
+    },
+    "number": "111",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://www.police.govt.nz/call-111",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "JP",
+    "countryName": {
+      "es": "Japón",
+      "en": "Japan"
+    },
+    "number": "110",
+    "service": {
+      "es": "Policía · emergencias",
+      "en": "Police emergency"
+    },
+    "source": "https://www.npa.go.jp/goiken_index.html",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "AT",
+    "countryName": {
+      "es": "Austria",
+      "en": "Austria"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "BE",
+    "countryName": {
+      "es": "Bélgica",
+      "en": "Belgium"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "BG",
+    "countryName": {
+      "es": "Bulgaria",
+      "en": "Bulgaria"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "HR",
+    "countryName": {
+      "es": "Croacia",
+      "en": "Croatia"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "CY",
+    "countryName": {
+      "es": "Chipre",
+      "en": "Cyprus"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "CZ",
+    "countryName": {
+      "es": "Chequia",
+      "en": "Czechia"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "DK",
+    "countryName": {
+      "es": "Dinamarca",
+      "en": "Denmark"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "EE",
+    "countryName": {
+      "es": "Estonia",
+      "en": "Estonia"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "FI",
+    "countryName": {
+      "es": "Finlandia",
+      "en": "Finland"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "FR",
+    "countryName": {
+      "es": "Francia",
+      "en": "France"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "DE",
+    "countryName": {
+      "es": "Alemania",
+      "en": "Germany"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "GR",
+    "countryName": {
+      "es": "Grecia",
+      "en": "Greece"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "HU",
+    "countryName": {
+      "es": "Hungría",
+      "en": "Hungary"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "IE",
+    "countryName": {
+      "es": "Irlanda",
+      "en": "Ireland"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "IT",
+    "countryName": {
+      "es": "Italia",
+      "en": "Italy"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "LV",
+    "countryName": {
+      "es": "Letonia",
+      "en": "Latvia"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "LT",
+    "countryName": {
+      "es": "Lituania",
+      "en": "Lithuania"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "LU",
+    "countryName": {
+      "es": "Luxemburgo",
+      "en": "Luxembourg"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "MT",
+    "countryName": {
+      "es": "Malta",
+      "en": "Malta"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "NL",
+    "countryName": {
+      "es": "Países Bajos",
+      "en": "Netherlands"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "PL",
+    "countryName": {
+      "es": "Polonia",
+      "en": "Poland"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "PT",
+    "countryName": {
+      "es": "Portugal",
+      "en": "Portugal"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "RO",
+    "countryName": {
+      "es": "Rumanía",
+      "en": "Romania"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "SK",
+    "countryName": {
+      "es": "Eslovaquia",
+      "en": "Slovakia"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "SI",
+    "countryName": {
+      "es": "Eslovenia",
+      "en": "Slovenia"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "ES",
+    "countryName": {
+      "es": "España",
+      "en": "Spain"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  },
+  {
+    "countryCode": "SE",
+    "countryName": {
+      "es": "Suecia",
+      "en": "Sweden"
+    },
+    "number": "112",
+    "service": {
+      "es": "Emergencias · solicita Policía",
+      "en": "Emergency services · ask for police"
+    },
+    "source": "https://digital-strategy.ec.europa.eu/en/policies/112",
+    "verifiedAt": "2026-11-12"
+  }
+]
