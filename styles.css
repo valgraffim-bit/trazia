@@ -716,3 +716,6 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 @media (max-width: 350px) { .report-category { font-size: 13px; min-height: 108px; } }
 
 .report-scope { flex-shrink: 0; margin: 0; padding: 8px 16px; color: #bec8d3; background: #272c31; text-align: center; font-size: 12px; }
+
+#save-report:disabled { opacity: .5; cursor: wait; }
+#report-reconnect { margin-left: 10px; min-height: 34px; border: 1px solid #61717d; border-radius: 8px; padding: 5px 10px; color: #e8f9f5; background: #30434d; font: inherit; font-size: 12px; cursor: pointer; }

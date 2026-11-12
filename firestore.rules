@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function validReport(data) {
+      return data.keys().hasOnly(['type','details','lat','lng','locationSource','subtype','placeName','fuel','authorId','createdAt'])
+        && data.keys().hasAll(['type','details','lat','lng','locationSource','authorId','createdAt'])
+        && data.type in ['traffic','police','crash','security','hazard','lane','closure','map','animal','weather','fuel','assistance','place']
+        && data.details is string && data.details.size() <= 180
+        && data.lat is number && data.lat >= -90 && data.lat <= 90
+        && data.lng is number && data.lng >= -180 && data.lng <= 180
+        && data.locationSource in ['gps','map']
+        && (!('subtype' in data) || (data.subtype is string && data.subtype.size() <= 80))
+        && (!('placeName' in data) || (data.placeName is string && data.placeName.size() > 0 && data.placeName.size() <= 100))
+        && (!(data.type in ['fuel','place']) || ('placeName' in data))
+        && (data.type != 'fuel' || ('fuel' in data && validFuel(data.fuel)))
+        && (!('fuel' in data) || (data.type == 'fuel' && validFuel(data.fuel)))
+        && data.authorId == request.auth.uid && data.createdAt == request.time;
+    }
+    function validFuel(fuel) {
+      return fuel is map && fuel.keys().hasOnly(['type','price','currency','unit'])
+        && fuel.keys().hasAll(['type','price','currency','unit'])
+        && fuel.type in ['Gasolina corriente','Gasolina extra','Diésel','Gas natural','Energía eléctrica']
+        && fuel.price is number && fuel.price > 0 && fuel.price <= 1000000
+        && fuel.currency == 'COP' && fuel.unit in ['galón','litro','m³','kWh'];
+    }
+    function canReport() {
+      return !exists(/databases/$(database)/documents/reportLimits/$(request.auth.uid))
+        || get(/databases/$(database)/documents/reportLimits/$(request.auth.uid)).data.lastReportAt <= request.time - duration.value(30, 's');
+    }
+    match /communityReports/{reportId} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit != null && request.query.limit <= 500;
+      allow create: if signedIn() && validReport(request.resource.data) && canReport()
+        && getAfter(/databases/$(database)/documents/reportLimits/$(request.auth.uid)).data.reportId == reportId
+        && getAfter(/databases/$(database)/documents/reportLimits/$(request.auth.uid)).data.lastReportAt == request.time;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.authorId == request.auth.uid;
+    }
+    match /reportLimits/{userId} {
+      allow get: if signedIn() && userId == request.auth.uid;
+      allow list, delete: if false;
+      allow create, update: if signedIn() && userId == request.auth.uid && canReport()
+        && request.resource.data.keys().hasOnly(['lastReportAt','reportId'])
+        && request.resource.data.keys().hasAll(['lastReportAt','reportId'])
+        && request.resource.data.lastReportAt == request.time
+        && request.resource.data.reportId is string
+        && getAfter(/databases/$(database)/documents/communityReports/$(request.resource.data.reportId)).data.authorId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/communityReports/$(request.resource.data.reportId)).data.createdAt == request.time;
+    }
+  }
+}

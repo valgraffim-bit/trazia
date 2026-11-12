@@ -1,3 +1,7 @@
+# Versión local anterior
+
+Este documento describe el menú previo. Para la nueva integración compartida y su activación, ver [community-reports.md](community-reports.md). Los reportes locales anteriores se conservan privados.
+
 # Reportes
 
 La sección anterior «¿Qué estás viendo?» ahora se llama **Reportes**. Se abre desde los accesos existentes del menú, mapa o panel. Presenta 14 categorías en tres columnas: Tráfico, Policía, Accidente, Alerta de seguridad, Peligro, Carril bloqueado, Cierre, Error en el mapa, Animal, Mal tiempo, Precios de combustible, Asistencia en la ruta, Lugar y Depuración.

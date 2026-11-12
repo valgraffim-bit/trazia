@@ -2,7 +2,7 @@
 
 La introducción con logo y barra aparece primero. Después se muestra el registro o inicio de sesión y, tras autenticar al usuario, la confirmación de nombre y correo con **Aceptar y entrar**. El mapa y la solicitud de ubicación comienzan después de aceptar. Al volver a abrir con una sesión guardada, se muestran los datos para confirmar la entrada.
 
-El sitio GitHub Pages no tiene servidor de cuentas. Esta integración utiliza Firebase Authentication para correo/contraseña, Google, recuperación de contraseña y persistencia de sesión. No guarda contraseñas en localStorage ni en el repositorio. El nombre se guarda en el perfil de Firebase; los lugares guardados y reportes existentes siguen siendo locales y no se sincronizan entre cuentas. El acceso controla la interfaz: los archivos de GitHub Pages siguen siendo públicos. Cualquier futura base de datos privada requiere reglas de autorización del servidor.
+El sitio GitHub Pages no tiene servidor de cuentas. Esta integración utiliza Firebase Authentication para correo/contraseña, Google, recuperación de contraseña y persistencia de sesión. No guarda contraseñas en localStorage ni en el repositorio. El nombre se guarda en el perfil de Firebase; los lugares guardados y reportes anteriores siguen siendo locales. Los nuevos reportes comunitarios se comparten durante una hora al habilitar Cloud Firestore con las reglas del repositorio. El acceso controla la interfaz: los archivos de GitHub Pages siguen siendo públicos. Cualquier futura base de datos privada requiere reglas de autorización del servidor.
 
 ## Activación
 

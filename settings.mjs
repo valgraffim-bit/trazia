@@ -134,7 +134,7 @@ export function setupSettings({document, storage, preferences, hooks}) {
    const box=group('Actividad en este dispositivo');button(box,'Ver ubicaciones recientes',()=>{const list=$('settings-recent-list');list.replaceChildren();const items=hooks.recents();if(!items.length)list.append(note('Todavía no hay ubicaciones recientes.'));for(const item of items)list.append(el('p',typeof item==='string'?item:item.label||item.query||item.name||'Destino guardado','settings-help'));});const list=el('div');list.id='settings-recent-list';content.append(list);
    button(box,'Borrar ubicaciones recientes',()=>confirmAction('¿Borrar las ubicaciones recientes de este dispositivo?',hooks.clearRecents),'settings-danger');
    const account=group('Cuenta e inicio de sesión');mount(account,'account-logout');button(account,'Eliminar cuenta',()=>confirmAction('¿Eliminar tu cuenta de Trazia? Esta acción es permanente. Tus preferencias y lugares locales no se borran.',()=>{$('account-delete').click();}),'settings-danger');
-   content.append(note('Trazia no publica tu perfil ni tu ubicación en el mapa. Los lugares guardados, reportes y preferencias permanecen en este dispositivo.'));
+   content.append(note('Trazia no publica tu perfil ni tu ubicación en el mapa. Los lugares guardados y las preferencias permanecen en este dispositivo. Los reportes nuevos que publiques se comparten con otros usuarios durante 1 hora.'));
   }
   $('settings-back').setAttribute('aria-label',page==='root'?'Volver al mapa':'Volver a Ajustes');
   $('settings-scroll').scrollTop=0;

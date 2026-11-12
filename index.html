@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=60" />
+    <link rel="stylesheet" href="./styles.css?v=64" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -365,7 +365,7 @@
           <h2 id="report-dialog-title" tabindex="-1">Reportes</h2>
           <button type="button" aria-label="Cerrar reportes" data-close="report-dialog">×</button>
         </header>
-        <p class="report-scope" data-i18n="localReportScope">Solo en este dispositivo</p>
+        <div class="report-scope"><span id="report-connection-status" role="status" aria-live="polite">Conectando reportes compartidos…</span><button id="report-reconnect" type="button" hidden>Reconectar</button></div>
         <div id="report-scroll" class="report-browser-scroll">
           <div id="report-category-grid" class="report-category-grid"></div>
           <form id="report-form" class="report-detail-form" hidden>
@@ -383,14 +383,14 @@
             <textarea id="report-details" rows="3" maxlength="180" placeholder="Describí el reporte"></textarea>
             <p id="report-category-note" class="report-help"></p>
             <a id="report-emergency" class="report-emergency" href="tel:123" hidden>Llamar al 123 · Colombia</a>
-            <button class="report-save" id="save-report" type="button" data-i18n="publishReport">Guardar reporte</button>
+            <button class="report-save" id="save-report" type="button">Publicar reporte · 1 hora</button>
           </form>
           <section id="report-cleanup" hidden>
-            <p class="report-help">Revisá y eliminá los reportes incorrectos o antiguos de este dispositivo. Esto no modifica los datos del mapa.</p>
+            <p class="report-help">Revisá tus reportes. Solo podés eliminar los que publicaste vos o los que guardaste antes en este dispositivo.</p>
             <div id="report-cleanup-list"></div>
           </section>
           <p id="report-error" class="report-error" role="alert"></p>
-          <p class="report-local-note" data-i18n="localReports">Los reportes se guardan en este dispositivo; todavía no se comparten con otras personas.</p>
+          <p class="report-local-note">Al publicar, el tipo de reporte, la nota y la ubicación se comparten con los usuarios de Trazia durante 1 hora. No incluyas datos personales. Los reportes antiguos privados no se publican automáticamente.</p>
         </div>
       </div>
     </dialog>
@@ -438,7 +438,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=63"></script>
+    <script type="module" src="./app.js?v=64"></script>
   </body>
 </html>
 

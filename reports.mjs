@@ -19,8 +19,8 @@ export function validReportLocation(point) {
  return Boolean(point && Number.isFinite(point.lat) && Number.isFinite(point.lng) && Math.abs(point.lat)<=90 && Math.abs(point.lng)<=180);
 }
 
-export function setupReportMenu({document, language, center, position, reports, remove, message}) {
- const $=id=>document.getElementById(id);const dialog=$('report-dialog');let selected=null;
+export function setupReportMenu({document, language, center, position, reports, remove, message, reconnect}) {
+ const $=id=>document.getElementById(id);const dialog=$('report-dialog');let selected=null;let connection='connecting';let publishing=false;let revision=0;
  const local=(es,en)=>language()==='es'?es:en;
  function show(page) {
   $('report-error').textContent='';
@@ -33,6 +33,7 @@ export function setupReportMenu({document, language, center, position, reports, 
   $('report-location-preview').textContent=validReportLocation(point)?`${local('Ubicación del reporte','Report location')}: ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`:local('Ubicación no disponible. Activá tu ubicación o elegí un punto del mapa.','Location unavailable. Enable location or choose a map point.');
  }
  function choose(category) {
+  revision++;
   $('report-form').reset();
   selected=category;
   if(category.id==='cleanup'){renderCleanup();show('cleanup');return;}
@@ -42,7 +43,7 @@ export function setupReportMenu({document, language, center, position, reports, 
   $('report-name-row').hidden=!['fuel','place'].includes(category.id);$('report-place-name').required=['fuel','place'].includes(category.id);
   $('report-place-label').textContent=category.id==='fuel'?local('Nombre de la estación','Station name'):local('Nombre del lugar','Place name');
   $('report-fuel-fields').hidden=category.id!=='fuel';$('report-fuel-price').required=category.id==='fuel';
-  $('report-category-note').textContent=category.id==='assistance'?local('Este reporte no solicita ni envía servicios de asistencia. En una emergencia, llamá al 123 en Colombia.','This report does not request or dispatch assistance. In an emergency, call local emergency services.'):
+  $('report-category-note').textContent=category.id==='assistance'?local('Publicar este reporte no solicita ni envía servicios de asistencia. En una emergencia, llamá al 123 en Colombia.','This report does not request or dispatch assistance. In an emergency, call local emergency services.'):
    category.id==='fuel'?local('Precio observado por vos, en pesos colombianos (COP). Quedará marcado con la fecha; no es un precio verificado en vivo.','Your observed price in Colombian pesos (COP). It is dated, not a verified live price.'):
    category.id==='map'?local('Se guarda como reporte. No modifica automáticamente las vías o direcciones del mapa.','Saved as a report. It does not automatically edit map roads or addresses.'):
    local('Confirmá la ubicación antes de guardar el reporte.','Confirm the location before saving the report.');
@@ -62,8 +63,8 @@ export function setupReportMenu({document, language, center, position, reports, 
  function renderCleanup() {
   const list=$('report-cleanup-list');list.replaceChildren();
   for(const report of reports()){
-   const item=document.createElement('div');item.className='report-cleanup-item';const title=document.createElement('strong');const category=reportCategories.find(c=>c.id===report.type);title.textContent=category?.[language()]||category?.es||local('Reporte','Report');const description=document.createElement('p');description.textContent=report.details||report.subtype||'';const date=document.createElement('small');const stamp=new Date(report.createdAt);date.textContent=Number.isFinite(stamp.getTime())?stamp.toLocaleString(language()==='es'?'es-CO':'en-US'):'';
-   const button=document.createElement('button');button.type='button';button.className='report-remove';button.textContent=local('Eliminar','Delete');button.addEventListener('click',()=>{if(button.dataset.confirm!=='yes'){button.dataset.confirm='yes';button.textContent=local('Confirmar eliminación','Confirm deletion');return;}if(remove(report.id)!==false)renderCleanup();});item.append(title,description,date,button);list.append(item);
+   const item=document.createElement('div');item.className='report-cleanup-item';const title=document.createElement('strong');const category=reportCategories.find(c=>c.id===report.type);title.textContent=category?.[language()]||category?.es||local('Reporte','Report');const description=document.createElement('p');description.textContent=(report.shared?'':local('Anterior, privado · ','Earlier, private · '))+(report.details||report.subtype||'');const date=document.createElement('small');const stamp=new Date(report.createdAt);date.textContent=Number.isFinite(stamp.getTime())?stamp.toLocaleString(language()==='es'?'es-CO':'en-US'):'';
+   const button=document.createElement('button');button.type='button';button.className='report-remove';button.textContent=local('Eliminar','Delete');button.addEventListener('click',async()=>{if(button.dataset.confirm!=='yes'){button.dataset.confirm='yes';button.textContent=local('Confirmar eliminación','Confirm deletion');return;}button.disabled=true;try{if(await remove(report)!==false)renderCleanup();}catch{message(local('No se pudo eliminar el reporte. Intentá de nuevo.','Could not remove the report. Try again.'));}finally{button.disabled=false;}});item.append(title,description,date,button);list.append(item);
   }
   if(!reports().length){const text=document.createElement('p');text.className='report-help';text.textContent=local('No hay reportes guardados en este dispositivo.','There are no saved reports on this device.');list.append(text);}
  }
@@ -83,11 +84,23 @@ export function setupReportMenu({document, language, center, position, reports, 
   }
   return result;
  }
- $('report-back').addEventListener('click',()=>{selected=null;show('root');});
+ $('report-back').addEventListener('click',()=>{revision++;selected=null;show('root');});
  $('report-location-source').addEventListener('change',updateLocation);
  $('report-form').addEventListener('submit',event=>{event.preventDefault();$('save-report').click();});
- dialog.addEventListener('close',()=>{selected=null;$('report-form').reset();renderRoot();});
+ dialog.addEventListener('close',()=>{revision++;selected=null;$('report-form').reset();renderRoot();});
  const observer=new MutationObserver(()=>{if(dialog.open){renderRoot();$('report-dialog-title').focus({preventScroll:true});}});observer.observe(dialog,{attributes:true,attributeFilter:['open']});
- renderRoot();
- return {draft};
+ function setConnection(status) {
+  connection=status;
+  $('report-connection-status').textContent=status==='ready'?local('Compartidos · visibles durante 1 hora','Shared · visible for 1 hour'):status==='connecting'?local('Conectando reportes compartidos…','Connecting shared reports…'):status==='offline'?local('Sin conexión · solo reportes ya recibidos','Offline · previously received reports only'):local('Reportes compartidos no disponibles','Shared reports unavailable');
+  $('report-reconnect').hidden=!['offline','error'].includes(status);
+  setBusy(publishing);
+ }
+ function setBusy(value) {
+  publishing=value;
+  $('save-report').disabled=value||connection!=='ready';
+  $('save-report').textContent=value?local('Publicando…','Publishing…'):local('Publicar reporte · 1 hora','Publish report · 1 hour');
+ }
+ $('report-reconnect').addEventListener('click',()=>reconnect?.());
+ renderRoot();setConnection('connecting');
+ return {draft,setConnection,setBusy,revision:()=>revision};
 }

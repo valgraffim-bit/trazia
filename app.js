@@ -1,6 +1,7 @@
-import { setupReportMenu } from './reports.mjs?v=60';
+import { createCommunityReportService, watchCommunityReports, communityReportError } from './community-reports.mjs?v=64';
+import { setupReportMenu } from './reports.mjs?v=64';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
-import { loadPreferences, setupSettings } from './settings.mjs?v=61';
+import { loadPreferences, setupSettings } from './settings.mjs?v=64';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
@@ -44,12 +45,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       vehicleLabel: 'Tu vehículo', vehicleCar: 'Carro', vehicleMotorcycle: 'Moto', vehicleTruck: 'Camión', vehicleBicycle: 'Bicicleta', vehicleMotorcycleNote: 'Las rutas para moto están en beta; revisa las indicaciones en tu zona.', vehicleBicycleNote: 'Las rutas en bicicleta pueden variar según las vías disponibles en tu zona.', vehicleTruckNote: 'La ruta de camión aplica restricciones de peso y dimensiones estándar; configúralas para mayor precisión.', vehicleTruckUnavailable: 'No se pudo calcular esta ruta para el camión seleccionado.', destinationMarkerLabel: 'Llegada', view3d: 'Activar vista 3D', view2d: 'Activar vista 2D', compassSwitchNorth: 'Cambiar a norte arriba', compassSwitchFollow: 'Seguir rumbo del vehículo', compassNorthActive: 'Brújula: norte arriba', compassFollowActive: 'Brújula: siguiendo el rumbo del vehículo', musicConnect: 'Conectar música', musicKicker: 'MÚSICA', musicTitle: 'Conecta tu app de música', musicIntegrationNote: 'Elige tu servicio y Trazia lo abrirá en este dispositivo. Los controles directos de reproducción requieren una conexión autorizada del proveedor.', musicOpen: 'Abrir', musicChosen: 'Elegida', musicOpening: 'Abriendo la app de música…',
       destinationPrompt: '¿A dónde quieres ir?', destinationPlaceholder: 'Dirección y municipio, negocio o lugar', findRoute: 'Buscar ruta', myLocation: 'Mi ubicación', nearbyTitle: 'Explora cerca de tu ruta', clear: 'Limpiar', suggestionLoading: 'Buscando direcciones y lugares…', chooseAddress: 'Elige una dirección o establecimiento de la lista para calcular la ruta.', autocompleteUnavailable: 'No se pudo consultar la búsqueda de direcciones. Intenta otra vez.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gasolineras', clinics: 'Clínicas', pharmacies: 'Farmacias', businesses: 'Negocios', suggestedRoute: 'RUTA TRAZIA', sampleDestination: 'Tu destino', lessTraffic: 'Ruta sugerida', minutes: 'min', kilometers: 'km', estimatedTime: 'Tiempo estimado', distance: 'Distancia', avoidTolls: 'Evitar peajes', startNavigation: 'Iniciar navegación', stopNavigation: 'Detener navegación', finishNavigation: 'Terminar', sampleTraffic: 'Tiempo estimado sin ajuste por tráfico', sampleNote: 'Ruta calculada con datos abiertos; el tiempo no se ajusta por tráfico.', emptyRoute: 'Busca un destino para ver tu ruta.', arrivalTime: 'Llegada', routeDistanceLabel: 'Distancia', routeDurationLabel: 'Tiempo',
-      communityTitle: 'Reportes', communityCopy: 'Registrá incidentes, peligros y novedades en la vía.', report: 'Reportar', localReportScope: 'Solo en este dispositivo', localReports: 'Los reportes se guardan en este dispositivo; todavía no se comparten con otras personas.', worldReady: 'Diseñada para usar en cualquier lugar', mapProviderLabel: 'Mapa Trazia', sampleMap: 'Mapa de Trazia', reportsLayer: 'Reportes', mapCaption: 'Mapa Trazia · datos abiertos de OpenStreetMap', mapCredits: 'Créditos del mapa',
+      communityTitle: 'Reportes', communityCopy: 'Compartí novedades de la vía durante 1 hora.', report: 'Reportar', sharedReportNote: 'Reporte de la comunidad · vigencia de 1 hora', localReportScope: 'Solo en este dispositivo', localReports: 'Los reportes se guardan en este dispositivo; todavía no se comparten con otras personas.', worldReady: 'Diseñada para usar en cualquier lugar', mapProviderLabel: 'Mapa Trazia', sampleMap: 'Mapa de Trazia', reportsLayer: 'Reportes', mapCaption: 'Mapa Trazia · datos abiertos de OpenStreetMap', mapCredits: 'Créditos del mapa',
       communityKicker: 'COMUNIDAD TRAZIA', reportTitle: 'Reportes', reportTypeLabel: 'Tipo de reporte', incidentTraffic: 'Tráfico detenido', incidentCrash: 'Choque', incidentHazard: 'Peligro u obstáculo', incidentClosure: 'Cierre de vía', incidentPlace: 'Lugar nuevo o incorrecto', reportDetailsLabel: 'Nota breve (opcional)', reportDetailsPlaceholder: 'Describe lo que ves', reportLocationNote: 'El reporte se asociará al centro del mapa. En esta versión solo queda guardado en este dispositivo.', cancel: 'Cancelar', publishReport: 'Guardar reporte',
       settingsKicker: 'CONFIGURACIÓN', settingsTitle: 'Mapa Trazia', settingsIntro: 'Trazia usa datos abiertos de OpenStreetMap, un diseño propio y rutas de código abierto.', themeLabel: 'Apariencia', themeAuto: 'Automática: clara de día, oscura de noche', themeLight: 'Clara', themeDark: 'Oscura', mapDataNote: 'Mapa base: OpenStreetMap. Las sugerencias de direcciones vienen de datos abiertos; las rutas y el tiempo son aproximados y no tienen tráfico en vivo.', openStreetMapCredits: 'Créditos y licencia de OpenStreetMap', mapProviderLabel: 'Servicio OpenFreeMap',
       noDestination: 'Escribe o dicta un destino primero.', demoRoute: 'El mapa todavía se está cargando. Intenta de nuevo en unos segundos.', noLocation: 'No se pudo obtener tu ubicación. Permite el acceso a ubicación e inténtalo de nuevo.', locationUnsupported: 'Este navegador no ofrece acceso a la ubicación.', routeLocationDenied: 'Permite que el navegador comparta tu ubicación para iniciar la ruta.', routeLocationUnavailable: 'No se pudo detectar tu ubicación. Pulsa Mi ubicación y revisa los ajustes de ubicación del celular.', routeNotFound: 'No encontramos esa ruta. Revisa el destino e incluye ciudad y país.', routeApiError: 'El servicio de rutas rechazó la consulta. Intenta de nuevo en unos minutos.', routeServiceError: 'No se pudo conectar con el servicio de rutas abiertas. Inténtalo otra vez.', voiceUnsupported: 'El reconocimiento de voz no está disponible aquí. Puedes escribir el destino.', voiceListening: 'Escuchando… di el destino.', voiceError: 'No se pudo escuchar el destino. Inténtalo otra vez.', searchError: 'No se pudo calcular esa ruta. Revisa el destino y vuelve a intentarlo.', autocompleteNoResults: 'No encontramos coincidencias. Prueba con otra dirección o agrega la ciudad.', vehicleChangedRoute: 'Vehículo cambiado. Busca la ruta de nuevo.',
       connecting: 'Buscando lugares…', mapError: 'No se pudo cargar el mapa abierto. Revisa tu conexión a internet.', invalidCategory: 'No se encontraron lugares en esta zona.', nearbyNeedsMaps: 'Activa la ubicación para encontrar lugares cerca de ti.', clearPlaces: 'Lugares quitados del mapa.', trafficEnabled: 'Reportes visibles en el mapa.', trafficDisabled: 'Reportes ocultos en el mapa.',
-      reportSaved: 'Reporte guardado en este dispositivo.', reportRequired: 'No se pudo guardar el reporte.', routeReady: 'Ruta calculada con OpenStreetMap. El tiempo es aproximado y no incluye tráfico en vivo.', navigationNeedsRoute: 'Busca una ruta antes de iniciar la navegación.', navigationLocation: 'Activa tu ubicación para iniciar la guía por voz.', navigationStarted: 'Guía por voz iniciada.', navigationStopped: 'Navegación detenida.', navigationFollowRoute: 'Sigue la ruta marcada.', rerouting: 'Te saliste de la ruta. Recalculando…', rerouteReady: 'Ruta actualizada desde tu ubicación.', rerouteFailed: 'No se pudo recalcular. Sigue la línea morada.', arrived: 'Has llegado a tu destino.', nextInstruction: 'Siguiente indicación', demoNotice: 'El mapa necesita conexión a internet para cargar los datos abiertos.',
+      reportSaved: 'Reporte publicado. Será visible durante 1 hora.', reportRequired: 'No se pudo guardar el reporte.', routeReady: 'Ruta calculada con OpenStreetMap. El tiempo es aproximado y no incluye tráfico en vivo.', navigationNeedsRoute: 'Busca una ruta antes de iniciar la navegación.', navigationLocation: 'Activa tu ubicación para iniciar la guía por voz.', navigationStarted: 'Guía por voz iniciada.', navigationStopped: 'Navegación detenida.', navigationFollowRoute: 'Sigue la ruta marcada.', rerouting: 'Te saliste de la ruta. Recalculando…', rerouteReady: 'Ruta actualizada desde tu ubicación.', rerouteFailed: 'No se pudo recalcular. Sigue la línea morada.', arrived: 'Has llegado a tu destino.', nextInstruction: 'Siguiente indicación', demoNotice: 'El mapa necesita conexión a internet para cargar los datos abiertos.',
       categoryGas: 'Gasolineras', categoryClinic: 'Clínicas', categoryPharmacy: 'Farmacias', categoryBusiness: 'Negocios', nearbyPlaces: 'Lugares cercanos', rating: 'Calificación', noAddress: 'Dirección no disponible', incidentSaved: 'Reporte',
     },
     en: {
@@ -60,12 +61,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       vehicleLabel: 'Your vehicle', vehicleCar: 'Car', vehicleMotorcycle: 'Motorcycle', vehicleTruck: 'Truck', vehicleBicycle: 'Bicycle', vehicleMotorcycleNote: 'Motorcycle routes are in beta; check the directions in your area.', vehicleBicycleNote: 'Bicycle routes can vary depending on the roads available in your area.', vehicleTruckNote: 'Truck routes use standard weight and size limits; configure them for better accuracy.', vehicleTruckUnavailable: 'Could not calculate this route for the selected truck.', destinationMarkerLabel: 'Destination', view3d: 'Turn on 3D view', view2d: 'Turn on 2D view', compassSwitchNorth: 'Switch to north up', compassSwitchFollow: 'Follow vehicle heading', compassNorthActive: 'Compass: north up', compassFollowActive: 'Compass: following vehicle heading', musicConnect: 'Connect music', musicKicker: 'MUSIC', musicTitle: 'Connect your music app', musicIntegrationNote: 'Choose a service and Trazia will open it on this device. Direct playback controls require an authorized provider connection.', musicOpen: 'Open', musicChosen: 'Selected', musicOpening: 'Opening your music app…',
       destinationPrompt: 'Where would you like to go?', destinationPlaceholder: 'Address and municipality, business or place', findRoute: 'Find route', myLocation: 'My location', nearbyTitle: 'Explore along your route', clear: 'Clear', suggestionLoading: 'Searching addresses and places…', chooseAddress: 'Choose the correct address from the list to calculate your route.', autocompleteUnavailable: 'Address search is unavailable right now. Please try again.', autocompleteAttribution: '© OpenStreetMap contributors',
       gasStations: 'Gas stations', clinics: 'Clinics', pharmacies: 'Pharmacies', businesses: 'Businesses', suggestedRoute: 'TRAZIA ROUTE', sampleDestination: 'Your destination', lessTraffic: 'Suggested route', minutes: 'min', kilometers: 'km', estimatedTime: 'Estimated time', distance: 'Distance', avoidTolls: 'Avoid tolls', startNavigation: 'Start navigation', stopNavigation: 'Stop navigation', finishNavigation: 'Finish', sampleTraffic: 'Travel time estimate excludes traffic', sampleNote: 'Open data route; travel time does not adjust for traffic.', emptyRoute: 'Search for a destination to see your route.', arrivalTime: 'Arrival', routeDistanceLabel: 'Distance', routeDurationLabel: 'Time',
-      communityTitle: 'Reports', communityCopy: 'Record incidents, hazards and road updates.', report: 'Report', localReportScope: 'On this device only', localReports: 'Reports are saved on this device; they are not yet shared with other people.', worldReady: 'Designed to work anywhere', mapProviderLabel: 'Trazia map', sampleMap: 'Trazia map', reportsLayer: 'Reports', mapCaption: 'Trazia map · open OpenStreetMap data', mapCredits: 'Map credits',
+      communityTitle: 'Reports', communityCopy: 'Share road updates for 1 hour.', report: 'Report', sharedReportNote: 'Community report · visible for 1 hour', localReportScope: 'On this device only', localReports: 'Reports are saved on this device; they are not yet shared with other people.', worldReady: 'Designed to work anywhere', mapProviderLabel: 'Trazia map', sampleMap: 'Trazia map', reportsLayer: 'Reports', mapCaption: 'Trazia map · open OpenStreetMap data', mapCredits: 'Map credits',
       communityKicker: 'TRAZIA COMMUNITY', reportTitle: 'Reports', reportTypeLabel: 'Report type', incidentTraffic: 'Stopped traffic', incidentCrash: 'Crash', incidentHazard: 'Hazard or obstacle', incidentClosure: 'Road closure', incidentPlace: 'New or incorrect place', reportDetailsLabel: 'Short note (optional)', reportDetailsPlaceholder: 'Describe what you see', reportLocationNote: 'The report will be linked to the center of the map. In this version it is saved only on this device.', cancel: 'Cancel', publishReport: 'Save report',
       settingsKicker: 'SETTINGS', settingsTitle: 'Trazia map', settingsIntro: 'Trazia uses open OpenStreetMap data, its own design, and open-source routing.', themeLabel: 'Appearance', themeAuto: 'Automatic: light by day, dark at night', themeLight: 'Light', themeDark: 'Dark', mapDataNote: 'Base map: OpenStreetMap. Address suggestions use open data; routes and travel time are estimates without live traffic.', openStreetMapCredits: 'OpenStreetMap credits and licence', mapProviderLabel: 'OpenFreeMap service',
       noDestination: 'Enter or say a destination first.', demoRoute: 'The map is still loading. Try again in a few seconds.', noLocation: 'Your location could not be found. Allow location access and try again.', locationUnsupported: 'This browser does not provide location access.', routeLocationDenied: 'Allow your browser to share your location to start the route.', routeLocationUnavailable: 'Your location could not be detected. Tap My location and check your phone location settings.', routeNotFound: 'We could not find that route. Check the destination, including city and country.', routeApiError: 'The open routing service rejected the request. Try again shortly.', routeServiceError: 'Could not connect to the open routing service. Please try again.', voiceUnsupported: 'Voice recognition is not available here. You can type your destination.', voiceListening: 'Listening… say your destination.', voiceError: 'Could not hear the destination. Please try again.', searchError: 'Could not calculate that route. Check the destination and try again.', autocompleteNoResults: 'No matches found. Try another address or add the city.', vehicleChangedRoute: 'Vehicle changed. Search for the route again.',
       connecting: 'Searching places…', mapError: 'The open map could not load. Check your internet connection.', invalidCategory: 'No places were found in this area.', nearbyNeedsMaps: 'Turn on location to find places nearby.', clearPlaces: 'Places cleared from the map.', trafficEnabled: 'Reports are visible on the map.', trafficDisabled: 'Reports are hidden from the map.',
-      reportSaved: 'Report saved on this device.', reportRequired: 'Could not save the report.', routeReady: 'Route calculated from OpenStreetMap. Travel time is an estimate and does not include live traffic.', navigationNeedsRoute: 'Find a route before starting navigation.', navigationLocation: 'Enable your location to start voice guidance.', navigationStarted: 'Voice guidance started.', navigationStopped: 'Navigation stopped.', navigationFollowRoute: 'Follow the marked route.', rerouting: 'You left the route. Recalculating…', rerouteReady: 'Route updated from your location.', rerouteFailed: 'Could not recalculate. Follow the purple line.', arrived: 'You have arrived at your destination.', nextInstruction: 'Next direction', demoNotice: 'The map needs an internet connection to load open map data.',
+      reportSaved: 'Report published. It will be visible for 1 hour.', reportRequired: 'Could not save the report.', routeReady: 'Route calculated from OpenStreetMap. Travel time is an estimate and does not include live traffic.', navigationNeedsRoute: 'Find a route before starting navigation.', navigationLocation: 'Enable your location to start voice guidance.', navigationStarted: 'Voice guidance started.', navigationStopped: 'Navigation stopped.', navigationFollowRoute: 'Follow the marked route.', rerouting: 'You left the route. Recalculating…', rerouteReady: 'Route updated from your location.', rerouteFailed: 'Could not recalculate. Follow the purple line.', arrived: 'You have arrived at your destination.', nextInstruction: 'Next direction', demoNotice: 'The map needs an internet connection to load open map data.',
       categoryGas: 'Gas stations', categoryClinic: 'Clinics', categoryPharmacy: 'Pharmacies', categoryBusiness: 'Businesses', nearbyPlaces: 'Nearby places', rating: 'Rating', noAddress: 'Address unavailable', incidentSaved: 'Report',
     },
   };
@@ -154,7 +155,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     isRerouting: false,
     voiceEnabled: localStorage.getItem('trazia:voice') !== 'off',
     toastTimer: null,
-    reports: readReports(),
+    reports: [],
+    legacyReports: readReports(),
+    communityUser: null,
+    reportService: null,
+    reportFeed: null,
+    reportStatus: 'connecting',
+    reportSession: 0,
+    publishingReport: false,
     savedPlaces: readSavedPlaces(),
     savedPlaceMarkers: [],
     savedPlaceSearchId: 0,
@@ -2384,27 +2392,64 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     return state.currentPosition;
   }
 
-  function saveReport() {
+  function updateCommunityReportStatus(status, error) {
+    state.reportStatus = status;
+    reportMenu?.setConnection(status);
+    if (error) console.info('Trazia shared reports:', error.code || error.message);
+  }
+
+  async function connectCommunityReports(user) {
+    state.reportFeed?.stop();
+    const session = ++state.reportSession;
+    state.reportFeed = null;
+    state.reportService = null;
+    state.communityUser = user;
+    state.publishingReport = false;
+    reportMenu?.setBusy(false);
+    updateCommunityReportStatus('connecting');
+    try {
+      const service = await createCommunityReportService(window.TRAZIA_CONFIG?.firebase, user);
+      if (session !== state.reportSession) return;
+      state.reportService = service;
+      state.reportFeed = watchCommunityReports(service, {
+        onReports: (reports) => {
+          if (session !== state.reportSession) return;
+          state.reports = reports;
+          if (state.mapReady) renderSavedReportMarkers(); else renderReportCount();
+        },
+        onStatus: (status, error) => { if (session === state.reportSession) updateCommunityReportStatus(status, error); },
+      });
+    } catch (error) {
+      if (session === state.reportSession) updateCommunityReportStatus('error', error);
+    }
+  }
+
+  async function saveReport() {
+    if (state.publishingReport) return;
     const draft = reportMenu.draft();
     if (!draft) return;
-    const report = {
-      ...draft,
-      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      createdAt: new Date().toISOString(),
-    };
-    const next = [report, ...state.reports].slice(0, 100);
-    try {
-      localStorage.setItem('trazia:reports', JSON.stringify(next));
-    } catch {
-      $('#report-error').textContent = t('reportRequired');
-      showToast(t('reportRequired'), true);
+    if (!state.reportService || state.reportStatus !== 'ready' || navigator.onLine === false) {
+      $('#report-error').textContent = communityReportError({code: 'offline'});
       return;
     }
-    state.reports = next;
-    if (state.mapReady) renderSavedReportMarkers();
-    else renderReportCount();
-    closeDialog(reportDialog);
-    showToast(t('reportSaved'));
+    const session = state.reportSession;
+    const revision = reportMenu.revision();
+    state.publishingReport = true;
+    reportMenu.setBusy(true);
+    try {
+      await state.reportService.publish(draft);
+      if (session !== state.reportSession) return;
+      if (reportDialog.open && reportMenu.revision() === revision) closeDialog(reportDialog);
+      showToast(t('reportSaved'));
+    } catch (error) {
+      if (session !== state.reportSession) return;
+      $('#report-error').textContent = communityReportError(error);
+    } finally {
+      if (session === state.reportSession) {
+        state.publishingReport = false;
+        reportMenu.setBusy(false);
+      }
+    }
   }
 
   function addReportMarker(report) {
@@ -2442,7 +2487,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       details.append(time);
     }
     const source = document.createElement('small');
-    source.textContent = t('localReports');
+    source.textContent = t(report.shared ? 'sharedReportNote' : 'localReports');
     details.append(source);
     const popup = new maplibregl.Popup({ offset: 22, maxWidth: '260px' }).setDOMContent(details);
     const marker = new maplibregl.Marker({ element: markerElement, anchor: 'bottom' })
@@ -3011,13 +3056,19 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     setupEvents();
     reportMenu = setupReportMenu({ document, language: () => state.language,
       center: currentMapCenter, position: () => state.currentPosition,
-      reports: () => state.reports,
-      message: (text) => { $('#report-error').textContent = text; showToast(text, true); },
-      remove: (id) => {
-        const next = state.reports.filter((report) => report.id !== id);
-        try { localStorage.setItem('trazia:reports', JSON.stringify(next)); }
-        catch { $('#report-error').textContent = t('reportRequired'); showToast(t('reportRequired'), true); return false; }
-        state.reports = next;
+      reports: () => [...state.reports.filter((report) => report.authorId === state.communityUser?.uid), ...state.legacyReports],
+      message: (text) => { $('#report-error').textContent = text; },
+      reconnect: () => { if (state.communityUser) void connectCommunityReports(state.communityUser); },
+      remove: async (report) => {
+        if (report.shared) {
+          if (report.authorId !== state.communityUser?.uid || !state.reportService || navigator.onLine === false) throw new Error('offline');
+          await state.reportService.remove(report.id);
+          state.reports = state.reports.filter((item) => item.id !== report.id);
+        } else {
+          const next = state.legacyReports.filter((item) => item.id !== report.id);
+          localStorage.setItem('trazia:reports', JSON.stringify(next));
+          state.legacyReports = next;
+        }
         if (state.mapReady) renderSavedReportMarkers(); else renderReportCount();
         return true;
       },
@@ -3055,7 +3106,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     setupAccountScreen({
       document,
       config: window.TRAZIA_CONFIG?.firebase,
-      onEnter: () => {
+      onEnter: (user) => {
+        void connectCommunityReports(user);
         if (!mapStarted) {
           mapStarted = true;
           initializeMap();
@@ -3065,6 +3117,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        state.reportFeed?.stop();
+        state.reportSession += 1;
+        state.reportFeed = null;
+        state.reportService = null;
+        state.communityUser = null;
+        state.publishingReport = false;
+        updateCommunityReportStatus('signedout');
         $('#voice-search-dialog').close();
         if (state.isNavigating) stopNavigation(false);
         [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog].forEach((dialog) => dialog.close());
@@ -3077,8 +3136,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     window.addEventListener('focus', () => { void requestNavigationWakeLock(); });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) suspendAppView();
-      else resumeAppView();
+      else { resumeAppView(); state.reportFeed?.refresh(); }
     });
+    window.addEventListener('online', () => { if (state.communityUser && state.reportStatus !== 'ready') void connectCommunityReports(state.communityUser); });
+    window.addEventListener('offline', () => { if (state.communityUser) updateCommunityReportStatus('offline'); });
     window.addEventListener('pagehide', suspendAppView);
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) state.resumeSplashPending = true;
