@@ -682,3 +682,37 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
   #wide-map-voice-search { display: grid; }
   #map-voice-search { display: none; }
 }
+
+/* Reports: categories first, then details and location confirmation. */
+.modal.report-browser { position: fixed; inset: max(8px, env(safe-area-inset-top)) 0 0; width: min(100%, 560px); max-width: none; height: calc(100dvh - max(8px, env(safe-area-inset-top))); max-height: none; margin: 0 auto; padding: 0; border: 1px solid #ffffff20; border-bottom: 0; border-radius: 24px 24px 0 0; color: #eff1f4; background: #202226; }
+.report-browser-card { height: 100%; display: flex; flex-direction: column; }
+.report-browser-header { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; flex-shrink: 0; padding: 16px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left)); border-bottom: 1px solid #ffffff28; }
+.report-browser-header h2 { grid-column: 2; margin: 0; text-align: center; font-size: 23px; line-height: 1.2; color: #eff1f4; }
+.report-browser-header button { width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; color: #eff1f4; background: transparent; font: inherit; font-size: 32px; cursor: pointer; }
+.report-browser-header button:last-child { grid-column: 3; }
+.report-browser-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; flex: 1; padding: 18px max(16px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.report-category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 8px; }
+.report-category { display: flex; flex-direction: column; align-items: center; gap: 9px; min-height: 118px; padding: 8px 0; border: 0; border-radius: 16px; color: #eef0f3; background: transparent; font: inherit; font-size: 15px; font-weight: 650; line-height: 1.25; cursor: pointer; }
+.report-category-icon { display: grid; place-items: center; width: clamp(58px, 17vw, 84px); height: clamp(58px, 17vw, 84px); flex-shrink: 0; border-radius: 50%; color: white; background: #383c40; font-size: clamp(32px, 9vw, 44px); }
+.report-category:hover, .report-category:active { background: #ffffff0d; }
+.report-detail-form { display: grid; gap: 15px; }
+.report-detail-form label { display: grid; gap: 8px; color: #e1e6ec; font-size: 15px; font-weight: 600; }
+.report-detail-form input, .report-detail-form select, .report-detail-form textarea { width: 100%; min-width: 0; min-height: 46px; border: 1px solid #65717c; border-radius: 11px; padding: 11px; color: #f1f5fa; background: #2c3036; font: inherit; font-size: 16px; }
+#report-fuel-fields { display: grid; gap: 15px; }
+.report-help, .report-local-note { margin: 0; color: #b8c1cc; font-size: 13px; line-height: 1.5; }
+.report-local-note { margin-top: 24px; padding-top: 16px; border-top: 1px solid #ffffff20; }
+.report-save { min-height: 48px; padding: 12px; border: 0; border-radius: 12px; color: #072c27; background: #57dfc5; font: inherit; font-size: 16px; font-weight: 750; cursor: pointer; }
+.report-emergency { display: block; min-height: 44px; padding: 12px; border: 1px solid #ffaaaa; border-radius: 10px; color: #ffc2c2; text-align: center; font-size: 15px; }
+.report-cleanup-item { display: grid; gap: 8px; padding: 18px 0; border-bottom: 1px solid #ffffff28; overflow-wrap: anywhere; }
+.report-cleanup-item strong { font-size: 17px; }
+.report-cleanup-item p { margin: 0; font-size: 14px; }
+.report-cleanup-item small { color: #b8c1cc; font-size: 12px; }
+.report-remove { min-height: 44px; border: 1px solid #a86e6e; border-radius: 10px; color: #ffb1b1; background: transparent; font: inherit; font-size: 14px; cursor: pointer; }
+.report-error { margin: 15px 0; color: #ffb7ad; font-size: 14px; line-height: 1.4; }
+.report-error:empty { display: none; }
+.report-browser [hidden] { display: none !important; }
+.report-browser :focus-visible { outline: 3px solid #67e0d7; outline-offset: 3px; }
+.report-browser h2:focus { outline: none; }
+@media (max-width: 350px) { .report-category { font-size: 13px; min-height: 108px; } }
+
+.report-scope { flex-shrink: 0; margin: 0; padding: 8px 16px; color: #bec8d3; background: #272c31; text-align: center; font-size: 12px; }

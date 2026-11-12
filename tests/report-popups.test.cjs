@@ -16,7 +16,7 @@ function setup(){
 }
 test('all report symbols have accessible names and a popup with the correct type and description',()=>{
  const ctx=setup();
- for(const [type,label] of Object.entries({traffic:'Tráfico detenido',crash:'Choque',hazard:'Peligro u obstáculo',closure:'Cierre de vía',place:'Lugar nuevo o incorrecto'})){
+ for(const [type,label] of Object.entries({traffic:'Tráfico',crash:'Accidente',hazard:'Peligro',closure:'Cierre',place:'Lugar',police:'Policía',security:'Alerta de seguridad',lane:'Carril bloqueado',map:'Error en el mapa',animal:'Animal',weather:'Mal tiempo',fuel:'Precios de combustible',assistance:'Asistencia en la ruta'})){
   ctx.addReportMarker({type,details:'<img src=x onerror=alert(1)>',lat:3.45,lng:-76.53,createdAt:'2026-11-11T12:00:00Z'});
   const marker=ctx.state.reportMarkers.at(-1);
   assert.equal(marker.element.tag,'button');assert.equal(marker.element['aria-label'],label);

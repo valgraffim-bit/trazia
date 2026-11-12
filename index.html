@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=59" />
+    <link rel="stylesheet" href="./styles.css?v=60" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -358,25 +358,41 @@
       </form>
     </dialog>
 
-    <dialog class="modal" id="report-dialog">
-      <form class="modal-card" method="dialog" onsubmit="return false">
-        <div class="modal-header">
-          <div><span class="modal-kicker" data-i18n="communityKicker">COMUNIDAD TRAZIA</span><h2 data-i18n="reportTitle">¿Qué estás viendo?</h2></div>
-          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="report-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <dialog class="modal report-browser" id="report-dialog" aria-labelledby="report-dialog-title">
+      <div class="report-browser-card">
+        <header class="report-browser-header">
+          <button id="report-back" type="button" aria-label="Volver a Reportes" hidden>‹</button>
+          <h2 id="report-dialog-title" tabindex="-1">Reportes</h2>
+          <button type="button" aria-label="Cerrar reportes" data-close="report-dialog">×</button>
+        </header>
+        <p class="report-scope" data-i18n="localReportScope">Solo en este dispositivo</p>
+        <div id="report-scroll" class="report-browser-scroll">
+          <div id="report-category-grid" class="report-category-grid"></div>
+          <form id="report-form" class="report-detail-form" hidden>
+            <select id="report-type" hidden aria-label="Tipo de reporte"></select>
+            <label id="report-subtype-row">Tipo de reporte<select id="report-subtype"></select></label>
+            <label id="report-name-row" hidden><span id="report-place-label">Nombre del lugar</span><input id="report-place-name" type="text" maxlength="100" /></label>
+            <div id="report-fuel-fields" hidden>
+              <label>Combustible<select id="report-fuel-type"><option value="Gasolina corriente">Gasolina corriente</option><option value="Gasolina extra">Gasolina extra</option><option value="Diésel">Diésel</option><option value="Gas natural">Gas natural</option><option value="Energía eléctrica">Energía eléctrica</option></select></label>
+              <label>Precio observado (COP)<input id="report-fuel-price" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" /></label>
+              <label>Unidad del precio<select id="report-fuel-unit"><option value="galón">Por galón</option><option value="litro">Por litro</option><option value="m³">Por m³</option><option value="kWh">Por kWh</option></select></label>
+            </div>
+            <label>Ubicación<select id="report-location-source"><option value="map">Punto del mapa</option><option value="gps">Mi ubicación actual</option></select></label>
+            <p id="report-location-preview" class="report-help" aria-live="polite"></p>
+            <label for="report-details" data-i18n="reportDetailsLabel">Nota breve (opcional)</label>
+            <textarea id="report-details" rows="3" maxlength="180" placeholder="Describí el reporte"></textarea>
+            <p id="report-category-note" class="report-help"></p>
+            <a id="report-emergency" class="report-emergency" href="tel:123" hidden>Llamar al 123 · Colombia</a>
+            <button class="report-save" id="save-report" type="button" data-i18n="publishReport">Guardar reporte</button>
+          </form>
+          <section id="report-cleanup" hidden>
+            <p class="report-help">Revisá y eliminá los reportes incorrectos o antiguos de este dispositivo. Esto no modifica los datos del mapa.</p>
+            <div id="report-cleanup-list"></div>
+          </section>
+          <p id="report-error" class="report-error" role="alert"></p>
+          <p class="report-local-note" data-i18n="localReports">Los reportes se guardan en este dispositivo; todavía no se comparten con otras personas.</p>
         </div>
-        <label class="form-label" for="report-type" data-i18n="reportTypeLabel">Tipo de reporte</label>
-        <select id="report-type" class="form-control">
-          <option value="traffic" data-i18n="incidentTraffic">Tráfico detenido</option>
-          <option value="crash" data-i18n="incidentCrash">Choque</option>
-          <option value="hazard" data-i18n="incidentHazard">Peligro u obstáculo</option>
-          <option value="closure" data-i18n="incidentClosure">Cierre de vía</option>
-          <option value="place" data-i18n="incidentPlace">Lugar nuevo o incorrecto</option>
-        </select>
-        <label class="form-label" for="report-details" data-i18n="reportDetailsLabel">Nota breve (opcional)</label>
-        <textarea id="report-details" class="form-control" rows="3" maxlength="180" placeholder="Describe lo que ves" data-i18n-placeholder="reportDetailsPlaceholder"></textarea>
-        <p class="modal-note" data-i18n="reportLocationNote">El reporte se asociará al centro del mapa. En esta versión solo queda guardado en este dispositivo.</p>
-        <div class="modal-actions"><button class="secondary-button modal-cancel" type="button" data-close="report-dialog" data-i18n="cancel">Cancelar</button><button class="primary-button" id="save-report" type="button" data-i18n="publishReport">Guardar reporte</button></div>
-      </form>
+      </div>
     </dialog>
 
     <dialog class="voice-search-dialog" id="voice-search-dialog" aria-labelledby="voice-listening-title" aria-describedby="voice-listening-hint">
@@ -422,7 +438,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=59"></script>
+    <script type="module" src="./app.js?v=60"></script>
   </body>
 </html>
 
