@@ -36,3 +36,20 @@ test('propagates outages and cancellation for the app to use its fallback',async
  const controller=new AbortController();controller.abort();
  await assert.rejects(findCaliCandidates('KR 15 # 12-83, Cali',{center,signal:controller.signal,fetchFn:async(_url,{signal})=>{assert.equal(signal,controller.signal);throw new DOMException('Aborted','AbortError');}}),{name:'AbortError'});
 });
+
+test('accepts the supplied dash-before-hash spelling without changing suffix 3 or plate 45-53',async()=>{
+ const {caliAddressQuery}=await mod;
+ for(const query of ['Cra 83b 3 -# 45-53, Cali','Cra 83b 3 -# 45-53., Cali','Carrera 83B3 #45-53, Cali'])assert.equal(caliAddressQuery(query,null).key,'KR83B3#45-53');
+ assert.notEqual(caliAddressQuery('Cra 83B #45-53, Cali',null).key,'KR83B3#45-53');
+});
+test('nearby suggestions use real coordinates and distinguish actual doors from the missing requested number',async()=>{
+ const {findNearbyCaliCandidates}=await mod;let url;
+ const candidates=[point('KR 83 B 3 # 45 - 47',[-76.51784984,3.38404421],'Por Certificar'),point('KR 83 B 3 # 45 - 41',[-76.51790419,3.38404421]),point('KR 83 B # 45 - 53'),point('KR 183 B 3 # 45 - 53'),point('KR 83 B 3 # 145 - 53'),point('KR 83 B 3 # 45 - 900'),point('KR 83 B 3 # 45 - 49',[3.38,-76.51])];
+ const matches=await findNearbyCaliCandidates('Cra 83b 3 -#45-53, Cali',{fetchFn:async value=>{url=new URL(value);return{ok:true,json:async()=>({features:candidates})};}});
+ assert.equal(matches.length,2);assert.match(matches[0].properties.fullAddress,/47/);assert.equal(matches[0].properties.nearbyFor,'KR83B3#45-53');assert.equal(matches[0].properties.certification,'Por Certificar');assert.deepEqual(matches[0].geometry.coordinates,[-76.51784984,3.38404421]);assert.equal(url.searchParams.get('CQL_FILTER'),"nddirecc ILIKE 'KR%83%B%3%#%45%-%'");assert.equal(url.searchParams.get('count'),'100');
+});
+test('an exact address returned by the nearby query still takes priority; no nearby requests for other cities or places',async()=>{
+ const {findNearbyCaliCandidates}=await mod;
+ const matches=await findNearbyCaliCandidates('Cra 83B3 #45-53, Cali',options([point('KR 83 B 3 # 45 - 47'),point('KR 83 B 3 #45-53')]));assert.equal(matches.length,1);assert.equal(matches[0].properties.nearbyFor,undefined);assert.match(matches[0].properties.fullAddress,/53/);
+ for(const query of ['Negocio','Cra 83B3 #45-53, Bogotá'])assert.deepEqual(await findNearbyCaliCandidates(query,{fetchFn(){throw Error('Unexpected request');}}),[]);
+});

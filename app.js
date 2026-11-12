@@ -6,8 +6,8 @@ import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-
 
 import { parseWazeLocation } from './waze-links.mjs?v=27';
 import { findIgacCandidates } from './igac-cadastre.mjs?v=49';
-import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=45';
-import { findCaliCandidates } from './cali-addresses.mjs?v=45';
+import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=63';
+import { findCaliCandidates, findNearbyCaliCandidates } from './cali-addresses.mjs?v=63';
 import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=37';
 import { cameraFeatures, cameraApproach } from './speed-cameras.mjs?v=35';
 import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, congestionLayer } from './live-traffic.mjs?v=32';
@@ -447,7 +447,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       main.textContent = parts.main;
       copyBlock.append(main);
       const approximate = /#/.test(state.autocompleteQuery) && !feature.properties?.housenumber;
-      const secondaryText = [feature.properties?.geocoder === 'igac' ? (state.language === 'es' ? 'IGAC · Referencia del predio; acceso por confirmar' : 'IGAC · Parcel reference; entrance unconfirmed') : '', feature.properties?.geocoder === 'idesc' ? `IDESC Cali · ${feature.properties.certification || (state.language === 'es' ? 'Estado no indicado' : 'Status unavailable')}` : '',feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
+      const secondaryText = [feature.properties?.nearbyFor ? (state.language === 'es' ? 'Dirección cercana; no es el número solicitado' : 'Nearby address; not the requested house number') : '', feature.properties?.geocoder === 'igac' ? (state.language === 'es' ? 'IGAC · Referencia del predio; acceso por confirmar' : 'IGAC · Parcel reference; entrance unconfirmed') : '', feature.properties?.geocoder === 'idesc' ? `IDESC Cali · ${feature.properties.certification || (state.language === 'es' ? 'Estado no indicado' : 'Status unavailable')}` : '',feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
       if (secondaryText) {
         const secondary = document.createElement('span');
         secondary.className = 'destination-suggestion-secondary';
@@ -569,7 +569,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     state.autocompleteRequestId += 1;
     const [lng, lat] = feature.geometry.coordinates;
     const parts = photonFeatureParts(feature.properties || {}, state.autocompleteQuery);
-    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: ['esri', 'tomtom', 'idesc', 'igac'].includes(feature.properties?.geocoder), query: state.autocompleteQuery, approximate: Boolean(feature.properties?.approximate) };
+    state.selectedDestination = { label: parts.label, location: { lat, lng }, temporary: ['esri', 'tomtom', 'idesc', 'igac'].includes(feature.properties?.geocoder), query: state.autocompleteQuery, approximate: Boolean(feature.properties?.approximate), nearbyAddress: Boolean(feature.properties?.nearbyFor) };
     destinationInput.value = parts.label;
     closeDestinationSuggestions();
     collapseMobilePanel();
@@ -618,6 +618,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   function normalizeColombianAddressQuery(value) {
     return String(value || '')
+      .replace(/\s*[-–—]\s*#\s*/g, ' # ')
       .replace(/\b(?:cra|cr|kr)\b\.?/gi, 'carrera')
       .replace(/\bcl\b\.?/gi, 'calle')
       .replace(/\b(?:av|avda)\b\.?/gi, 'avenida')
@@ -631,7 +632,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function colombianAddressQueryVariants(value, includeCountry = false) {
-    const raw = String(value || '').trim();
+    const raw = String(value || '').trim().replace(/\s*[-–—]\s*#\s*/g, ' # ');
     const normalized = normalizeColombianAddressQuery(raw);
     const variants = [normalized, raw];
     const hashIndex = raw.indexOf('#');
@@ -650,7 +651,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function parseColombianStructuredAddress(value) {
-    const raw = String(value || '').trim();
+    const raw = String(value || '').trim().replace(/\s*[-–—]\s*#\s*/g, ' # ');
     const hashIndex = raw.indexOf('#');
     if (hashIndex < 0) return [];
     const street = normalizeColombianAddressQuery(raw.slice(0, hashIndex).split(',')[0]);
@@ -766,7 +767,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   async function findDestinationCandidates(query, center = state.currentPosition, signal, { allowNominatimFallback = false } = {}) {
-    const baseQuery = String(query || '').trim();
+    const baseQuery = String(query || '').trim().replace(/\s*[-–—]\s*#\s*/g, ' # ');
     const variants = colombianAddressQueryVariants(baseQuery, allowNominatimFallback);
     const usableCenter = isWithinColombiaSearchArea(center) ? center : null;
     const found = [];
@@ -867,6 +868,22 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         if (signal?.aborted) throw error;
         lastError = error;
       }
+    }
+    // Keep verified neighboring doors distinct from the unlocated house number.
+    const structured = parseColombianStructuredAddress(baseQuery)[0];
+    if (structured && !matches.some((feature) => feature.properties?.housenumber)) {
+      try {
+        state.nearbyAddressCache ||= new Map();
+        const key = `${baseQuery.toLowerCase()}:${usableCenter ? [usableCenter.lat.toFixed(2), usableCenter.lng.toFixed(2)].join(',') : 'none'}`;
+        const cached = state.nearbyAddressCache.get(key);
+        let nearby = cached && cached.expiresAt > Date.now() ? cached.features : null;
+        if (!nearby) {
+          nearby = await findNearbyCaliCandidates(baseQuery, {center: usableCenter, signal, fetchFn: (url, options) => fetchTimed(url, options, 3500)});
+          if (state.nearbyAddressCache.size >= 50) state.nearbyAddressCache.delete(state.nearbyAddressCache.keys().next().value);
+          state.nearbyAddressCache.set(key, {features: nearby, expiresAt: Date.now() + 5 * 60000});
+        }
+        if (nearby.length) { matches = [...nearby, ...matches].slice(0, 5); completedSearch = true; }
+      } catch (error) { if (signal?.aborted) throw error; }
     }
     // Many streets are mapped without individual house numbers. Offer the
     // actual street as an explicitly labelled suggestion, never invent a pin
@@ -1806,7 +1823,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       $('#route-duration').innerHTML = `${duration ?? '—'} <small>${t('minutes')}</small>`;
       $('#route-distance').innerHTML = `${distance !== null ? new Intl.NumberFormat(state.language === 'es' ? 'es' : 'en', { maximumFractionDigits: 1 }).format(distance) : '—'} <small>${state.settings?.units === 'mi' ? 'mi' : t('kilometers')}</small>`;
       updateRouteSummary(route);
-      $('#route-note').textContent = (automatic ? t('rerouteReady') : t('routeReady')) + (selected.approximate ? (state.language === 'es' ? ' Destino: referencia del predio; confirma el acceso.' : ' Destination: parcel reference; confirm the entrance.') : '');
+      $('#route-note').textContent = (automatic ? t('rerouteReady') : t('routeReady')) + (selected.nearbyAddress ? (state.language === 'es' ? ' Destino: dirección cercana seleccionada; el número solicitado no está confirmado.' : ' Destination: selected nearby address; requested house number is unconfirmed.') : '') + (selected.approximate ? (state.language === 'es' ? ' Destino: referencia del predio; confirma el acceso.' : ' Destination: parcel reference; confirm the entrance.') : '');
       state.navigationSteps = navigationSteps;
       state.activeStep = 0;
       $('#start-navigation').disabled = state.routeCoordinates.length < 2;

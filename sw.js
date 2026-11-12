@@ -1,9 +1,9 @@
-const CACHE_NAME = 'trazia-shell-v61';
+const CACHE_NAME = 'trazia-shell-v63';
 const APP_FILES = [
   './',
   './index.html',
   './styles.css?v=60',
-  './app.js?v=61',
+  './app.js?v=63',
   './auth.mjs?v=58',
   './settings.mjs?v=61',
   './voice-search.mjs?v=59',
@@ -22,8 +22,8 @@ const APP_FILES = [
   './assets/saved-places/other.png',
   './config.js?v=57',
   './tomtom-geocoding.mjs?v=37',
-  './cali-addresses.mjs?v=45',
-  './local-cali-addresses.mjs?v=45',
+  './cali-addresses.mjs?v=63',
+  './local-cali-addresses.mjs?v=63',
   './igac-cadastre.mjs?v=49',
   './data/cadastre/igac.json',
   './waze-links.mjs?v=27',
