@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const source = readFileSync(require('node:path').join(__dirname, '../app.js'), 'utf8');
 const names = ['normalizeGeocodeText', 'normalizeColombianAddressQuery', 'colombianAddressQueryVariants', 'parseColombianStructuredAddress', 'photonFeatureParts', 'photonFeatureSearchText', 'rankPhotonFeatures', 'isWithinColombiaSearchArea', 'makePhotonSearchParams', 'photonLanguage', 'isColombiaFeature', 'findDestinationCandidates'];
 function setup(fetchPhotonFeatures, nearby = async () => []) {
-  const context = vm.createContext({ window: {}, URLSearchParams, state: { language: 'es', currentPosition: null }, COLOMBIA_SEARCH_BOUNDS: { west: -82, east: -66, south: -5, north: 14 }, distanceMeters: () => 0, findArcgisCandidates: async () => [], findNearbyCaliCandidates: nearby, fetchPhotonFeatures, findNominatimCandidates: () => { throw Error('Autocomplete must not call Nominatim'); } });
+  const context = vm.createContext({ window: {}, URLSearchParams, findSearchLocations: () => [], state: { language: 'es', currentPosition: null }, COLOMBIA_SEARCH_BOUNDS: { west: -82, east: -66, south: -5, north: 14 }, distanceMeters: () => 0, findArcgisCandidates: async () => [], findNearbyCaliCandidates: nearby, fetchPhotonFeatures, findNominatimCandidates: () => { throw Error('Autocomplete must not call Nominatim'); } });
   for (const name of names) {
     const start = source.search(new RegExp(`  (?:async )?function ${name}\\(`));
     assert.ok(start >= 0, name);
@@ -132,4 +132,8 @@ test('falls back to existing services if TomTom denies the key', async () => {
 test('offers clearly tagged real nearby addresses when the requested number is absent, without adding map markers',async()=>{
  const nearby={type:'Feature',geometry:{type:'Point',coordinates:[-76.51784984,3.38404421]},properties:{geocoder:'idesc',fullAddress:'KR 83 B 3 # 45 - 47',housenumber:'45 - 47',nearbyFor:'KR83B3#45-53'}};let query;
  const ctx=setup(async()=>({features:[]}),async value=>{query=value;return[nearby];});const rows=await ctx.findDestinationCandidates('Cra 83b 3 -# 45-53, Cali');assert.equal(rows[0],nearby);assert.equal(query,'Cra 83b 3 # 45-53, Cali');assert.deepEqual(Array.from(rows[0].geometry.coordinates),[-76.51784984,3.38404421]);assert.equal(ctx.state.selectedDestination,undefined);
+});
+
+test('the shared exact address is returned before external geocoders without changing coordinates',async()=>{
+ const {findSearchLocations}=await import('../search-locations.mjs');const ctx=setup(async()=>{throw Error('No external query expected');});ctx.findSearchLocations=findSearchLocations;const features=await ctx.findDestinationCandidates('Cra 83b 3 -#45-53, Cali');assert.equal(features.length,1);assert.equal(features[0].properties.sharedLocation,true);assert.equal(features[0].properties.nearbyFor,undefined);assert.deepEqual(Array.from(features[0].geometry.coordinates),[-76.517773,3.384056]);
 });

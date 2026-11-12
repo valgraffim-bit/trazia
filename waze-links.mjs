@@ -1,3 +1,4 @@
+import { knownSharedWazePlace } from './search-locations.mjs?v=65';
 const WAZE_HOSTS = new Set(['waze.com', 'www.waze.com']);
 
 function importError(code) {
@@ -47,11 +48,17 @@ export function parseWazeLocation(text) {
   let location;
   let approximate = false;
   let sharedHash;
+  let label;
   if (url.searchParams.has('ll')) location = coordinates(url.searchParams.get('ll'));
   else if (url.searchParams.get('to')?.startsWith('ll.')) location = coordinates(url.searchParams.get('to').slice(3));
   else {
     const hash = url.searchParams.get('h') || url.pathname.match(/^\/ul\/h([0-9bcdefghjkmnpqrstuvwxyz]+)\/?$/i)?.[1];
-    if (hash) {
+    const placeId = url.searchParams.get('to')?.startsWith('place.') ? url.searchParams.get('to').slice(6) : null;
+    const known = knownSharedWazePlace(placeId);
+    if (known) {
+      location = known.location;
+      label = known.label;
+    } else if (hash) {
       sharedHash = hash.toLowerCase();
       location = geohashCenter(sharedHash);
       approximate = true;
@@ -60,5 +67,5 @@ export function parseWazeLocation(text) {
   // Keep only a canonical coordinate link, discarding tracking and other text.
   const canonical = new URL('https://www.waze.com/ul');
   canonical.searchParams.set(approximate ? 'h' : 'll', approximate ? sharedHash : `${location.lat},${location.lng}`);
-  return { location, approximate, link: canonical.toString() };
+  return { location, approximate, link: canonical.toString(), ...(label ? { label } : {}) };
 }

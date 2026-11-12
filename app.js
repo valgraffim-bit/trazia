@@ -1,3 +1,4 @@
+import { findSearchLocations } from './search-locations.mjs?v=65';
 import { createCommunityReportService, watchCommunityReports, communityReportError } from './community-reports.mjs?v=64';
 import { setupReportMenu } from './reports.mjs?v=64';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
@@ -5,7 +6,7 @@ import { loadPreferences, setupSettings } from './settings.mjs?v=64';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
-import { parseWazeLocation } from './waze-links.mjs?v=27';
+import { parseWazeLocation } from './waze-links.mjs?v=65';
 import { findIgacCandidates } from './igac-cadastre.mjs?v=49';
 import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=63';
 import { findCaliCandidates, findNearbyCaliCandidates } from './cali-addresses.mjs?v=63';
@@ -455,7 +456,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       main.textContent = parts.main;
       copyBlock.append(main);
       const approximate = /#/.test(state.autocompleteQuery) && !feature.properties?.housenumber;
-      const secondaryText = [feature.properties?.nearbyFor ? (state.language === 'es' ? 'Dirección cercana; no es el número solicitado' : 'Nearby address; not the requested house number') : '', feature.properties?.geocoder === 'igac' ? (state.language === 'es' ? 'IGAC · Referencia del predio; acceso por confirmar' : 'IGAC · Parcel reference; entrance unconfirmed') : '', feature.properties?.geocoder === 'idesc' ? `IDESC Cali · ${feature.properties.certification || (state.language === 'es' ? 'Estado no indicado' : 'Status unavailable')}` : '',feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
+      const secondaryText = [feature.properties?.sharedLocation ? (state.language === 'es' ? 'Ubicación del enlace compartido; confirmá el acceso' : 'Shared link location; confirm the entrance') : '', feature.properties?.nearbyFor ? (state.language === 'es' ? 'Dirección cercana; no es el número solicitado' : 'Nearby address; not the requested house number') : '', feature.properties?.geocoder === 'igac' ? (state.language === 'es' ? 'IGAC · Referencia del predio; acceso por confirmar' : 'IGAC · Parcel reference; entrance unconfirmed') : '', feature.properties?.geocoder === 'idesc' ? `IDESC Cali · ${feature.properties.certification || (state.language === 'es' ? 'Estado no indicado' : 'Status unavailable')}` : '',feature.properties?.geocoder === 'esri' ? (state.language === 'es' ? 'Dirección localizada · punto aproximado' : 'Address found · approximate point') : '', approximate ? (state.language === 'es' ? 'Calle encontrada; número exacto no disponible' : 'Street found; exact house number unavailable') : '', parts.secondary].filter(Boolean).join(' · ');
       if (secondaryText) {
         const secondary = document.createElement('span');
         secondary.className = 'destination-suggestion-secondary';
@@ -490,6 +491,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       source.target = '_blank'; source.rel = 'noopener noreferrer';
       source.textContent = 'Catastro público IGAC · CC BY-SA 4.0'; attribution.replaceChildren(source);
     }
+    if (state.autocompletePredictions.some(feature => feature.properties?.sharedLocation)) {
+      const source = document.createElement('a');
+      source.href = 'https://www.waze.com/es-MX/live-map/directions/co/valle-del-cauca/cali/cra.-83b-3-45-53?to=place.ChIJa_eLJRahMI4RX7x1pcEZXCM';
+      source.target = '_blank'; source.rel = 'noopener noreferrer';
+      source.textContent = state.language === 'es' ? 'Ubicación aportada mediante enlace compartido' : 'Location provided through a shared link';
+      attribution.replaceChildren(source);
+    }
     list.append(attribution);
   }
 
@@ -515,7 +523,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   function setWazeDestination(imported) {
     const { lat, lng } = imported.location;
-    const label = `${state.language === 'es' ? 'Ubicación de Waze' : 'Waze location'} · ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    const label = imported.label || `${state.language === 'es' ? 'Ubicación de Waze' : 'Waze location'} · ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     state.selectedDestination = { label, location: imported.location, wazeLink: imported.link };
     destinationInput.value = label;
     closeDestinationSuggestions();
@@ -591,7 +599,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       const secondary = [properties.district, properties.city, properties.state, properties.country].filter(Boolean).join(', ');
       return { main, secondary, label: [main, secondary].filter(Boolean).join(', ') };
     }
-    if (['idesc', 'igac'].includes(properties.geocoder)) {
+    if (['idesc', 'igac', 'shared-location'].includes(properties.geocoder)) {
       const main = properties.fullAddress || properties.name;
       const secondary = [properties.district, properties.city, properties.state, properties.country].filter(Boolean).join(', ');
       return { main, secondary, label: [main, secondary].filter(Boolean).join(', ') };
@@ -776,6 +784,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   async function findDestinationCandidates(query, center = state.currentPosition, signal, { allowNominatimFallback = false } = {}) {
     const baseQuery = String(query || '').trim().replace(/\s*[-–—]\s*#\s*/g, ' # ');
+    const shared = findSearchLocations(baseQuery);
+    if (shared.length) return shared;
     const variants = colombianAddressQueryVariants(baseQuery, allowNominatimFallback);
     const usableCenter = isWithinColombiaSearchArea(center) ? center : null;
     const found = [];
