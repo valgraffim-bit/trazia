@@ -3,6 +3,19 @@ const mod=import('../cali-addresses.mjs');
 const center={lat:3.45,lng:-76.53};
 function point(address='KR 15 # 12 - 83',coords=[-76.52895843,3.44289173],status='Certificada') {return{type:'Feature',geometry:{type:'Point',coordinates:coords},properties:{nddirecc:address,ndbarrio:'San Pascual',ndestado:status,ndfechcort:'2026-09-03Z'}};}
 function options(features){return{center,fetchFn:async()=>({ok:true,json:async()=>({features})})};}
+test('road aliases share exact Cali keys and source coordinates without merging road types or suffixes',async()=>{
+ const {caliAddressQuery,findCaliCandidates}=await mod;
+ for(const [key,source,spellings]of [
+  ['KR83B3#45-53','KR 83 B 3 #45-53',['KR83B3 #45-53','cra.83B3 #45-53','Carrera 83B3 #45-53']],
+  ['CL45BIS#12-83','CLL 45 BIS #12-83',['CLL45 BIS #12-83','cl.45 BIS #12-83','Calle 45 BIS #12-83']],
+ ])for(const query of spellings){
+  assert.equal(caliAddressQuery(`${query}, Cali`,null).key,key,query);
+  const rows=await findCaliCandidates(`${query}, Cali`,options([point(source)]));
+  assert.equal(rows.length,1,query);assert.deepEqual(rows[0].geometry.coordinates,[-76.52895843,3.44289173]);
+ }
+ for(const wrong of ['Carrera 45 BIS #12-83','Calle 45 #12-83','Cll45 BIS #1-283'])assert.notEqual(caliAddressQuery(`${wrong}, Cali`,null).key,'CL45BIS#12-83');
+ assert.equal(caliAddressQuery('Cll45 BIS #12-83, Bogotá',center),null);
+});
 test('limits official queries to complete addresses in Cali and skips place names and other cities',async()=>{
  const {caliAddressQuery,findCaliCandidates}=await mod;
  for(const query of ['Clínica de prueba','Carrera 15','Carrera 15 # 12','Carrera 15 # 12-83, Bogotá',"KR 15 # 12-83'; INCLUDE"]){assert.equal(caliAddressQuery(query,center),null);}

@@ -1,6 +1,6 @@
 function normalized(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/\b(?:cra|cr|kr)\b\.?/g, 'carrera').replace(/\bcl\b\.?/g, 'calle')
+    .replace(/\b(?:carrera|cra|cr|kr)\.?(?=\d|[^\p{L}\p{N}_]|$)/gu, 'carrera').replace(/\b(?:calle|cll|cl)\.?(?=\d|[^\p{L}\p{N}_]|$)/gu, 'calle')
     .replace(/\b(?:av|avda)\b\.?/g, 'avenida').replace(/[^\p{L}\p{N}]/gu, '');
 }
 

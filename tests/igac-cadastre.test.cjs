@@ -19,6 +19,21 @@ test('compares full address tokens without merging street digits or letter suffi
  assert.equal(matchesPredialAddress('CL 27   17   83',query.tokens),true);
  for(const wrong of ['CL 2 717 83','CL 27 17 830','CL 27 B 17 83','CL 27 17 83 LOCAL 2'])assert.equal(matchesPredialAddress(wrong,query.tokens),false);
 });
+test('cadastral queries recognize CLL/CL/Calle and KR/Cra/Carrera but keep exact address tokens',async()=>{
+ const {igacAddressQuery,matchesPredialAddress,findIgacCandidates}=await moduleForTest();
+ for(const [canonical,spellings]of [['Calle',['CLL27','cl.27','Calle 27']],['Carrera',['KR27','cra.27','Carrera 27']]]){
+  const expected=igacAddressQuery(`${canonical} 27 #17-83, Baranoa`,config.municipalities).tokens;
+  for(const road of spellings){
+   const query=igacAddressQuery(`${road} #17-83, Baranoa`,config.municipalities);assert.deepEqual(query.tokens,expected);
+   assert.equal(matchesPredialAddress(`${road} 17 83`,expected),true);
+  }
+ }
+ const expected=igacAddressQuery('Cll27 #17-83, Baranoa',config.municipalities).tokens;
+ assert.equal(matchesPredialAddress('KR 27 17 83',expected),false);
+ const options=settings([{attributes:{...record.attributes,DIRECCION:'CLL 27 17 83'}}]);
+ const rows=await findIgacCandidates('Calle 27 #17-83, Baranoa',options);assert.equal(rows.length,1);assert.deepEqual(rows[0].geometry.coordinates,[parcel.centroid.x,parcel.centroid.y]);
+ const where=new URL(options.requests[1].url).searchParams.get('where');assert.match(where,/UPPER\(DIRECCION\) LIKE 'CLL%/);
+});
 test('joins exact predial and municipal codes and emits only approximate geographic references',async()=>{
  const {findIgacCandidates}=await moduleForTest();const options=settings();const rows=await findIgacCandidates('Calle 27 #17-83, Baranoa, Atlántico',options);
  assert.equal(rows.length,1);assert.equal(rows[0].properties.approximate,true);assert.equal(rows[0].properties.city,'BARANOA');assert.equal(rows[0].properties.geocoder,'igac');assert.deepEqual(rows[0].geometry.coordinates,[parcel.centroid.x,parcel.centroid.y]);

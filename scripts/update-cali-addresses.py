@@ -5,12 +5,12 @@ from pathlib import Path
 WFS='https://ws-idesc.cali.gov.co/geoserver/wfs'
 LAYER='dapm:pdt_nmc_nomenclatura_domiciliaria'
 META='https://mg-idesc.cali.gov.co/geonetwork/geonetwork/api/records/26efce58-37c7-44e4-9386-b925c92d17d1'
-ROADS={'CARRERA':'KR','CRA':'KR','CR':'KR','KR':'KR','CALLE':'CL','CL':'CL','AVENIDA':'AV','AVDA':'AV','AV':'AV','DIAGONAL':'DG','DIAG':'DG','DG':'DG','TRANSVERSAL':'TV','TRANS':'TV','TV':'TV'}
+ROADS={'CARRERA':'KR','CRA':'KR','CR':'KR','KR':'KR','CALLE':'CL','CLL':'CL','CL':'CL','AVENIDA':'AV','AVDA':'AV','AV':'AV','DIAGONAL':'DG','DIAG':'DG','DG':'DG','TRANSVERSAL':'TV','TRANS':'TV','TV':'TV'}
 import unicodedata
 
 def address_key(text):
     text=''.join(c for c in unicodedata.normalize('NFD',str(text or '')) if not unicodedata.combining(c)).upper().split('(')[0].strip()
-    m=re.fullmatch(r'(CARRERA|CRA|CR|KR|CALLE|CL|AVENIDA|AVDA|AV|DIAGONAL|DIAG|DG|TRANSVERSAL|TRANS|TV)\.?\s*(\d[A-Z0-9\s]*)\s*#\s*(\d[A-Z0-9\s]*?)\s*-\s*(\d+[A-Z]?)\s*',text)
+    m=re.fullmatch(r'(CARRERA|CRA|CR|KR|CALLE|CLL|CL|AVENIDA|AVDA|AV|DIAGONAL|DIAG|DG|TRANSVERSAL|TRANS|TV)\.?\s*(\d[A-Z0-9\s]*)\s*#\s*(\d[A-Z0-9\s]*?)\s*-\s*(\d+[A-Z]?)\s*',text)
     if not m:return None
     return re.sub('[^A-Z0-9#-]','',ROADS[m[1]]+m[2]+'#'+m[3]+'-'+m[4])
 

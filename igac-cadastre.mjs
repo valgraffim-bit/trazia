@@ -1,5 +1,5 @@
 const DEPARTMENTS = {'05':'Antioquia','08':'Atlántico','11':'Bogotá D.C.','13':'Bolívar','15':'Boyacá','17':'Caldas','18':'Caquetá','19':'Cauca','20':'Cesar','23':'Córdoba','25':'Cundinamarca','27':'Chocó','41':'Huila','44':'La Guajira','47':'Magdalena','50':'Meta','52':'Nariño','54':'Norte de Santander','63':'Quindío','66':'Risaralda','68':'Santander','70':'Sucre','73':'Tolima','76':'Valle del Cauca','81':'Arauca','85':'Casanare','86':'Putumayo','88':'San Andrés y Providencia','91':'Amazonas','94':'Guainía','95':'Guaviare','97':'Vaupés','99':'Vichada'};
-const ROADS = {CL:'CL',C:'CL',CALLE:'CL',KR:'KR',CR:'KR',CRA:'KR',K:'KR',CARRERA:'KR',AV:'AV',AVDA:'AV',AVENIDA:'AV',DG:'DG',DIAG:'DG',DIAGONAL:'DG',TV:'TV',TRANS:'TV',TRANSVERSAL:'TV'};
+const ROADS = {CL:'CL',CLL:'CL',C:'CL',CALLE:'CL',KR:'KR',CR:'KR',CRA:'KR',K:'KR',CARRERA:'KR',AV:'AV',AVDA:'AV',AVENIDA:'AV',DG:'DG',DIAG:'DG',DIAGONAL:'DG',TV:'TV',TRANS:'TV',TRANSVERSAL:'TV'};
 const fold = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().trim();
 function tokens(value) {
   const parts = fold(value).match(/[A-Z]+|\d+/g) || [];
@@ -8,7 +8,7 @@ function tokens(value) {
 }
 export function igacAddressQuery(query, municipalities) {
   const parts = String(query || '').split(',').map(value => value.trim()).filter(Boolean);
-  if (parts.length < 2 || !/^(?:CALLE|CL|C|CARRERA|CRA|CR|KR|K|AVENIDA|AVDA|AV|DIAGONAL|DIAG|DG|TRANSVERSAL|TRANS|TV)\.?\s*\d[A-Z\d\s]*#\s*\d[A-Z\d\s]*-\s*\d+[A-Z]?$/i.test(fold(parts[0]))) return null;
+  if (parts.length < 2 || !/^(?:CALLE|CLL|CL|C|CARRERA|CRA|CR|KR|K|AVENIDA|AVDA|AV|DIAGONAL|DIAG|DG|TRANSVERSAL|TRANS|TV)\.?\s*\d[A-Z\d\s]*#\s*\d[A-Z\d\s]*-\s*\d+[A-Z]?$/i.test(fold(parts[0]))) return null;
   const city = fold(parts[1]).replace(/^MUNICIPIO DE /, '');
   const department = parts[2] && fold(parts[2]) !== 'COLOMBIA' ? fold(parts[2]) : null;
   const codes = Object.entries(municipalities).filter(([code,name]) => /^\d{5}$/.test(code) && fold(name) === city && (!department || fold(DEPARTMENTS[code.slice(0,2)]) === department)).map(([code])=>code);

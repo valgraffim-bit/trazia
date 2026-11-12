@@ -15,6 +15,35 @@ function setup(fetchPhotonFeatures, nearby = async () => []) {
   return context;
 }
 const street = { type: 'Feature', geometry: { type: 'Point', coordinates: [-76.53, 3.42] }, properties: { name: 'Carrera 80', city: 'Cali', countrycode: 'CO' } };
+test('treats KR/Cra/Carrera and CLL/CL/Calle as road aliases without changing business names', () => {
+  const ctx = setup(async () => ({ features: [] }));
+  for (const [canonical, spellings] of [
+    ['Carrera 83B 3 #45-53, Cali', ['KR 83B 3 #45-53, Cali', 'cra. 83B 3 #45-53, Cali', 'KR83B 3 #45-53, Cali', 'Cra83B 3 #45-53, Cali']],
+    ['Calle 45 BIS #12-83, Cali', ['CLL 45 BIS #12-83, Cali', 'cll.45 BIS #12-83, Cali', 'CL45 BIS #12-83, Cali', 'Cll45 BIS #12-83, Cali']],
+  ]) {
+    const expected = ctx.normalizeGeocodeText(canonical);
+    const structured = JSON.stringify(ctx.parseColombianStructuredAddress(canonical)).toLowerCase();
+    for (const value of spellings) {
+      assert.equal(ctx.normalizeGeocodeText(value), expected, value);
+      assert.equal(JSON.stringify(ctx.parseColombianStructuredAddress(value)).toLowerCase(), structured, value);
+    }
+  }
+  assert.notEqual(ctx.normalizeGeocodeText('KR 45 #12-83'), ctx.normalizeGeocodeText('CLL 45 #12-83'));
+  assert.notEqual(ctx.normalizeGeocodeText('Cra 83B 3 #45-53'), ctx.normalizeGeocodeText('Cra 83B #45-53'));
+  assert.notEqual(ctx.normalizeGeocodeText('Cll 45 BIS #12-83'), ctx.normalizeGeocodeText('Cll 45 #12-83'));
+  assert.equal(ctx.normalizeColombianAddressQuery('Clínica Kraft 83, Cali'), 'Clínica Kraft 83 Cali');
+});
+test('ranks abbreviated source addresses like their written-out road names', () => {
+  const ctx = setup(async () => ({ features: [] }));
+  for (const [road, query] of [['KR83B3', 'Carrera 83B3 #45-53, Cali'], ['CLL45', 'Calle 45 #45-53, Cali']]) {
+    const candidate = { ...street, properties: { street: road, housenumber: '45-53', city: 'Cali', countrycode: 'CO' } };
+    const matches = ctx.rankPhotonFeatures([candidate], query, null);
+    assert.equal(matches.length, 1, road);
+    assert.equal(matches[0], candidate);
+    const wrong = { ...candidate, properties: { ...candidate.properties, street: road.startsWith('KR') ? 'CLL83B3' : 'KR45' } };
+    assert.equal(ctx.rankPhotonFeatures([wrong], query, null).length, 0);
+  }
+});
 test('normalizes abbreviations and offers the mapped street when the house number is absent', async () => {
   const queries = [];
   const ctx = setup(async params => {

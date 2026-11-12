@@ -43,6 +43,18 @@ test('allows equivalent abbreviation and suffix spacing without dropping digits'
   const matches = await findTomtomCandidates(query, options([{ ...result, address: { ...result.address, street: 'Cra. 83B3' } }]));
   assert.equal(matches.length, 1);
 });
+test('matches road aliases in provider addresses while preserving type, suffix, house and city',async()=>{
+ const {findTomtomCandidates}=await modulePromise;
+ for(const [expectedStreet,spellings]of [['Carrera 83B 3',['KR83B3','cra.83B3','Carrera 83B 3']],['Calle 45 BIS',['CLL45 BIS','cl.45 BIS','Calle 45 BIS']]]){
+  const config={...options([]),expectedAddress:{street:expectedStreet,houseNumber:'45-53',city:'Cali'}};
+  for(const street of spellings){
+   config.fetchFn=async()=>({ok:true,json:async()=>({results:[{...result,address:{...result.address,street}}]})});
+   const rows=await findTomtomCandidates(`${expectedStreet} #45-53, Cali`,config);assert.equal(rows.length,1,street);assert.deepEqual(rows[0].geometry.coordinates,[-76.517773,3.384056]);
+  }
+ }
+ const wrong=[{...result,address:{...result.address,street:'CLL83B3'}},{...result,address:{...result.address,street:'KR83B'}},{...result,address:{...result.address,street:'KR83B3',houseNumber:'45-530'}},{...result,address:{...result.address,street:'KR83B3',municipality:'Bogotá'}}];
+ assert.deepEqual(await findTomtomCandidates(query,options(wrong)),[]);
+});
 test('does not reveal credentials in connection errors or upstream HTTP failures', async () => {
   const { findTomtomCandidates } = await modulePromise;
   await assert.rejects(findTomtomCandidates(query, { apiKey: 'test-browser-key', fetchFn: async () => { throw Error('URL has test-browser-key'); } }), error => !error.message.includes('test-browser-key') && /connection unavailable/.test(error.message));

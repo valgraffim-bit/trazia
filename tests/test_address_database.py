@@ -21,6 +21,13 @@ class AddressDatabaseTests(unittest.TestCase):
   self.assertEqual(db.address_key('Cra. 83b 3 #45-53'),db.address_key('KR 83 B 3 # 45 - 53'))
   self.assertNotEqual(db.address_key('KR 15 # 1-283'),db.address_key('KR 15 #12-83'))
   self.assertNotEqual(db.address_key('KR 83 B #45-53'),db.address_key('KR 83 B 3 #45-53'))
+ def test_road_aliases_keep_snapshot_keys_compatible_with_search(self):
+  for key,spellings in [('KR83B3#45-53',['KR83B3 #45-53','cra.83B3 #45-53','Carrera 83B 3 #45-53']),('CL45BIS#12-83',['CLL45 BIS #12-83','cl.45 BIS #12-83','Calle 45 BIS #12-83'])]:
+   for address in spellings:
+    with self.subTest(address=address):self.assertEqual(db.address_key(address),key)
+  self.assertNotEqual(db.address_key('Carrera 45 BIS #12-83'),db.address_key('Cll45 BIS #12-83'))
+  self.assertNotEqual(db.address_key('Cll45 BIS #12-83'),db.address_key('Calle 45 #12-83'))
+  self.assertIsNone(db.address_key('Clínica Kraft 83'))
  def test_snapshot_backup_is_recoverable(self):
   with tempfile.TemporaryDirectory() as directory:
    root=Path(directory)/'original';root.mkdir();manifest=db.build(root,1,[[feature(1)]],minimum=1)

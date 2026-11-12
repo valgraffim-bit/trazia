@@ -10,10 +10,10 @@ import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=66';
-import { findIgacCandidates } from './igac-cadastre.mjs?v=49';
-import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=63';
-import { findCaliCandidates, findNearbyCaliCandidates } from './cali-addresses.mjs?v=63';
-import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=37';
+import { findIgacCandidates } from './igac-cadastre.mjs?v=73';
+import { findLocalCaliCandidates } from './local-cali-addresses.mjs?v=73';
+import { findCaliCandidates, findNearbyCaliCandidates } from './cali-addresses.mjs?v=73';
+import { findTomtomCandidates } from './tomtom-geocoding.mjs?v=73';
 import { cameraFeatures, cameraApproach } from './speed-cameras.mjs?v=35';
 import { TRAFFIC_SOURCE, TRAFFIC_LAYER, TRAFFIC_TILE_URL, trafficRequest, congestionLayer } from './live-traffic.mjs?v=32';
 import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
@@ -611,7 +611,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
     const streetAddress = [properties.housenumber, properties.street].filter(Boolean).join(' ');
     const locality = [properties.district, properties.city, properties.county, properties.state, properties.country].filter(Boolean);
-    const addressQuery = /#|\b(?:cra|cr|kr|carrera|cl|calle|av|avda|avenida|diag|diagonal|trans|transversal)\b/i.test(query) && /\d/.test(query);
+    const addressQuery = /#|\b(?:cra|cr|kr|carrera|cll|cl|calle|av|avda|avenida|diag|diagonal|trans|transversal)\.?(?=\d|[^\p{L}\p{N}_]|$)/iu.test(query) && /\d/.test(query);
     const main = addressQuery && streetAddress
       ? streetAddress
       : properties.name || streetAddress || properties.city || properties.state || properties.country || '';
@@ -627,8 +627,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
-      .replace(/\b(?:cra|cr|kr)\b\.?/g, ' carrera ')
-      .replace(/\bcl\b\.?/g, ' calle ')
+      .replace(/\b(?:carrera|cra|cr|kr)\.?(?=\d|[^\p{L}\p{N}_]|$)/gu, ' carrera ')
+      .replace(/\b(?:calle|cll|cl)\.?(?=\d|[^\p{L}\p{N}_]|$)/gu, ' calle ')
       .replace(/\b(?:av|avda)\b\.?/g, ' avenida ')
       .replace(/\bdiag\b\.?/g, ' diagonal ')
       .replace(/\btrans\b\.?/g, ' transversal ')
@@ -640,8 +640,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   function normalizeColombianAddressQuery(value) {
     return String(value || '')
       .replace(/\s*[-–—]\s*#\s*/g, ' # ')
-      .replace(/\b(?:cra|cr|kr)\b\.?/gi, 'carrera')
-      .replace(/\bcl\b\.?/gi, 'calle')
+      .replace(/\b(?:cra|cr|kr)\.?(?=\d|[^\p{L}\p{N}_]|$)/giu, 'carrera ')
+      .replace(/\b(?:cll|cl)\.?(?=\d|[^\p{L}\p{N}_]|$)/giu, 'calle ')
+      .replace(/\b(carrera|calle)\.?(?=\d)/gi, '$1 ')
       .replace(/\b(?:av|avda)\b\.?/gi, 'avenida')
       .replace(/\bdiag\b\.?/gi, 'diagonal')
       .replace(/\b(?:trans|transv)\b\.?/gi, 'transversal')
@@ -737,7 +738,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const normalizedQuery = normalizeGeocodeText(query);
     const ignoredWords = new Set(['a', 'al', 'de', 'del', 'la', 'las', 'el', 'los', 'y', 'en', 'the', 'and']);
     const queryTokens = [...new Set(normalizedQuery.split(' ').filter((token) => token && !ignoredWords.has(token)))];
-    const isStreetAddress = /#|\b(?:cra|cr|kr|carrera|cl|calle|av|avda|avenida|diag|diagonal|trans|transversal)\b/i.test(query) && /\d/.test(query);
+    const isStreetAddress = /#|\b(?:cra|cr|kr|carrera|cll|cl|calle|av|avda|avenida|diag|diagonal|trans|transversal)\.?(?=\d|[^\p{L}\p{N}_]|$)/iu.test(query) && /\d/.test(query);
     const streetTokens = normalizedQuery.match(/\b(?:carrera|calle|avenida|diagonal|transversal)\s+[\p{L}\p{N}]+/iu)?.[0]?.split(' ') || [];
     const houseNumberTokens = String(query).includes('#')
       ? normalizeGeocodeText(String(query).split('#').slice(1).join(' ')).split(' ').filter((token) => /\d/.test(token))

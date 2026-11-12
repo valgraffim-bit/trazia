@@ -1,10 +1,10 @@
 // Adapter for IDESC's live address layer. No full cadastral records are stored.
 export const CALI_WFS = 'https://ws-idesc.cali.gov.co/geoserver/wfs';
 export const CALI_METADATA = 'https://mg-idesc.cali.gov.co/geonetwork/geonetwork/api/records/26efce58-37c7-44e4-9386-b925c92d17d1';
-const roads = { CARRERA: 'KR', CRA: 'KR', CR: 'KR', KR: 'KR', CALLE: 'CL', CL: 'CL', AVENIDA: 'AV', AVDA: 'AV', AV: 'AV', DIAGONAL: 'DG', DIAG: 'DG', DG: 'DG', TRANSVERSAL: 'TV', TRANS: 'TV', TV: 'TV' };
+const roads = { CARRERA: 'KR', CRA: 'KR', CR: 'KR', KR: 'KR', CALLE: 'CL', CLL: 'CL', CL: 'CL', AVENIDA: 'AV', AVDA: 'AV', AV: 'AV', DIAGONAL: 'DG', DIAG: 'DG', DG: 'DG', TRANSVERSAL: 'TV', TRANS: 'TV', TV: 'TV' };
 function plain(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(); }
 function parse(value) {
-  const match = plain(value).split('(')[0].trim().replace(/\s*[-–—]\s*#\s*/g, ' # ').replace(/[.;]+$/, '').trim().match(/^(CARRERA|CRA|CR|KR|CALLE|CL|AVENIDA|AVDA|AV|DIAGONAL|DIAG|DG|TRANSVERSAL|TRANS|TV)\.?\s*(\d[A-Z0-9\s]*)\s*#\s*(\d[A-Z0-9\s]*?)\s*-\s*(\d+[A-Z]?)\s*$/);
+  const match = plain(value).split('(')[0].trim().replace(/\s*[-–—]\s*#\s*/g, ' # ').replace(/[.;]+$/, '').trim().match(/^(CARRERA|CRA|CR|KR|CALLE|CLL|CL|AVENIDA|AVDA|AV|DIAGONAL|DIAG|DG|TRANSVERSAL|TRANS|TV)\.?\s*(\d[A-Z0-9\s]*)\s*#\s*(\d[A-Z0-9\s]*?)\s*-\s*(\d+[A-Z]?)\s*$/);
   if (!match) return null;
   const road = roads[match[1]];
   const street = match[2].trim();

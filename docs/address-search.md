@@ -2,6 +2,8 @@
 
 El buscador acepta separadores como `Cra 83b 3 -# 45-53, Cali` y conserva la vía **83B3**, distinta de 83B, así como la placa completa 45-53. Se normaliza el guion adicional antes de #, sin cambiar el número de destino.
 
+Las abreviaturas `KR`, `CR`, `Cra` y `Carrera` se interpretan como la misma clase de vía. `CL`, `CLL` y `Calle` son equivalentes entre sí. Se reconocen mayúsculas/minúsculas, el punto de abreviatura y el prefijo pegado al número (`KR83`, `Cra83`, `CLL45`). Esto se aplica al texto buscado y a las direcciones que devuelven los proveedores, así como al índice local de Cali. Se conserva la nomenclatura original al mostrar el registro; una calle nunca se convierte en carrera ni se cambian sus números, sufijos o municipio.
+
 Si no se encuentra un punto exacto, la fuente oficial IDESC puede ofrecer direcciones registradas de la misma vía y cruce con números próximos. Las coordenadas son las del registro de cada dirección mostrada. Cada sugerencia indica **Dirección cercana; no es el número solicitado** y conserva el estado de certificación del proveedor. No se inventan coordenadas para la dirección buscada ni se cambia su número por el de otra puerta.
 
 Los resultados existen solo en el buscador; no se agrega un lugar, favorito, reporte o marcador permanente al mapa. Después de seleccionar una sugerencia, la ruta usa su dirección real y coordenadas y recuerda que es una dirección cercana si corresponde. Las búsquedas exactas existentes siguen teniendo prioridad.
