@@ -1,4 +1,4 @@
-export const defaults = Object.freeze({voiceURI:'',units:'km', keepAwake:true, showSpeed:true, cameraAlerts:true, cameraDistance:500, lightsReminder:false, avoidFerries:false, avoidHighways:false, unpaved:'allow', avoidDifficult:false, fuel:'gasoline', electric:false, plate:'', passes:[]});
+export const defaults = Object.freeze({voiceURI:'',units:'km', weatherUnit:'celsius', keepAwake:true, showSpeed:true, cameraAlerts:true, cameraDistance:500, lightsReminder:false, avoidFerries:false, avoidHighways:false, unpaved:'allow', avoidDifficult:false, fuel:'gasoline', electric:false, plate:'', passes:[]});
 export function loadPreferences(storage) {
   let data; try { data = JSON.parse(storage.getItem('trazia:preferences') || '{}'); } catch { data = {}; }
   const result = {...defaults};
@@ -6,7 +6,7 @@ export function loadPreferences(storage) {
     const value = data?.[key];
     if (typeof defaults[key] === 'boolean' && typeof value === 'boolean') result[key] = value;
   }
-  for (const [key, values] of Object.entries({units:['km','mi'], fuel:['gasoline','diesel','gas','electric'], unpaved:['allow','avoid']})) if(values.includes(data?.[key])) result[key]=data[key];
+  for (const [key, values] of Object.entries({units:['km','mi'], weatherUnit:['celsius','fahrenheit'], fuel:['gasoline','diesel','gas','electric'], unpaved:['allow','avoid']})) if(values.includes(data?.[key])) result[key]=data[key];
   if ([100,300,500].includes(data?.cameraDistance)) result.cameraDistance=data.cameraDistance;
   if (typeof data?.voiceURI==='string' && data.voiceURI.length <= 500) result.voiceURI=data.voiceURI;
   if (typeof data?.plate==='string') result.plate=data.plate.slice(0,12);
@@ -69,6 +69,7 @@ export function setupSettings({document, storage, preferences, hooks}) {
   if(page==='general'){
    const box=group('Preferencias');select(box,'Idioma',hooks.state().language,[['es','Español'],['en','English']],hooks.language);
    select(box,'Unidades de distancia',preferences.units,[['km','Kilómetros'],['mi','Millas']],value=>change('units',value));
+   select(box,'Unidad de temperatura',preferences.weatherUnit,[['celsius','Celsius · °C'],['fahrenheit','Fahrenheit · °F']],value=>change('weatherUnit',value));
    toggle(group('Pantalla'),'Prevenir el bloqueo automático','keepAwake');content.append(note('La pantalla se mantiene encendida durante la navegación si el navegador lo permite.'));
    button(group(),'Personalización · apariencia',()=>show('map'));
   }

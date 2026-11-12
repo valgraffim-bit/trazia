@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=68" />
+    <link rel="stylesheet" href="./styles.css?v=69" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -237,6 +237,7 @@
                 <span class="compass-north-label" aria-hidden="true">N</span>
                 <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.5"/><g id="compass-rose"><path class="compass-north-needle" d="m16 5 4.1 11-4.1-2.1L11.9 16 16 5Z"/><path class="compass-south-needle" d="m16 27-4.1-11 4.1 2.1 4.1-2.1L16 27Z"/></g></svg>
               </button>
+              <button class="weather-badge" id="weather-badge" type="button" aria-label="Consultando el clima" title="Consultando el clima" aria-haspopup="dialog" aria-controls="weather-dialog" disabled><span id="weather-icon" aria-hidden="true">◌</span><span id="weather-temperature">— °C</span></button>
               <div class="map-status-pill"><span class="live-indicator" id="map-live-dot"></span><span id="map-label" data-i18n="sampleMap">Mapa de ejemplo</span></div>
               <button class="map-credit-button" id="toggle-map-credits" type="button" aria-label="Créditos del mapa" aria-expanded="false" title="Créditos del mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg></button>
             </div>
@@ -322,6 +323,20 @@
         <button class="menu-item" id="menu-reports" type="button"><span class="menu-item-icon">＋</span><span data-i18n="menuReport">Reportar algo en la vía</span></button>
         <button class="menu-item" id="menu-settings" type="button"><span class="menu-item-icon">⚙</span><span data-i18n="menuSettings">Ajustes</span></button>
         <p class="menu-footnote" data-i18n="menuNote">Navegación clara, hecha por Trazia.</p>
+      </div>
+    </dialog>
+
+    <dialog class="modal weather-dialog" id="weather-dialog" aria-labelledby="weather-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="weather-title">El tiempo ahora</h2>
+          <button class="icon-button close-modal" type="button" aria-label="Cerrar clima" data-close="weather-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        </div>
+        <p id="weather-condition" class="weather-condition"></p>
+        <p id="weather-location" class="weather-detail"></p>
+        <p id="weather-updated" class="weather-detail"></p>
+        <p class="weather-detail" id="weather-preference-note">°C / °F: Ajustes → General → Unidad de temperatura</p>
+        <a class="weather-attribution" id="weather-attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Datos meteorológicos: Open-Meteo</a>
       </div>
     </dialog>
 
@@ -446,7 +461,7 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=68"></script>
+    <script type="module" src="./app.js?v=69"></script>
   </body>
 </html>
 

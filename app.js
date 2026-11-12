@@ -1,9 +1,10 @@
+import { setupWeatherBadge } from './weather.mjs?v=69';
 import { setupMusicDock } from './music-dock.mjs?v=68';
 import { findSearchLocations } from './search-locations.mjs?v=66';
 import { createCommunityReportService, watchCommunityReports, communityReportError } from './community-reports.mjs?v=64';
 import { setupReportMenu } from './reports.mjs?v=64';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
-import { loadPreferences, setupSettings } from './settings.mjs?v=68';
+import { loadPreferences, setupSettings } from './settings.mjs?v=69';
 import { setupAccountScreen } from './auth.mjs?v=58';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
@@ -34,6 +35,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const savedPlaceDialog = $('#saved-place-dialog');
   const reportDialog = $('#report-dialog');
   const settingsDialog = $('#settings-dialog');
+  const weatherDialog = $('#weather-dialog');
   let musicDock;
   const musicDialog = $('#music-dialog');
   const DEFAULT_MAP_CENTER = [-76.532, 3.452];
@@ -213,6 +215,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     update3dButton();
     updateCompassControl();
     updateMusicOptions();
+    state.weatherBadge?.render();
     renderRecentDestinations();
     $('#toggle-map-credits').setAttribute('aria-label', t('mapCredits'));
     $('#toggle-map-credits').title = t('mapCredits');
@@ -1452,6 +1455,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       }
     }
     state.currentPosition = { lat, lng };
+    void state.weatherBadge?.refresh();
     state.lastLocationTimestamp = timestamp;
     state.lastLocationAccuracy = accuracy;
     if (heading !== null) state.lastHeading = heading;
@@ -1616,6 +1620,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         updateVehicleMarkerOrientation();
       });
       state.map.on('dragstart', () => { state.followCamera = false; });
+      state.map.on('moveend', () => { if (!state.currentPosition) void state.weatherBadge?.refresh(); });
       state.map.on('load', () => {
         state.mapLoaded = true;
         state.mapReady = true;
@@ -3045,7 +3050,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#compass-control').addEventListener('click', toggleCompassMode);
     updateCompassControl();
     $$('[data-close]').forEach((button) => button.addEventListener('click', () => closeDialog($(`#${button.dataset.close}`))));
-    [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog].forEach((dialog) => dialog.addEventListener('click', (event) => {
+    [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog, weatherDialog].forEach((dialog) => dialog.addEventListener('click', (event) => {
       if (event.target === dialog) closeDialog(dialog);
     }));
     document.addEventListener('keydown', (event) => {
@@ -3062,6 +3067,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     applyLanguage(state.language);
     applyTheme();
     setupEvents();
+    state.weatherBadge = setupWeatherBadge({ window, document, openDialog,
+      getContext: () => ({
+        position: state.currentPosition || currentMapCenter() || { lng: DEFAULT_MAP_CENTER[0], lat: DEFAULT_MAP_CENTER[1] },
+        source: state.currentPosition ? 'gps' : 'map',
+        unit: state.settings.weatherUnit,
+        language: state.language,
+      }),
+    });
     musicDock = setupMusicDock({ window, document, getService: () => state.musicService, language: () => state.language, onChoose: () => openDialog(musicDialog) });
     reportMenu = setupReportMenu({ document, language: () => state.language,
       center: currentMapCenter, position: () => state.currentPosition,
@@ -3097,6 +3110,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       recents: () => state.recentDestinations,
       clearRecents: () => { localStorage.removeItem('trazia:recent-destinations'); state.recentDestinations = []; renderRecentDestinations(); showToast('Ubicaciones recientes borradas.'); },
       change: (key) => {
+        if (key === 'weatherUnit') state.weatherBadge.render();
         updateSpeedometer();
         if (key === 'keepAwake') { if (state.settings.keepAwake) void requestNavigationWakeLock(); else releaseNavigationWakeLock(); }
         if (key === 'cameraAlerts' && !state.settings.cameraAlerts) $('#camera-approach-alert').hidden = true;
@@ -3116,6 +3130,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       document,
       config: window.TRAZIA_CONFIG?.firebase,
       onEnter: (user) => {
+        state.weatherBadge.start();
         void connectCommunityReports(user);
         if (!mapStarted) {
           mapStarted = true;
@@ -3126,6 +3141,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        state.weatherBadge.stop();
         musicDock?.close();
         state.reportFeed?.stop();
         state.reportSession += 1;
@@ -3136,7 +3152,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         updateCommunityReportStatus('signedout');
         $('#voice-search-dialog').close();
         if (state.isNavigating) stopNavigation(false);
-        [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog].forEach((dialog) => dialog.close());
+        [menuDialog, musicDialog, savedPlaceDialog, reportDialog, settingsDialog, weatherDialog].forEach((dialog) => dialog.close());
       },
     });
     updateSpeedometer();
@@ -3146,10 +3162,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     window.addEventListener('focus', () => { void requestNavigationWakeLock(); });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) suspendAppView();
-      else { resumeAppView(); state.reportFeed?.refresh(); }
+      else { resumeAppView(); state.reportFeed?.refresh(); void state.weatherBadge.refresh(); }
     });
-    window.addEventListener('online', () => { if (state.communityUser && state.reportStatus !== 'ready') void connectCommunityReports(state.communityUser); });
-    window.addEventListener('offline', () => { if (state.communityUser) updateCommunityReportStatus('offline'); });
+    window.addEventListener('online', () => { void state.weatherBadge.refresh(); if (state.communityUser && state.reportStatus !== 'ready') void connectCommunityReports(state.communityUser); });
+    window.addEventListener('offline', () => { state.weatherBadge.render(); if (state.communityUser) updateCommunityReportStatus('offline'); });
     window.addEventListener('pagehide', suspendAppView);
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) state.resumeSplashPending = true;

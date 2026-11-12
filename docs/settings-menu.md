@@ -4,7 +4,7 @@ Se abre desde el menú y desde los accesos existentes a Ajustes. Cada sección t
 
 ## Funciones conectadas
 
-- General: idioma, distancias en km o millas y bloqueo de pantalla durante navegación (según compatibilidad del navegador).
+- General: idioma, distancias en km o millas, temperatura en Celsius o Fahrenheit y bloqueo de pantalla durante navegación (según compatibilidad del navegador). La unidad de temperatura se guarda en este dispositivo y es independiente de la distancia.
 - Mapa: apariencia, tráfico TomTom, vista 2D/3D y brújula.
 - Voz: activar/desactivar, persistencia y prueba de voz; el volumen se controla desde el dispositivo.
 - Navegación: evitar peajes, ferris, autopistas, pavimento sin asfaltar y priorizar menos maniobras. Se envían opciones Valhalla al calcular o recalcular. Preferencias de autopistas, pavimento e intersecciones se aplican a perfiles motorizados; no son prohibiciones absolutas. No se clasifica la dificultad real de intersecciones.
