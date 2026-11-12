@@ -10,6 +10,8 @@ El sitio GitHub Pages no tiene servidor de cuentas. Esta integración utiliza Fi
 2. En **Authentication → Sign-in method**, habilitar **Correo electrónico/contraseña** y **Google**. Google requiere seleccionar un correo de soporte y configurar el nombre público Trazia.
 3. En **Authentication → Settings → Authorized domains**, añadir `valgraffim-bit.github.io`. Para desarrollo, añadir `localhost` si hace falta. Conservar el dominio de autenticación de Firebase.
 4. Copiar el objeto público `firebaseConfig` de la aplicación web. No usar una cuenta de servicio, clave privada ni contraseña de Google.
+La configuración pública del proyecto `trazia-5aca6` ya está en `firebase-config.json` y se usa por defecto. La siguiente variable es opcional y permite reemplazarla:
+
 5. En GitHub → repositorio `trazia` → **Settings → Secrets and variables → Actions → Variables**, crear `FIREBASE_WEB_CONFIG` con el JSON del objeto, por ejemplo:
 
 ```json
@@ -19,7 +21,7 @@ El sitio GitHub Pages no tiene servidor de cuentas. Esta integración utiliza Fi
 6. Ejecutar el despliegue de GitHub Pages una vez autorizada la publicación del cambio. El workflow conserva la configuración de TomTom y añade Firebase a `config.js`.
 7. Comprobar una cuenta de correo, salir y volver a entrar, recuperar contraseña y acceder con Google desde un teléfono. Los contenedores WebView de Android/iOS pueden requerir abrir Google en el navegador del sistema; el acceso web está pensado para un navegador normal.
 
-No publicar esta nueva pantalla antes de conectar Firebase: sin configuración bloquea el acceso y avisa que las cuentas todavía no están disponibles. La configuración vacía no simula usuarios ni permite entrar sin autenticar.
+Si se reemplaza la configuración, comprobar Firebase antes de publicar: sin configuración se bloquea el acceso y se avisa que las cuentas todavía no están disponibles. La configuración vacía no simula usuarios ni permite entrar sin autenticar.
 
 ## Datos y controles
 

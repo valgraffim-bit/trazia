@@ -1,3 +1,2 @@
-// The deployment replaces this with the domain-restricted browser API key.
-// Never put a private server credential here.
-window.TRAZIA_CONFIG = Object.freeze({ tomtomApiKey: '', firebase: null });
+// Public browser configuration. Never add service account credentials here.
+window.TRAZIA_CONFIG = Object.freeze({"tomtomApiKey": "", "firebase": {"apiKey": "AIzaSyCxShzIbjHLGKZWI1qRcUKbt7zfJKwTeVQ", "authDomain": "trazia-5aca6.firebaseapp.com", "projectId": "trazia-5aca6", "storageBucket": "trazia-5aca6.firebasestorage.app", "messagingSenderId": "1044504718438", "appId": "1:1044504718438:web:86bcc939886c2b543d91a7"}});

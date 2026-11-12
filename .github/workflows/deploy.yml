@@ -52,7 +52,8 @@ jobs:
           import json, os
           from pathlib import Path
           key = os.environ.get('TOMTOM_BROWSER_KEY', '').strip()
-          firebase = json.loads(os.environ.get('FIREBASE_WEB_CONFIG', '').strip() or 'null')
+          firebase_override = os.environ.get('FIREBASE_WEB_CONFIG', '').strip()
+          firebase = json.loads(firebase_override) if firebase_override else json.loads(Path('firebase-config.json').read_text())
           if firebase is not None:
               if not isinstance(firebase, dict) or not all(firebase.get(k) for k in ('apiKey', 'authDomain', 'projectId')):
                   raise ValueError('FIREBASE_WEB_CONFIG must be a Firebase web config object')
