@@ -1258,6 +1258,16 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     closeDestinationSuggestions();
   }
 
+  function clearNavigationSearch() {
+    // The accepted destination belongs to the route, not to the next search.
+    destinationInput.value = '';
+    destinationInput.blur();
+    state.selectedDestination = null;
+    state.autocompletePredictions = [];
+    state.autocompleteQuery = '';
+    closeDestinationSuggestions();
+  }
+
   function validSavedPlaceLocation(location) {
     return Number.isFinite(location?.lat) && Number.isFinite(location?.lng) && Math.abs(location.lat) <= 90 && Math.abs(location.lng) <= 180;
   }
@@ -1668,6 +1678,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         applyTraziaMapPalette();
         if (!state.map.getLayer('trazia-speed-cameras')) void renderSpeedCameras();
         if (state.liveTrafficEnabled && !state.liveTrafficBlocked && !state.map.getLayer(TRAFFIC_LAYER)) renderLiveTraffic();
+        keepRouteInForeground();
       });
       state.map.on('sourcedata', (event) => {
         if (event.sourceId === TRAFFIC_SOURCE && event.isSourceLoaded && state.liveTrafficEnabled && !state.liveTrafficBlocked) {
@@ -1697,11 +1708,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   async function searchRoute({ automatic = state.isNavigating, target = null } = {}) {
+    if (!target && !destinationInput.value.trim() && state.isNavigating) target = state.activeDestination;
     const typedDestination = target?.label || destinationInput.value.trim();
     if (!typedDestination) {
       showToast(t('noDestination'));
       destinationInput.focus();
       return;
+    }
+    if (!target && state.selectedDestination && String(state.selectedDestination.label || '').trim() !== typedDestination) {
+      state.selectedDestination = null;
     }
     // Recent and saved Waze links must bypass address geocoding too.
     if (!target && !state.selectedDestination) {
@@ -1863,6 +1878,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       state.navigationSteps = navigationSteps;
       state.activeStep = 0;
       if (state.isNavigating) {
+        clearNavigationSearch();
         setNavigationView(true);
         const instruction = state.navigationSteps[0]?.instructions || t('navigationFollowRoute');
         updateNavigationInstruction(instruction);
@@ -1949,6 +1965,19 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     });
   }
 
+  function keepRouteInForeground() {
+    const map = state.map;
+    if (!map?.getLayer('trazia-route-outline') || !map.getLayer('trazia-route-line')) return;
+    // Draw the route above every base-map layer, including labels and traffic.
+    // Camera icons stay readable above the route; DOM markers are independent.
+    const overlayIds = ['trazia-route-outline', 'trazia-route-line', 'trazia-speed-cameras'].filter(id => map.getLayer(id));
+    const layers = map.getStyle()?.layers || [];
+    const suffix = layers.slice(-overlayIds.length);
+    if (suffix.length === overlayIds.length && suffix.every((layer, index) => layer.id === overlayIds[index])) return;
+    // Only reorder when needed: moving on every idle event would keep the map busy.
+    overlayIds.forEach(id => map.moveLayer(id));
+  }
+
   function drawRouteOnMap() {
     if (!state.map?.isStyleLoaded() || state.routeCoordinates.length < 2) return;
     ['trazia-route-line', 'trazia-route-outline'].forEach((layerId) => {
@@ -1960,10 +1989,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       type: 'geojson',
       data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: remainingRouteCoordinates() } },
     });
-    const labelLayer = (state.map.getStyle().layers || []).find((layer) => layer.type === 'symbol')?.id;
-    state.map.addLayer({ id: 'trazia-route-outline', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#420078', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 11, 16, 22], 'line-opacity': 1 } }, labelLayer);
-    state.map.addLayer({ id: 'trazia-route-line', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#a020ff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 6, 16, 14], 'line-opacity': 1 } }, labelLayer);
-    if (state.map.getLayer(TRAFFIC_LAYER)) state.map.moveLayer(TRAFFIC_LAYER, 'trazia-route-outline');
+    state.map.addLayer({ id: 'trazia-route-outline', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#420078', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 11, 16, 22], 'line-opacity': 1 } });
+    state.map.addLayer({ id: 'trazia-route-line', type: 'line', source: 'trazia-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#a020ff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 6, 16, 14], 'line-opacity': 1 } });
+    keepRouteInForeground();
     const destination = state.routeCoordinates[state.routeCoordinates.length - 1];
     if (destination) {
       state.destinationMarker?.remove();
@@ -2024,6 +2052,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         const labels = (state.map.getStyle().layers || []).find((layer) => layer.type === 'symbol')?.id;
         state.map.addLayer(congestionLayer(), state.map.getLayer('trazia-route-outline') ? 'trazia-route-outline' : labels);
       }
+      keepRouteInForeground();
       updateLiveTrafficStatus();
     } catch {
       state.liveTrafficStatus = 'unavailable';
@@ -2068,6 +2097,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         id: 'trazia-speed-cameras', type: 'symbol', source: 'trazia-speed-cameras', minzoom: 10,
         layout: { 'icon-image': 'trazia-camera-png', 'icon-size': 1, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-pitch-alignment': 'viewport' },
       });
+      keepRouteInForeground();
       if (!state.speedCameraEventsBound) {
         state.speedCameraEventsBound = true;
         state.map.on('click', 'trazia-speed-cameras', (event) => {
@@ -2660,6 +2690,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (!Number.isFinite(position?.lat) || !Number.isFinite(position?.lng)) throw new Error('invalid-position');
       collapseMobilePanel();
       state.isNavigating = true;
+      clearNavigationSearch();
       setNavigationView(true);
       state.announcedCameras.clear();
       state.followCamera = true;

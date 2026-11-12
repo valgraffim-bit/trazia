@@ -20,16 +20,17 @@ test('starting navigation shows the correct arrow while speaking the full instru
  const elements=new Map();
  const $=selector=>{if(!elements.has(selector))elements.set(selector,{textContent:'',dataset:{},hidden:true,setAttribute(name,value){this[name]=value;}});return elements.get(selector);};
  const instruction='Gira a la derecha hacia Calle 45. Después gira a la izquierda hacia Carrera 83C.';
- const ctx=vm.createContext({ $,state:{announcedCameras:new Set(),mapReady:true,route:{},routeCoordinates:[[0,0],[1,1]],navigationSteps:[{maneuverType:10,instructions:instruction}],voiceEnabled:true,language:'es',map:{flyTo(){}},is3d:true},
+ const ctx=vm.createContext({ $,destinationInput:{value:'Destino',blur(){}},closeDestinationSuggestions(){},state:{announcedCameras:new Set(),mapReady:true,route:{},routeCoordinates:[[0,0],[1,1]],navigationSteps:[{maneuverType:10,instructions:instruction}],voiceEnabled:true,language:'es',map:{flyTo(){}},is3d:true},
   window:{speechSynthesis:{cancel(){},resume(){},getVoices(){return[];},speak(u){spoken.push(u.text);}},SpeechSynthesisUtterance:class{constructor(text){this.text=text;}}},
   navigator:{},t:key=>key,showToast(){},setNavigationView(){},requestNavigationWakeLock(){},releaseNavigationWakeLock(){},collapseMobilePanel(){},updateRouteProgress(){},setMap3d(){},getUserPosition:async()=>({lat:3.4,lng:-76.5}),compassBearing:()=>0,mobileMapOffset:()=>[0,0],console});
- for(const name of ['navigationArrow','updateNavigationInstruction','speak','startNavigation'])add(ctx,name);
+ for(const name of ['navigationArrow','updateNavigationInstruction','speak','clearNavigationSearch','startNavigation'])add(ctx,name);
  await ctx.startNavigation();
  assert.equal($('#navigation-banner').hidden,false);
  assert.equal($('#navigation-banner').dataset.direction,'right');
  assert.equal($('#navigation-instruction').textContent,instruction);
  assert.equal(spoken.at(-1),instruction);
  assert.equal(ctx.state.isNavigating,true);
+ assert.equal(ctx.destinationInput.value,'');
 });
 test('stopping navigation clears the purple route and cancels late calculations, preserving traffic and cameras',()=>{
  const layers=new Set(['trazia-route-line','trazia-route-outline','trazia-congestion-red','trazia-speed-cameras']);
@@ -48,19 +49,20 @@ test('stopping navigation clears the purple route and cancels late calculations,
 
 function startingSetup(getPosition) {
  const elements=new Map();const $=selector=>{if(!elements.has(selector))elements.set(selector,{hidden:true});return elements.get(selector);};
- const stats={views:0,watches:0,flights:0,messages:[],progress:0,stops:0};
+ const stats={views:0,watches:0,flights:0,messages:[],progress:0,stops:0,clears:0};
  const state={announcedCameras:new Set(),mapReady:true,route:{},routeRequestId:7,routeCoordinates:[[0,0],[1,1]],navigationSteps:[],isNavigating:false,map:{flyTo(){stats.flights++;}},is3d:true};
- const ctx=vm.createContext({$,state,window:{speechSynthesis:{resume(){}}},navigator:{geolocation:{watchPosition(){}}},t:key=>key,
+ const ctx=vm.createContext({$,state,destinationInput:{value:'Destino',blur(){}},closeDestinationSuggestions(){stats.clears++;},window:{speechSynthesis:{resume(){}}},navigator:{geolocation:{watchPosition(){}}},t:key=>key,
   speak(){},showToast(message){stats.messages.push(message);},setNavigationView(value){if(value)stats.views++;},requestNavigationWakeLock(){},
   collapseMobilePanel(){},setMap3d(){},startLocationWatch(){stats.watches++;},updateRouteProgress(){stats.progress++;},
   getUserPosition:getPosition|| (async()=>({lat:3.4,lng:-76.5})),compassBearing:()=>0,mobileMapOffset:()=>[0,0],updateNavigationInstruction(){},
   stopNavigation(){stats.stops++;},console});
- add(ctx,'startNavigation');return{ctx,state,stats,$};
+ add(ctx,'clearNavigationSearch');add(ctx,'startNavigation');return{ctx,state,stats,$};
 }
 test('automatic navigation reuses the route origin, then repeat starts preserve active guidance',async()=>{
  let gpsRequests=0;const {ctx,state,stats}=startingSetup(async()=>{gpsRequests++;throw Error('No second GPS request expected');});
  const position={lat:3.4,lng:-76.5};await ctx.startNavigation({position,requestId:7});await ctx.startNavigation({position,requestId:7});
  assert.equal(state.isNavigating,true);assert.equal(gpsRequests,0);assert.equal(stats.views,1);assert.equal(stats.watches,1);assert.equal(stats.stops,0);
+ assert.equal(ctx.destinationInput.value,'');assert.equal(stats.clears,1);
 });
 test('a denied GPS request does not activate guidance',async()=>{
  const {ctx,state,stats,$}=startingSetup(async()=>{throw Error('Permission denied');});await ctx.startNavigation();

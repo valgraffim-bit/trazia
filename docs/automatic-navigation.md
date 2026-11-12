@@ -4,6 +4,10 @@ Al elegir una dirección, negocio o lugar de las sugerencias, Trazia calcula la 
 
 Se eliminó el botón «Iniciar navegación». El resumen del mapa conserva hora estimada de llegada, distancia y duración. «Terminar» permite detener la navegación, borrar el recorrido y volver a buscar.
 
+Cuando la navegación empieza, la barra de búsqueda queda vacía y se cierra el teclado. El destino aceptado permanece en el estado del recorrido, junto con las coordenadas y las métricas. Recalcular con la barra vacía conserva ese destino; una consulta nueva busca el nuevo texto. Los errores de cálculo conservan el texto para corregirlo, y terminar no vuelve a llenar la barra.
+
+La línea morada y su contorno se dibujan por encima de las capas base, incluidos sus rótulos y el tráfico. Se comprueba el orden después de redibujar la ruta, cargar cámaras/tráfico y estabilizar un cambio de estilo. Las cámaras y los marcadores continúan visibles. El orden solo se modifica cuando hace falta, para evitar ciclos de renderizado.
+
 El cálculo exige una ubicación GPS reciente; si el dato tiene más de treinta segundos, se consulta de nuevo. El inicio reutiliza ese origen sin pedir una segunda ubicación. Una denegación del GPS o un fallo del servicio no inicia la navegación. La preparación de la voz ocurre durante la selección, antes de esperar la respuesta de la ruta, para conservar el gesto requerido por los navegadores móviles.
 
 Una respuesta descartada, una búsqueda que ya cambió o una ruta cancelada no puede iniciar navegación tardíamente. Iniciar de nuevo una navegación activa no la detiene. Los recálculos conservan la navegación y actualizan las indicaciones y las métricas; el destino activo solo se reemplaza cuando el nuevo cálculo termina correctamente.

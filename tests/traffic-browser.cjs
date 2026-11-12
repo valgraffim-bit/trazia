@@ -25,8 +25,11 @@ const {chromium}=require('playwright');const fs=require('node:fs');const path=re
   });
   await page.goto('https://trazia.test/');await page.waitForFunction(()=>window.__trafficTest);await page.locator('#app-splash').waitFor({state:'hidden'});
   const first=await page.evaluate(()=>window.__trafficTest());
-  assert.ok(first.layers.indexOf('trazia-congestion-red')>first.layers.indexOf('trazia-route-line'));
-  assert.ok(first.layers.indexOf('trazia-congestion-red')<first.layers.indexOf('labels'));
+  const outline=first.layers.indexOf('trazia-route-outline'),line=first.layers.indexOf('trazia-route-line');
+  assert.ok(first.layers.indexOf('trazia-congestion-red')<outline,'traffic stays below the route outline');
+  assert.ok(first.layers.indexOf('labels')<outline,'map labels stay below the route outline');
+  assert.ok(outline<line,'purple route stays above its outline');
+  if(first.layers.includes('trazia-speed-cameras'))assert.ok(line<first.layers.indexOf('trazia-speed-cameras'),'camera icons stay visible above the route');
   assert.equal(first.source.type,'vector');assert.equal(first.source.tiles[0].includes('test-browser-key'),false);
   await page.locator('#open-settings').click();await page.locator('#live-traffic-toggle').uncheck();
   const hidden=await page.evaluate(()=>({hasLayer:window.__trafficObjects.layers.some(l=>l.id==='trazia-congestion-red'),hasSource:Boolean(window.__trafficObjects.sources['trazia-live-traffic']),preference:localStorage.getItem('trazia:live-traffic')}));
@@ -34,6 +37,6 @@ const {chromium}=require('playwright');const fs=require('node:fs');const path=re
   await page.locator('#live-traffic-toggle').check();
   assert.ok(await page.evaluate(()=>window.__trafficObjects.layers.some(l=>l.id==='trazia-congestion-red')));
   assert.deepEqual(errors,[]);
-  console.log('Traffic mobile UI passed: toggle, preference, source auth and red strokes above route; map mocked.');
+  console.log('Traffic mobile UI passed: toggle, preference, source auth and purple route above map labels and traffic; map mocked.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

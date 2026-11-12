@@ -38,21 +38,36 @@ const routePayload={trip:{summary:{length:8.4,time:1200},legs:[{shape:encode([[-
    assert.equal(await page.evaluate(()=>window.__autoNavigation.state.isNavigating),false);
    await page.locator('#destination-suggestion-0').click();
    await page.waitForFunction(()=>window.__autoNavigation.state.isNavigating===true);
+   assert.equal(await page.locator('#destination-input').inputValue(),'','accepted navigation clears the visible search');
+   assert.equal(await page.evaluate(()=>window.__autoNavigation.state.selectedDestination),null);
+   assert.deepEqual(await page.evaluate(()=>window.__autoNavigation.state.activeDestination.location),{lat:3.46,lng:-76.52});
+   const destinationLabel=await page.evaluate(()=>window.__autoNavigation.state.routeDestination);
+   assert.match(destinationLabel,/Destino de prueba/);
    assert.equal(requests.length,1);assert.equal(requests[0].locations[1].lat,3.46);assert.equal(requests[0].locations[1].lon,-76.52);
    assert.equal(await page.locator('.side-panel').isVisible(),false);assert.equal(await page.locator('#finish-navigation').isVisible(),true);
    assert.equal(await page.locator('#route-summary-overlay').isVisible(),true);
    assert.match(await page.locator('#summary-distance').textContent(),/8[,.]4 km/);assert.match(await page.locator('#summary-duration').textContent(),/20 min/);
    assert.match(await page.locator('#arrival-time').textContent(),/\d{1,2}:\d{2}/);
    assert.equal(await page.locator('#navigation-instruction').textContent(),'Gira a la derecha hacia Calle 45.');
+   await page.evaluate(()=>document.querySelector('#recalculate-route').click());
+   await page.waitForFunction(()=>!document.querySelector('#search-route').disabled);
+   assert.equal(requests.length,2,'recalculation works with an empty search');
+   assert.equal(requests[1].locations[1].lat,3.46);assert.equal(requests[1].locations[1].lon,-76.52);
+   assert.equal(await page.locator('#destination-input').inputValue(),'','recalculation does not refill the search');
+   assert.equal(await page.evaluate(()=>window.__autoNavigation.state.routeDestination),destinationLabel);
+   assert.match(await page.locator('#summary-distance').textContent(),/8[,.]4 km/);assert.match(await page.locator('#summary-duration').textContent(),/20 min/);
+   assert.match(await page.locator('#arrival-time').textContent(),/\d{1,2}:\d{2}/);
    await page.evaluate(()=>window.__autoNavigation.startNavigation());assert.equal(await page.evaluate(()=>window.__autoNavigation.state.isNavigating),true,'repeated starts do not toggle navigation off');
    if(process.env.AUTO_NAVIGATION_PREVIEW_DIR){fs.mkdirSync(process.env.AUTO_NAVIGATION_PREVIEW_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.AUTO_NAVIGATION_PREVIEW_DIR,`trazia-auto-navigation-${width}.png`)});}
    await page.locator('#finish-navigation').click();assert.equal(await page.evaluate(()=>window.__autoNavigation.state.isNavigating),false);assert.equal(await page.locator('#route-summary-overlay').isVisible(),false);
+   assert.equal(await page.locator('#destination-input').inputValue(),'','stopping does not restore the previous address');
    routingFails=true;await page.evaluate(()=>window.__autoNavigation.prepare());await page.locator('#destination-suggestion-0').click();await page.waitForFunction(()=>!document.querySelector('#search-route').disabled);
    assert.equal(await page.evaluate(()=>window.__autoNavigation.state.isNavigating),false);assert.equal(await page.locator('#finish-navigation').isVisible(),false);assert.equal(await page.locator('#route-summary-overlay').isVisible(),false);
+   assert.match(await page.locator('#destination-input').inputValue(),/Destino de prueba/,'failed routing keeps the chosen address available to retry');
    const attempts=requests.length;await page.evaluate(()=>window.__autoNavigation.prepare(true));await page.locator('#destination-suggestion-0').click();await page.waitForFunction(()=>!document.querySelector('#search-route').disabled);
    assert.equal(requests.length,attempts,'denied GPS never requests or starts a route');assert.equal(await page.evaluate(()=>window.__autoNavigation.state.isNavigating),false);
    assert.deepEqual(errors,[]);await context.close();
   }
-  console.log('Automatic navigation: choosing a destination starts guidance, arrival/time/km remain visible, Finish stops, repeated starts are idempotent, routing/GPS failures do not start. Mobile/landscape/desktop checked with mocked services and location.');
+  console.log('Automatic navigation: accepted routes clear search while retaining the destination, recalculation and arrival/time/km; Finish does not restore the address, repeated starts stay active, and failures preserve search without starting. Mobile/landscape/desktop checked with mocked services and location.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
