@@ -57,7 +57,7 @@ public final class MainActivity extends Activity {
         if (savedInstanceState != null && webView.restoreState(savedInstanceState) != null) {
             return;
         }
-        webView.loadUrl(TRAZIA_URL + "?native=android-v2");
+        webView.loadUrl(TRAZIA_URL + "?native=android-v3");
     }
 
     @Override
