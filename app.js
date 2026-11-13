@@ -356,6 +356,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   function updateNavigationIcon() {
     const marker = state.userMarkerElement?.querySelector('img');
     if (marker) marker.src = navPng(state.navigationIcon);
+    updateVehicleMarkerOrientation();
     $('.navigation-icon-choice').forEach((button) => {
       const selected = button.dataset.navigationIcon === state.navigationIcon;
       button.classList.toggle('active',selected);
@@ -374,8 +375,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   updateNavigationIcon();
 
   function updateVehicleMarkerOrientation() {
-    // The vehicle glyph is deliberately kept level on screen, as requested.
-    // Map rotation is handled by the camera; rotating the marker made emoji vehicles stand upright.
+    // MapLibre subtracts the map bearing when rotationAlignment is 'map'.
+    // Thus the arrow and vehicle markers point along the GPS travel heading,
+    // even while the map turns to keep the road ahead at the top of the screen.
+    if (!state.userMarker) return;
+    const heading = Number.isFinite(state.lastHeading) ? state.lastHeading : 0;
+    state.userMarker.setRotation(heading);
   }
 
   function bearingBetween(from, to) {
@@ -1478,7 +1483,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       symbol.style.cssText = 'display:block;width:48px;height:48px;object-fit:contain';
       content.append(symbol);
       state.userMarkerElement = content;
-      state.userMarker = new maplibregl.Marker({ element: content, anchor: 'center', rotationAlignment: 'viewport', pitchAlignment: 'viewport' })
+      state.userMarker = new maplibregl.Marker({ element: content, anchor: 'center', rotationAlignment: 'map', pitchAlignment: 'viewport' })
         .setLngLat([position.lng, position.lat])
         .addTo(state.map);
     } else {
