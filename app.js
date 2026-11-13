@@ -2224,7 +2224,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         id: 'trazia-traffic-signals',
         type: 'circle',
         source: 'trazia-traffic-signals',
-        minzoom: 12,
+        minzoom: 10,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 4, 16, 7, 19, 9],
           'circle-color': '#202a36',
@@ -2238,10 +2238,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         id: 'trazia-traffic-signals-icon',
         type: 'symbol',
         source: 'trazia-traffic-signals',
-        minzoom: 14,
+        minzoom: 10,
         layout: {
           'text-field': '🚦',
-          'text-size': 19,
+          'text-size': ['interpolate', ['linear'], ['zoom'], 10, 14, 14, 20, 18, 24],
           'text-allow-overlap': true,
           'text-ignore-placement': true,
           'text-pitch-alignment': 'viewport',
@@ -2261,10 +2261,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     renderTrafficSignals();
     const source = state.map.getSource('trazia-traffic-signals');
     if (!source) return;
-    if (state.map.getZoom() < 12) {
-      source.setData(trafficSignalEmpty());
-      return;
-    }
+    if (state.map.getZoom() < 10) return;
     const center = state.map.getCenter();
     const key = center.lat.toFixed(2) + ':' + center.lng.toFixed(2);
     const cached = trafficSignalCache.get(key);
@@ -2273,12 +2270,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       return;
     }
     const request = ++trafficSignalRequest;
-    const bounds = state.map.getBounds();
-    const south = Math.max(-85, bounds.getSouth());
-    const north = Math.min(85, bounds.getNorth());
-    const west = bounds.getWest();
-    const east = bounds.getEast();
-    if (east - west > 0.3 || north - south > 0.3 || west >= east) return;
+    // Query a consistent neighborhood radius, even while the vehicle moves or map rotates.
+    const radiusLat = 0.02;
+    const radiusLng = radiusLat / Math.max(0.3, Math.cos(center.lat * Math.PI / 180));
+    const south = center.lat - radiusLat;
+    const north = center.lat + radiusLat;
+    const west = center.lng - radiusLng;
+    const east = center.lng + radiusLng;
     const query = '[out:json][timeout:14];node["highway"="traffic_signals"](' +
       [south, west, north, east].map((n) => n.toFixed(5)).join(',') + ');out body;';
     try {
