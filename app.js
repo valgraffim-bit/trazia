@@ -357,7 +357,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const marker = state.userMarkerElement?.querySelector('img');
     if (marker) marker.src = navPng(state.navigationIcon);
     updateVehicleMarkerOrientation();
-    $('.navigation-icon-choice').forEach((button) => {
+    $$('.navigation-icon-choice').forEach((button) => {
       const selected = button.dataset.navigationIcon === state.navigationIcon;
       button.classList.toggle('active',selected);
       button.setAttribute('aria-pressed',String(selected));
@@ -371,7 +371,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     localStorage.setItem('trazia:navigation-icon',type);
     updateNavigationIcon();
   }
-  $('.navigation-icon-choice').forEach((button) => button.addEventListener('click',() => setNavigationIcon(button.dataset.navigationIcon)));
+  $$('.navigation-icon-choice').forEach((button) => button.addEventListener('click',() => setNavigationIcon(button.dataset.navigationIcon)));
   updateNavigationIcon();
 
   function updateVehicleMarkerOrientation() {
