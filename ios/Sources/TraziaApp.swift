@@ -21,6 +21,7 @@ private struct TraziaWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
 
@@ -31,13 +32,23 @@ private struct TraziaWebView: UIViewRepresentable {
         webView.allowsBackForwardNavigationGestures = true
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
-        webView.load(URLRequest(url: startURL, cachePolicy: .useProtocolCachePolicy))
+        var components = URLComponents(url: startURL, resolvingAgainstBaseURL: false)!
+        components.queryItems = [URLQueryItem(name: "native", value: "ios-v2")]
+        webView.load(URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData))
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {}
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            webView.evaluateJavaScript("window.dispatchEvent(new Event('resize'))", completionHandler: nil)
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            NSLog("Trazia initial navigation failed: %@", error.localizedDescription)
+        }
+
         func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
