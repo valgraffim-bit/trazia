@@ -131,9 +131,21 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     if (!name) { status.textContent = 'Escribí tu nombre para continuar.'; return; }
     void action(async () => {
       await service.completeProfile(user, name);
-      await onEnter(user);
+      // Reveal the application before starting the map. On mobile Safari,
+      // initializing WebGL under a full-screen authentication overlay can
+      // leave a blank canvas until the map is explicitly resized.
       entered = true;
       lock(false);
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      try {
+        await onEnter(user);
+      } catch (error) {
+        // A map or optional service failure must never block account access.
+        console.error('Trazia could not finish opening the map:', error);
+        const note = document.getElementById('route-note');
+        if (note) note.textContent = 'No se pudo cargar el mapa. Revisá la conexión y recargá Trazia.';
+      }
+      window.dispatchEvent(new Event('resize'));
       $('open-settings')?.focus({ preventScroll: true });
     });
   });
