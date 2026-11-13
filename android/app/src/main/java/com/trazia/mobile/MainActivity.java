@@ -14,6 +14,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.RenderProcessGoneDetail;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
@@ -109,6 +110,18 @@ public final class MainActivity extends Activity {
     }
 
     private final class TraziaWebViewClient extends WebViewClient {
+        @Override
+        public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+            android.util.Log.e("Trazia", "WebView renderer exited after authentication; crashed=" + detail.didCrash());
+            if (view != null) {
+                ((ViewGroup) view.getParent()).removeView(view);
+                view.destroy();
+            }
+            webView = null;
+            recreate();
+            return true;
+        }
+
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
