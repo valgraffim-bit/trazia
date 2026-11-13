@@ -6,7 +6,7 @@ import { createCommunityReportService, watchCommunityReports, communityReportErr
 import { setupReportMenu } from './reports.mjs?v=64';
 import { setupVoiceSearch } from './voice-search.mjs?v=59';
 import { loadPreferences, setupSettings } from './settings.mjs?v=69';
-import { setupAccountScreen } from './auth.mjs?v=58';
+import { setupAccountScreen } from './auth.mjs?v=60';
 import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.mjs';
 
 import { parseWazeLocation } from './waze-links.mjs?v=66';
