@@ -36,6 +36,18 @@ public final class MainActivity extends Activity {
         window.setStatusBarColor(Color.rgb(16, 38, 59));
         window.setNavigationBarColor(Color.rgb(16, 38, 59));
 
+        // Open TRAZIA in the system browser. Authentication and WebGL mapping
+        // work there without the embedded WebView blank-screen failure.
+        Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(TRAZIA_URL));
+        browser.addCategory(Intent.CATEGORY_BROWSABLE);
+        try {
+            startActivity(browser);
+            finish();
+            return;
+        } catch (android.content.ActivityNotFoundException ignored) {
+            // Fall back to the embedded WebView on devices without a browser.
+        }
+
         webView = new WebView(this);
         webView.setLayoutParams(new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
