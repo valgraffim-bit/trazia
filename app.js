@@ -316,7 +316,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function compassBearing() {
-    return state.compassMode === 'follow' && Number.isFinite(state.lastHeading) ? state.lastHeading : 0;
+    return (state.isNavigating || state.compassMode === 'follow') && Number.isFinite(state.lastHeading) ? state.lastHeading : 0;
   }
 
   function updateCompassControl() {
@@ -347,6 +347,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function toggleCompassMode() {
+    if (state.isNavigating) {
+      state.compassMode = 'follow';
+      localStorage.setItem('trazia:compass-mode', 'follow');
+      showToast('Durante la navegación, el mapa sigue la dirección del vehículo.');
+      return;
+    }
     state.compassMode = state.compassMode === 'follow' ? 'north' : 'follow';
     state.followCamera = state.isNavigating || !state.route;
     localStorage.setItem('trazia:compass-mode', state.compassMode);
@@ -2691,6 +2697,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (!Number.isFinite(position?.lat) || !Number.isFinite(position?.lng)) throw new Error('invalid-position');
       collapseMobilePanel();
       state.isNavigating = true;
+      state.compassMode = 'follow';
+      localStorage.setItem('trazia:compass-mode', 'follow');
+      updateCompassControl();
       clearNavigationSearch();
       setNavigationView(true);
       state.announcedCameras.clear();
