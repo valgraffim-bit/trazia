@@ -33,7 +33,7 @@ private struct TraziaWebView: UIViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         var components = URLComponents(url: startURL, resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "native", value: "ios-v2")]
+        components.queryItems = [URLQueryItem(name: "native", value: "ios-v3")]
         webView.load(URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData))
         return webView
     }
