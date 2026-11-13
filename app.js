@@ -1482,6 +1482,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (heading !== null) state.lastHeading = heading;
     updateSpeedometer(position);
     updateUserMarker(state.currentPosition, heading);
+    updateSchoolWarning(state.currentPosition);
+    if (!schoolZones.length) scheduleSchoolZones();
     updateConnectionLabels();
     return true;
   }
@@ -1668,6 +1670,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         void renderSpeedCameras();
         renderTrafficSignals();
         scheduleTrafficSignals();
+        renderSchoolZones();
+        scheduleSchoolZones();
         renderLiveTraffic();
       });
       state.map.on('style.load', () => {
@@ -1687,10 +1691,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         applyTraziaMapPalette();
         if (!state.map.getLayer('trazia-speed-cameras')) void renderSpeedCameras();
         if (!state.map.getLayer('trazia-traffic-signals')) renderTrafficSignals();
+        if (!state.map.getLayer('trazia-school-zones')) renderSchoolZones();
         if (state.liveTrafficEnabled && !state.liveTrafficBlocked && !state.map.getLayer(TRAFFIC_LAYER)) renderLiveTraffic();
         keepRouteInForeground();
       });
       state.map.on('moveend', scheduleTrafficSignals);
+      state.map.on('moveend', scheduleSchoolZones);
       state.map.on('sourcedata', (event) => {
         if (event.sourceId === TRAFFIC_SOURCE && event.isSourceLoaded && state.liveTrafficEnabled && !state.liveTrafficBlocked) {
           state.liveTrafficStatus = 'ready';
@@ -2286,6 +2292,95 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       state.map.getSource('trazia-traffic-signals')?.setData(data);
     } catch (error) {
       console.info('Traffic signal coverage temporarily unavailable:', error.message);
+    }
+  }
+
+  // School zones from mapped schools and signed school-zone roads in OSM.
+  const schoolZoneCache = new Map();
+  let schoolZoneTimer = null;
+  let schoolZones = [];
+  let schoolAlerted = new Set();
+  let schoolRequest = 0;
+  function schoolBanner() {
+    let banner = document.getElementById('trazia-school-warning');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'trazia-school-warning';
+      banner.setAttribute('role', 'status');
+      banner.setAttribute('aria-live', 'polite');
+      banner.style.cssText = 'position:fixed;z-index:110;top:calc(72px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(92vw,380px);padding:13px 18px;border:3px solid #eab308;border-radius:16px;background:#162b43;color:white;box-shadow:0 8px 28px #0008;font:bold 17px/1.4 system-ui;text-align:center;pointer-events:none';
+      banner.hidden = true;
+      document.body.appendChild(banner);
+    }
+    return banner;
+  }
+  function updateSchoolWarning(user) {
+    const banner = schoolBanner();
+    if (!user || !schoolZones.length) { banner.hidden = true; return; }
+    const closest = schoolZones.map((zone) => ({ zone, meters: distanceMeters(user, zone.position) }))
+      .filter((item) => item.meters <= 500)
+      .sort((a, b) => a.meters - b.meters)[0];
+    if (!closest) { banner.hidden = true; return; }
+    const { zone, meters } = closest;
+    banner.textContent = '🚸 ZONA ESCOLAR · ' + Math.max(0, Math.ceil(meters / 50) * 50) + ' m · Reduzca la velocidad';
+    banner.hidden = false;
+    if (!schoolAlerted.has(zone.id)) {
+      schoolAlerted.add(zone.id);
+      if (schoolAlerted.size > 300) schoolAlerted.clear();
+      speak(state.language === 'es' ? 'Atención, zona escolar a quinientos metros o menos. Reduzca la velocidad.' : 'Attention, school zone ahead. Reduce speed.');
+    }
+  }
+  function renderSchoolZones() {
+    if (!state.mapReady || !state.map?.isStyleLoaded()) return;
+    const sourceId = 'trazia-school-zones';
+    if (!state.map.getSource(sourceId)) state.map.addSource(sourceId, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    if (!state.map.getLayer(sourceId)) state.map.addLayer({
+      id: sourceId, type: 'symbol', source: sourceId, minzoom: 12,
+      layout: { 'text-field': '🚸', 'text-size': 24, 'text-allow-overlap': true, 'text-ignore-placement': true, 'text-pitch-alignment': 'viewport' },
+    });
+    keepRouteInForeground();
+  }
+  function scheduleSchoolZones() {
+    clearTimeout(schoolZoneTimer);
+    schoolZoneTimer = setTimeout(() => { void loadSchoolZones(); }, 850);
+  }
+  async function loadSchoolZones() {
+    if (!state.mapReady || !state.map || document.hidden) return;
+    renderSchoolZones();
+    const center = state.currentPosition || currentMapCenter();
+    if (!center) return;
+    const key = center.lat.toFixed(2) + ':' + center.lng.toFixed(2);
+    const cached = schoolZoneCache.get(key);
+    if (cached && Date.now() - cached.time < 10 * 60 * 1000) {
+      schoolZones = cached.zones;
+      state.map.getSource('trazia-school-zones')?.setData(cached.data);
+      updateSchoolWarning(state.currentPosition);
+      return;
+    }
+    const request = ++schoolRequest;
+    const deltaLat = 0.023;
+    const deltaLng = 0.023 / Math.max(0.3, Math.cos(center.lat * Math.PI / 180));
+    const bounds = [center.lat - deltaLat, center.lng - deltaLng, center.lat + deltaLat, center.lng + deltaLng]
+      .map((v) => v.toFixed(5)).join(',');
+    const query = '[out:json][timeout:14];(nwr["amenity"="school"](' + bounds + ');nwr["maxspeed:conditional"~"school"](' + bounds + ');way["hazard"="school"](' + bounds + '););out center;';
+    try {
+      const payload = await requestOverpass(query, 18000);
+      if (request !== schoolRequest) return;
+      const zones = (payload.elements || []).map((el) => ({
+        id: el.type + '/' + el.id,
+        position: { lat: el.lat ?? el.center?.lat, lng: el.lon ?? el.center?.lon },
+      })).filter((zone) => Number.isFinite(zone.position.lat) && Number.isFinite(zone.position.lng));
+      const data = { type: 'FeatureCollection', features: zones.map((zone) => ({
+        type: 'Feature', properties: { id: zone.id },
+        geometry: { type: 'Point', coordinates: [zone.position.lng, zone.position.lat] },
+      })) };
+      schoolZoneCache.set(key, { time: Date.now(), zones, data });
+      if (schoolZoneCache.size > 30) schoolZoneCache.delete(schoolZoneCache.keys().next().value);
+      schoolZones = zones;
+      state.map.getSource('trazia-school-zones')?.setData(data);
+      updateSchoolWarning(state.currentPosition);
+    } catch (error) {
+      console.info('School zone data unavailable:', error.message);
     }
   }
 
