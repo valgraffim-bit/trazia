@@ -168,12 +168,27 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
       $('account-methods').hidden = Boolean(user);
       $('account-logout').hidden = !user;
       if (user) {
-        if (entered) onLeave();
-        entered = false;
-        lock(true);
-        $('account-title').textContent = 'Tus datos básicos';
         $('account-name').value = user.displayName || '';
         $('account-profile-email').value = user.email || '';
+        if (user.displayName?.trim()) {
+          // Existing profiles enter immediately. Never lock the visible map
+          // again when Firebase refreshes the authentication state.
+          if (!entered) {
+            entered = true;
+            window.TRAZIA_NATIVE_STAGE?.('abriendo sesión existente');
+            lock(false);
+            Promise.resolve().then(() => onEnter(user)).catch((error) => {
+              console.error('Trazia map startup failed:', error);
+              const note = document.getElementById('route-note');
+              if (note) note.textContent = 'El mapa no pudo iniciar. Revisá tu conexión.';
+            });
+          }
+        } else {
+          if (entered) onLeave();
+          entered = false;
+          lock(true);
+          $('account-title').textContent = 'Tus datos básicos';
+        }
       } else {
         if (entered) onLeave();
         entered = false;
