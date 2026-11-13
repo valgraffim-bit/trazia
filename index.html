@@ -476,6 +476,42 @@
 
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      // Diagnostic overlay for embedded iOS/Android browsers. Does not send user data.
+      (function () {
+        var isNative = /(?:\\?|&)native=(?:ios|android)-v\\d+/.test(location.search);
+        if (!isNative) return;
+        var stage = 'document';
+        function show(message) {
+          var node = document.getElementById('trazia-native-diagnostic');
+          if (!node) {
+            node = document.createElement('div');
+            node.id = 'trazia-native-diagnostic';
+            node.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#10243c;color:#fff;padding:calc(60px + env(safe-area-inset-top)) 24px 24px;font:16px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;overflow:auto';
+            document.body.appendChild(node);
+          }
+          node.textContent = 'TRAZIA · Diagnóstico de carga\n\n' + message + '\n\nEtapa: ' + stage + '\n\nNo compartas contraseñas ni códigos.';
+          node.style.whiteSpace = 'pre-wrap';
+        }
+        window.addEventListener('error', function (event) {
+          if (event.target !== window && event.target && event.target.tagName === 'SCRIPT') {
+            show('No se pudo cargar un archivo de la aplicación.');
+          } else if (event.target === window) {
+            show('Error de JavaScript: ' + String(event.message || 'desconocido').slice(0, 240));
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = event.reason;
+          show('Error al ejecutar una tarea: ' + String(reason && (reason.code || reason.message) || 'desconocido').slice(0, 240));
+        });
+        window.TRAZIA_NATIVE_STAGE = function (value) { stage = String(value).slice(0, 80); };
+        setTimeout(function () {
+          var shell = document.querySelector('.app-shell');
+          var account = document.getElementById('account-screen');
+          if (!shell || !account) show('No se encontró la interfaz principal.');
+        }, 12000);
+      }());
+    </script>
     <script src="./config.js?v=57"></script>
     <script type="module" src="./app.js?v=74"></script>
   </body>
