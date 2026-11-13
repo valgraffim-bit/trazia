@@ -118,6 +118,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     followCamera: true,
     userMarker: null,
     userMarkerElement: null,
+    navigationIcon: ['arrow','car','motorcycle','truck','bicycle'].includes(localStorage.getItem('trazia:navigation-icon')) ? localStorage.getItem('trazia:navigation-icon') : 'arrow',
     destinationMarker: null,
     is3d: true,
     currentSpeed: 0,
@@ -263,7 +264,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     state.vehicleType = type;
     localStorage.setItem('trazia:vehicle-type', type);
     updateVehiclePicker();
-    if (state.userMarkerElement) state.userMarkerElement.querySelector('span').textContent = vehicleIconForType(type);
+    updateNavigationIcon();
     if (state.route) {
       clearRoutePolylines();
       state.route = null;
@@ -330,6 +331,47 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     button.setAttribute('aria-label', t(action));
     button.title = t(action);
   }
+
+  const navPngCache = new Map();
+  function navPng(type) {
+    if (navPngCache.has(type)) return navPngCache.get(type);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+    if (type === 'arrow') {
+      ctx.shadowColor = '#092346'; ctx.shadowBlur = 9;
+      ctx.beginPath(); ctx.moveTo(80, 8); ctx.lineTo(145, 143); ctx.lineTo(80, 116); ctx.lineTo(15, 143); ctx.closePath();
+      ctx.fillStyle = '#1479ff'; ctx.fill(); ctx.lineWidth = 9; ctx.strokeStyle = 'white'; ctx.stroke();
+      ctx.shadowColor = 'transparent'; ctx.beginPath(); ctx.moveTo(80, 40); ctx.lineTo(80, 99); ctx.lineWidth = 7; ctx.strokeStyle = '#c0eaff'; ctx.stroke();
+    } else {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '112px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
+      ctx.fillText(({car:'🚗',motorcycle:'🏍️',truck:'🚚',bicycle:'🚲'})[type] || '🚗',80,82);
+    }
+    const png = canvas.toDataURL('image/png');
+    navPngCache.set(type,png);
+    return png;
+  }
+  function updateNavigationIcon() {
+    const marker = state.userMarkerElement?.querySelector('img');
+    if (marker) marker.src = navPng(state.navigationIcon);
+    $('.navigation-icon-choice').forEach((button) => {
+      const selected = button.dataset.navigationIcon === state.navigationIcon;
+      button.classList.toggle('active',selected);
+      button.setAttribute('aria-pressed',String(selected));
+      const img = button.querySelector('img');
+      if (img) img.src = navPng(button.dataset.navigationIcon);
+    });
+  }
+  function setNavigationIcon(type) {
+    if (!['arrow','car','motorcycle','truck','bicycle'].includes(type)) return;
+    state.navigationIcon = type;
+    localStorage.setItem('trazia:navigation-icon',type);
+    updateNavigationIcon();
+  }
+  $('.navigation-icon-choice').forEach((button) => button.addEventListener('click',() => setNavigationIcon(button.dataset.navigationIcon)));
+  updateNavigationIcon();
 
   function updateVehicleMarkerOrientation() {
     // The vehicle glyph is deliberately kept level on screen, as requested.
@@ -1428,8 +1470,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       content.className = 'trazia-location-marker';
       content.setAttribute('aria-label', t('myLocation'));
       content.style.zIndex = '30';
-      const symbol = document.createElement('span');
-      symbol.textContent = vehicleIconForType(state.vehicleType);
+      const symbol = document.createElement('img');
+      symbol.src = navPng(state.navigationIcon);
+      symbol.alt = '';
+      symbol.width = 48;
+      symbol.height = 48;
+      symbol.style.cssText = 'display:block;width:48px;height:48px;object-fit:contain';
       content.append(symbol);
       state.userMarkerElement = content;
       state.userMarker = new maplibregl.Marker({ element: content, anchor: 'center', rotationAlignment: 'viewport', pitchAlignment: 'viewport' })
