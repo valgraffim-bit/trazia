@@ -172,7 +172,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     reportStatus: 'connecting',
     reportSession: 0,
     publishingReport: false,
-    savedPlaces: readSavedPlaces(),
+    savedPlaces: [],
+    savedPlacesOwner: null,
     savedPlaceMarkers: [],
     savedPlaceSearchId: 0,
     recentDestinations: readRecentDestinations(),
@@ -1238,9 +1239,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
   }
 
-  function readSavedPlaces() {
+  function readSavedPlaces(uid = null) {
+    if (!uid) return [];
     try {
-      const saved = JSON.parse(localStorage.getItem('trazia:saved-places') || '[]');
+      const saved = JSON.parse(localStorage.getItem('trazia:saved-places:user:' + uid) || '[]');
       return Array.isArray(saved) ? saved.filter((place) => place && place.id && place.name && place.address) : [];
     } catch {
       return [];
@@ -1375,8 +1377,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function persistSavedPlace(saved) {
+    if (!state.savedPlacesOwner) { showToast('Inicia sesión para guardar direcciones privadas.', true); return; }
     const places = state.savedPlaces.filter(place => place.id !== saved.id).concat(saved);
-    try { localStorage.setItem('trazia:saved-places', JSON.stringify(places)); }
+    try { localStorage.setItem('trazia:saved-places:user:' + state.savedPlacesOwner, JSON.stringify(places)); }
     catch { showToast(t('savedLocationError'), true); return; }
     state.savedPlaces = places;
     renderSavedPlaces();
@@ -3447,6 +3450,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       document,
       config: window.TRAZIA_CONFIG?.firebase,
       onEnter: (user) => {
+        const uid = user?.uid;
+        if (!uid) return;
+        if (state.savedPlacesOwner !== uid) {
+          state.savedPlacesOwner = uid;
+          state.savedPlaces = readSavedPlaces(uid);
+          renderSavedPlaces();
+          renderSavedPlaceMarkers();
+        }
         state.weatherBadge.start();
         void connectCommunityReports(user);
         if (!mapStarted) {
@@ -3458,6 +3469,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        state.savedPlacesOwner = null;
+        state.savedPlaces = [];
+        renderSavedPlaces();
+        renderSavedPlaceMarkers();
         state.sos.close();
         state.weatherBadge.stop();
         musicDock?.close();
