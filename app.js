@@ -1666,6 +1666,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         updateCompassControl();
         drawRouteOnMap();
         void renderSpeedCameras();
+        renderTrafficSignals();
+        scheduleTrafficSignals();
         renderLiveTraffic();
       });
       state.map.on('style.load', () => {
@@ -1684,9 +1686,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         if (!state.map.getLayer('trazia-road-network')) addTraziaRoadLayer();
         applyTraziaMapPalette();
         if (!state.map.getLayer('trazia-speed-cameras')) void renderSpeedCameras();
+        if (!state.map.getLayer('trazia-traffic-signals')) renderTrafficSignals();
         if (state.liveTrafficEnabled && !state.liveTrafficBlocked && !state.map.getLayer(TRAFFIC_LAYER)) renderLiveTraffic();
         keepRouteInForeground();
       });
+      state.map.on('moveend', scheduleTrafficSignals);
       state.map.on('sourcedata', (event) => {
         if (event.sourceId === TRAFFIC_SOURCE && event.isSourceLoaded && state.liveTrafficEnabled && !state.liveTrafficBlocked) {
           state.liveTrafficStatus = 'ready';
@@ -2195,6 +2199,94 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       coordinates.push([longitude / factor, latitude / factor]);
     }
     return coordinates;
+  }
+
+  // Traffic lights mapped in OpenStreetMap, always shown when zoomed in.
+  // Missing OSM records are not interpreted as an absence of traffic lights.
+  const trafficSignalCache = new Map();
+  let trafficSignalTimer = null;
+  let trafficSignalRequest = 0;
+  const trafficSignalEmpty = () => ({ type: 'FeatureCollection', features: [] });
+
+  function renderTrafficSignals() {
+    if (!state.mapReady || !state.map?.isStyleLoaded()) return;
+    if (!state.map.getSource('trazia-traffic-signals')) {
+      state.map.addSource('trazia-traffic-signals', { type: 'geojson', data: trafficSignalEmpty() });
+    }
+    if (!state.map.getLayer('trazia-traffic-signals')) {
+      state.map.addLayer({
+        id: 'trazia-traffic-signals',
+        type: 'circle',
+        source: 'trazia-traffic-signals',
+        minzoom: 12,
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 4, 16, 7, 19, 9],
+          'circle-color': '#202a36',
+          'circle-stroke-color': '#f9f5e9',
+          'circle-stroke-width': 2,
+        },
+      });
+    }
+    if (!state.map.getLayer('trazia-traffic-signals-icon')) {
+      state.map.addLayer({
+        id: 'trazia-traffic-signals-icon',
+        type: 'symbol',
+        source: 'trazia-traffic-signals',
+        minzoom: 14,
+        layout: {
+          'text-field': '🚦',
+          'text-size': 19,
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+          'text-pitch-alignment': 'viewport',
+        },
+      });
+    }
+    keepRouteInForeground();
+  }
+
+  function scheduleTrafficSignals() {
+    clearTimeout(trafficSignalTimer);
+    trafficSignalTimer = setTimeout(() => { void loadTrafficSignals(); }, 550);
+  }
+
+  async function loadTrafficSignals() {
+    if (!state.mapReady || !state.map || document.hidden) return;
+    renderTrafficSignals();
+    const source = state.map.getSource('trazia-traffic-signals');
+    if (!source) return;
+    if (state.map.getZoom() < 12) {
+      source.setData(trafficSignalEmpty());
+      return;
+    }
+    const center = state.map.getCenter();
+    const key = center.lat.toFixed(2) + ':' + center.lng.toFixed(2);
+    const cached = trafficSignalCache.get(key);
+    if (cached && Date.now() - cached.time < 10 * 60 * 1000) {
+      source.setData(cached.data);
+      return;
+    }
+    const request = ++trafficSignalRequest;
+    const bounds = state.map.getBounds();
+    const south = Math.max(-85, bounds.getSouth());
+    const north = Math.min(85, bounds.getNorth());
+    const west = bounds.getWest();
+    const east = bounds.getEast();
+    if (east - west > 0.3 || north - south > 0.3 || west >= east) return;
+    const query = '[out:json][timeout:14];node["highway"="traffic_signals"](' +
+      [south, west, north, east].map((n) => n.toFixed(5)).join(',') + ');out body;';
+    try {
+      const payload = await requestOverpass(query, 18000);
+      if (request !== trafficSignalRequest) return;
+      const features = (payload.elements || []).filter((el) => Number.isFinite(el.lat) && Number.isFinite(el.lon))
+        .map((el) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [el.lon, el.lat] }, properties: {} }));
+      const data = { type: 'FeatureCollection', features };
+      trafficSignalCache.set(key, { time: Date.now(), data });
+      if (trafficSignalCache.size > 40) trafficSignalCache.delete(trafficSignalCache.keys().next().value);
+      state.map.getSource('trazia-traffic-signals')?.setData(data);
+    } catch (error) {
+      console.info('Traffic signal coverage temporarily unavailable:', error.message);
+    }
   }
 
   async function requestOverpass(query, timeoutMs = 18000) {
