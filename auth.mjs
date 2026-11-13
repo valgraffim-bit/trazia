@@ -107,6 +107,7 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     void action(async () => {
       const email = $('account-email').value.trim();
       const password = $('account-password').value;
+      window.TRAZIA_NATIVE_STAGE?.('enviando credenciales');
       try {
         if (mode === 'register') await service.register(email, password);
         else await service.login(email, password);
@@ -130,11 +131,13 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     const name = $('account-name').value.trim();
     if (!name) { status.textContent = 'Escribí tu nombre para continuar.'; return; }
     void action(async () => {
+      window.TRAZIA_NATIVE_STAGE?.('guardando perfil');
       await service.completeProfile(user, name);
       // Reveal the application before starting the map. On mobile Safari,
       // initializing WebGL under a full-screen authentication overlay can
       // leave a blank canvas until the map is explicitly resized.
       entered = true;
+      window.TRAZIA_NATIVE_STAGE?.('abriendo mapa');
       lock(false);
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       try {
@@ -157,6 +160,7 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
   const ready = serviceFactory(config).then((result) => {
     service = result;
     service.subscribe((nextUser) => {
+      window.TRAZIA_NATIVE_STAGE?.(nextUser ? 'sesión validada; preparando perfil' : 'sin sesión');
       user = nextUser;
       status.textContent = '';
       form.hidden = Boolean(user);
