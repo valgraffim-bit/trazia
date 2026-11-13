@@ -46,6 +46,7 @@ public final class MainActivity extends Activity {
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
+        webView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
         settings.setDomStorageEnabled(true);
         settings.setGeolocationEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
@@ -55,7 +56,7 @@ public final class MainActivity extends Activity {
         if (savedInstanceState != null && webView.restoreState(savedInstanceState) != null) {
             return;
         }
-        webView.loadUrl(TRAZIA_URL);
+        webView.loadUrl(TRAZIA_URL + "?native=android-v2");
     }
 
     @Override
@@ -108,6 +109,12 @@ public final class MainActivity extends Activity {
     }
 
     private final class TraziaWebViewClient extends WebViewClient {
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            view.evaluateJavascript("window.dispatchEvent(new Event('resize'))", null);
+        }
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             Uri uri = request.getUrl();
