@@ -41,6 +41,15 @@ private struct TraziaWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {}
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            NSLog("Trazia WebKit content process terminated; reloading")
+            webView.reload()
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            NSLog("Trazia navigation failed: %@", error.localizedDescription)
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             webView.evaluateJavaScript("window.dispatchEvent(new Event('resize'))", completionHandler: nil)
         }
