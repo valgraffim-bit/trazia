@@ -340,10 +340,39 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
     if (type === 'arrow') {
-      ctx.shadowColor = '#092346'; ctx.shadowBlur = 9;
-      ctx.beginPath(); ctx.moveTo(80, 8); ctx.lineTo(145, 143); ctx.lineTo(80, 116); ctx.lineTo(15, 143); ctx.closePath();
-      ctx.fillStyle = '#1479ff'; ctx.fill(); ctx.lineWidth = 9; ctx.strokeStyle = 'white'; ctx.stroke();
-      ctx.shadowColor = 'transparent'; ctx.beginPath(); ctx.moveTo(80, 40); ctx.lineTo(80, 99); ctx.lineWidth = 7; ctx.strokeStyle = '#c0eaff'; ctx.stroke();
+      // Compact perspective-style 3D navigation pointer, transparent PNG.
+      ctx.save();
+      ctx.translate(80, 80);
+      ctx.scale(0.83, 0.83);
+      ctx.translate(-80, -80);
+      ctx.shadowColor = 'rgba(0, 18, 48, 0.65)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 9;
+      ctx.beginPath();
+      ctx.moveTo(80, 9); ctx.lineTo(144, 141); ctx.lineTo(80, 112); ctx.lineTo(16, 141); ctx.closePath();
+      ctx.fillStyle = '#07346c'; ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      // Beveled side facets create depth without changing the forward heading.
+      ctx.beginPath();
+      ctx.moveTo(80, 9); ctx.lineTo(144, 141); ctx.lineTo(80, 112); ctx.closePath();
+      const rightFacet = ctx.createLinearGradient(80, 30, 146, 140);
+      rightFacet.addColorStop(0, '#42aaff');
+      rightFacet.addColorStop(0.55, '#1364cc');
+      rightFacet.addColorStop(1, '#07346c');
+      ctx.fillStyle = rightFacet; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(80, 9); ctx.lineTo(80, 112); ctx.lineTo(16, 141); ctx.closePath();
+      const leftFacet = ctx.createLinearGradient(15, 120, 95, 20);
+      leftFacet.addColorStop(0, '#0b3e84');
+      leftFacet.addColorStop(1, '#9bddff');
+      ctx.fillStyle = leftFacet; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(80, 9); ctx.lineTo(144, 141); ctx.lineTo(80, 112); ctx.lineTo(16, 141); ctx.closePath();
+      ctx.lineWidth = 6; ctx.strokeStyle = '#e8f8ff'; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(80, 26); ctx.lineTo(80, 94);
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.65)'; ctx.stroke();
+      ctx.restore();
     } else {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = '112px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
@@ -355,7 +384,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
   function updateNavigationIcon() {
     const marker = state.userMarkerElement?.querySelector('img');
-    if (marker) marker.src = navPng(state.navigationIcon);
+    if (marker) {
+      marker.src = navPng(state.navigationIcon);
+      const size = state.navigationIcon === 'arrow' ? 38 : 48;
+      marker.width = marker.height = size;
+      marker.style.width = marker.style.height = size + 'px';
+    }
     updateVehicleMarkerOrientation();
     $$('.navigation-icon-choice').forEach((button) => {
       const selected = button.dataset.navigationIcon === state.navigationIcon;
@@ -1478,9 +1512,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       const symbol = document.createElement('img');
       symbol.src = navPng(state.navigationIcon);
       symbol.alt = '';
-      symbol.width = 48;
-      symbol.height = 48;
-      symbol.style.cssText = 'display:block;width:48px;height:48px;object-fit:contain';
+      const markerSize = state.navigationIcon === 'arrow' ? 38 : 48;
+      symbol.width = markerSize;
+      symbol.height = markerSize;
+      symbol.style.cssText = 'display:block;width:' + markerSize + 'px;height:' + markerSize + 'px;object-fit:contain';
       content.append(symbol);
       state.userMarkerElement = content;
       state.userMarker = new maplibregl.Marker({ element: content, anchor: 'center', rotationAlignment: 'map', pitchAlignment: 'viewport' })
