@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="./assets/trazia-app-icon.png" />
     <link rel="apple-touch-icon" href="./assets/trazia-app-icon.png" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.17.0/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./styles.css?v=71" />
+    <link rel="stylesheet" href="./styles.css?v=72" />
     <title>Trazia · Tu ruta, más clara</title>
   </head>
   <body>
@@ -657,8 +657,23 @@
         login.addEventListener('click',function () { fallbackMode('login'); });
       }());
     </script>
+    <script>
+      // Independent safety net: a stalled module or resource must never leave
+      // the full-screen splash intercepting taps on the account form.
+      (function () {
+        function releaseSplash() {
+          var splash = document.getElementById('app-splash');
+          if (!splash) return;
+          splash.style.pointerEvents = 'none';
+          splash.style.visibility = 'hidden';
+          splash.hidden = true;
+        }
+        setTimeout(releaseSplash, 6000);
+        window.addEventListener('load', function () { setTimeout(releaseSplash, 3500); });
+      }());
+    </script>
     <script src="./config.js?v=57"></script>
-    <script type="module" src="./app.js?v=106"></script>
+    <script type="module" src="./app.js?v=107"></script>
   </body>
 </html>
 
