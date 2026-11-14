@@ -838,3 +838,6 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 @media (max-width: 640px) {
   .destination-autocomplete .search-field-wrap { height: 62px; min-height: 62px; }
 }
+
+/* Hide redundant search/location action buttons while keeping DOM and JS listeners intact. */
+.search-buttons:has(#search-route):has(#locate-me) { display: none !important; }
