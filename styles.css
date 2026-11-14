@@ -791,3 +791,6 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 @media (max-width: 820px) and (orientation: landscape) {
   .app-shell:not(.navigation-fullscreen) .sos-map-button { top: min(calc(100% - 138px), calc(100dvh - 56px - env(safe-area-inset-bottom))); bottom: auto; }
 }
+
+/* Hide the lower Reports card only; retain its DOM nodes and event hooks. */
+.community-card { display: none !important; }
