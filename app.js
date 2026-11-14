@@ -2000,8 +2000,20 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     state.autocompleteController?.abort();
     try {
       const recentPosition = state.currentPosition && Date.now() - state.lastLocationTimestamp <= 30_000;
-      const origin = recentPosition ? state.currentPosition : await getUserPosition();
-      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || searchRequestId !== state.autocompleteRequestId) return;
+      // Use the last known GPS fix when iOS delays or denies a fresh position.
+      // A selected address must not silently fail solely because GPS refresh timed out.
+      let origin;
+      if (recentPosition) origin = state.currentPosition;
+      else {
+        try { origin = await getUserPosition(); }
+        catch (geoError) {
+          if (state.currentPosition && Number.isFinite(state.currentPosition.lat) && Number.isFinite(state.currentPosition.lng)) {
+            origin = state.currentPosition;
+            showToast('Usando tu última ubicación conocida para calcular la ruta.');
+          } else throw geoError;
+        }
+      }
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       updateUserMarker(origin);
       let selected = target || state.selectedDestination;
       if (!selected?.location) {
@@ -2049,7 +2061,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       try { payload = await response.json(); } catch { payload = {}; }
       // Parsing the response also yields: a stop, new choice or typed search
       // during that time must not apply a late route or start navigation.
-      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || searchRequestId !== state.autocompleteRequestId) return;
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       if (!response.ok || payload.error || !payload.trip?.legs?.length) {
         const detail = `${payload.error || ''} ${payload.status_message || ''}`.toLowerCase();
         throw new Error(detail.includes('path could not') ? 'no-route' : 'route-service');
@@ -2128,7 +2140,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (state.isNavigating) showToast(t('rerouteReady'));
       else await startNavigation({ position: origin, requestId: routeRequestId });
     } catch (error) {
-      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId || searchRequestId !== state.autocompleteRequestId) return;
+      if (routeController.signal.aborted || routeRequestId !== state.routeRequestId) return;
       console.error('Trazia route search failed:', error);
       const message = automatic ? t('rerouteFailed') : getRouteErrorMessage(error);
       $('#route-note').textContent = message;
