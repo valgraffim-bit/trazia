@@ -1398,7 +1398,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       button.dataset.placeId = place.id;
       const icon = document.createElement('span');
       icon.className = 'quick-place-icon';
-      icon.textContent = place.icon;
+      // Colorful outlined icons for the Home and Work shortcuts.
+      if (place.id === 'home') {
+        icon.innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 29 32 9 57 29v27H7Z" fill="#fff9ec" stroke="#10151d" stroke-width="6" stroke-linejoin="round"/><path d="M11 29 32 13 53 29" fill="none" stroke="#f07d77" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 31v20h32V31L32 19Z" fill="#ffd99b"/><path d="M27 54V37h11v17" fill="#d28a46" stroke="#161616" stroke-width="4" stroke-linejoin="round"/></svg>';
+      } else if (place.id === 'work') {
+        icon.innerHTML = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="7" y="19" width="50" height="38" rx="8" fill="#fffaf2" stroke="#11151b" stroke-width="6"/><rect x="12" y="25" width="40" height="27" rx="4" fill="#d97a29"/><path d="M22 20v-6q0-6 6-6h9q6 0 6 6v6" fill="none" stroke="#141414" stroke-width="6"/><path d="M12 35q20 13 40 0" fill="none" stroke="#11151b" stroke-width="4"/><rect x="28" y="32" width="8" height="13" rx="2" fill="#ffe0a5" stroke="#141414" stroke-width="3"/></svg>';
+      } else {
+        icon.textContent = place.icon;
+      }
       const label = document.createElement('span');
       label.textContent = place.name;
       button.append(icon, label);
