@@ -626,6 +626,37 @@
         }, 5000);
       });
     </script>
+    <script>
+      // Login tabs remain interactive even when a map dependency fails to load.
+      (function () {
+        var register = document.getElementById('account-register');
+        var login = document.getElementById('account-login');
+        var status = document.getElementById('account-status');
+        var title = document.getElementById('account-title');
+        var submit = document.getElementById('account-submit');
+        var confirmLabel = document.getElementById('account-confirm-label');
+        var confirm = document.getElementById('account-confirm');
+        var password = document.getElementById('account-password');
+        var reset = document.getElementById('account-reset');
+        function fallbackMode(mode) {
+          if (window.TRAZIA_APP_INITIALIZED) return;
+          var isLogin = mode === 'login';
+          title.textContent = isLogin ? 'Bienvenido de nuevo' : 'Creá tu cuenta';
+          submit.textContent = isLogin ? 'Iniciar sesión' : 'Crear cuenta';
+          confirmLabel.hidden = isLogin;
+          confirm.required = !isLogin;
+          password.minLength = isLogin ? 1 : 8;
+          reset.hidden = !isLogin;
+          register.setAttribute('aria-pressed', String(!isLogin));
+          login.setAttribute('aria-pressed', String(isLogin));
+          status.textContent = 'El módulo de acceso todavía no está disponible. Estamos comprobando la conexión.';
+        }
+        register.disabled = false;
+        login.disabled = false;
+        register.addEventListener('click',function () { fallbackMode('register'); });
+        login.addEventListener('click',function () { fallbackMode('login'); });
+      }());
+    </script>
     <script src="./config.js?v=57"></script>
     <script type="module" src="./app.js?v=105"></script>
   </body>
