@@ -1896,6 +1896,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         applyTraziaMapPalette();
         drawRouteOnMap();
         void renderSpeedCameras();
+        renderTrafficSignals();
+        scheduleTrafficSignals();
         renderLiveTraffic();
       });
       // Style edits can keep isStyleLoaded() false during the load callback.
@@ -1904,7 +1906,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         if (!state.map.getLayer('trazia-road-network')) addTraziaRoadLayer();
         applyTraziaMapPalette();
         if (!state.map.getLayer('trazia-speed-cameras')) void renderSpeedCameras();
-        if (!state.map.getLayer('trazia-traffic-signals')) renderTrafficSignals();
+        if (!state.map.getLayer('trazia-traffic-signals-icon')) { renderTrafficSignals(); scheduleTrafficSignals(); }
         if (!state.map.getLayer('trazia-school-zones')) renderSchoolZones();
         if (state.liveTrafficEnabled && !state.liveTrafficBlocked && !state.map.getLayer(TRAFFIC_LAYER)) renderLiveTraffic();
         keepRouteInForeground();
@@ -2446,7 +2448,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         ctx.fillStyle = '#f8c746';
         ctx.beginPath(); ctx.arc(56,56,46,0,Math.PI*2); ctx.fill();
         ctx.fillStyle = '#283745';
-        ctx.beginPath(); ctx.roundRect(40,22,32,68,12); ctx.fill();
+        ctx.fillRect(40,22,32,68);
         for (const [y,color] of [[37,'#f25d55'],[56,'#f9c84a'],[75,'#38c879']]) {
           ctx.fillStyle = color;
           ctx.beginPath(); ctx.arc(56,y,8,0,Math.PI*2); ctx.fill();
@@ -2487,8 +2489,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (state.map.getZoom() < 9) return;
     const center = state.map.getCenter();
     const key = center.lat.toFixed(2) + ':' + center.lng.toFixed(2);
+    if (!trafficSignalCache.has(key)) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('trazia:traffic-signals:' + key) || 'null');
+        if (stored?.data?.type === 'FeatureCollection' && Date.now() - stored.time < 7 * 86400000) trafficSignalCache.set(key, stored);
+      } catch {}
+    }
     const cached = trafficSignalCache.get(key);
-    if (cached && Date.now() - cached.time < 10 * 60 * 1000) {
+    if (cached && Date.now() - cached.time < 7 * 86400000) {
       source.setData(cached.data);
       return;
     }
@@ -2509,10 +2517,12 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         .map((el) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [el.lon, el.lat] }, properties: {} }));
       const data = { type: 'FeatureCollection', features };
       trafficSignalCache.set(key, { time: Date.now(), data });
+      try { localStorage.setItem('trazia:traffic-signals:' + key, JSON.stringify({ time: Date.now(), data })); } catch {}
       if (trafficSignalCache.size > 40) trafficSignalCache.delete(trafficSignalCache.keys().next().value);
       state.map.getSource('trazia-traffic-signals')?.setData(data);
     } catch (error) {
       console.info('Traffic signal coverage temporarily unavailable:', error.message);
+      // Keep previously loaded markers visible during a temporary data outage.
     }
   }
 
