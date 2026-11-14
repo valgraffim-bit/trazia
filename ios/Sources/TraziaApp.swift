@@ -1,9 +1,24 @@
 import SwiftUI
 import SafariServices
 import UIKit
+import AVFoundation
 
 @main
 struct TraziaApp: App {
+    init() {
+        // Request playback audio so navigation speech can play with the
+        // iPhone silent switch enabled. SafariServices may manage its own
+        // audio behavior, so this does not guarantee browser speech output.
+        do {
+            try AVAudioSession.sharedInstance().setCategory(
+                .playback, mode: .default, options: [.mixWithOthers]
+            )
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            NSLog("Trazia audio session setup failed: %@", String(describing: error))
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             TraziaBrowser()
