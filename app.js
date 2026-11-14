@@ -2429,7 +2429,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   // Independently documented traffic-light intersections in Cali.
   // These are street names, not fabricated coordinates. Resolve against OSM
   // geocoding before plotting; never display a point at an unverified location.
-  const CALI_OFFICIAL_SIGNALS = [
+  let CALI_OFFICIAL_SIGNALS = [
     'Calle 16 con Carrera 66', 'Calle 16 con Carrera 50',
     'Calle 16 con Carrera 44', 'Calle 16 con Carrera 80',
     'Calle 16 con Carrera 86', 'Calle 16 con Carrera 100'
@@ -2437,6 +2437,16 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const officialSignalCoordinates = new Map();
   let officialSignalBusy = false;
   let officialSignalAttempted = false;
+  async function loadCaliOfficialInventory() {
+    try {
+      const api = 'https://datos.cali.gov.co/api/3/action/datastore_search?resource_id=0ada8281-3f82-458f-b7c2-1ab4f71ef587&limit=1000';
+      const response = await fetchTimed(api,{headers:{Accept:'application/json'}},14000);
+      if (!response.ok) return;
+      const payload = await response.json();
+      const names = (payload.result?.records || []).map(r => String(r.DIRECCION || '').trim()).filter(Boolean);
+      if (names.length) CALI_OFFICIAL_SIGNALS = [...new Set([...CALI_OFFICIAL_SIGNALS,...names])];
+    } catch (error) { console.info('TRAZIA: official Cali inventory unavailable',error.message); }
+  }
   async function loadOfficialCaliSignals() {
     if (officialSignalBusy || !state.mapReady || !state.map) return;
     const c = state.map.getCenter();
@@ -2444,11 +2454,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     officialSignalBusy = true;
     officialSignalAttempted = true;
     try {
+      await loadCaliOfficialInventory();
       const stored = JSON.parse(localStorage.getItem('trazia:official-cali-signals') || '{}');
       for (const [name,coords] of Object.entries(stored)) {
         if (Array.isArray(coords) && coords.length === 2) officialSignalCoordinates.set(name,coords);
       }
+      let attempts = 0;
       for (const name of CALI_OFFICIAL_SIGNALS) {
+        if (attempts >= 12) break;
+        attempts++;
         if (officialSignalCoordinates.has(name)) continue;
         // Nominatim is rate limited; at most one address lookup per second.
         const params = new URLSearchParams({q:name+', Cali, Valle del Cauca, Colombia',format:'jsonv2',limit:'1',countrycodes:'co'});
