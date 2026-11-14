@@ -65,7 +65,11 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
   function setBusy(value) {
     busy = value;
     screen.setAttribute('aria-busy', String(value));
-    screen.querySelectorAll('button').forEach((button) => { button.disabled = value || !service; });
+    screen.querySelectorAll('button').forEach((button) => {
+      // The register/login tabs must remain usable even if Firebase fails to initialize.
+      const tab = button.id === 'account-register' || button.id === 'account-login';
+      button.disabled = tab ? false : (value || !service);
+    });
   }
   function setMode(next) {
     mode = next;
@@ -201,7 +205,7 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     });
     setBusy(false);
   }).catch((error) => {
-    status.textContent = accountError(error);
+    status.textContent = 'No se pudo conectar el acceso de TRAZIA. Revisá internet y recargá la página. ' + accountError(error);
     setBusy(false);
   });
   return { ready };
