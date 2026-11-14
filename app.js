@@ -3983,13 +3983,18 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     runSplashScreen();
     applyLanguage(state.language);
     applyTheme();
-    $('.category-button').forEach((button) => {
-      button.addEventListener('click', () => {
-        const results = $('#place-results');
-        if (button.classList.contains('active') && !results.hidden) clearPlaces();
-        else void searchNearby(button.dataset.category);
+    // Search buttons must not prevent Firebase login from starting.
+    try {
+      $('.category-button').forEach((button) => {
+        button.addEventListener('click', () => {
+          const results = $('#place-results');
+          if (button.classList.contains('active') && !results.hidden) clearPlaces();
+          else void searchNearby(button.dataset.category);
+        });
       });
-    });
+    } catch (error) {
+      console.error('TRAZIA nearby category setup failed:', error);
+    }
     try { setupEvents(); } catch (error) { console.error('TRAZIA: event setup failed; keeping account access available',error); }
     state.sos = setupSOS({ window, document, openDialog, language: () => state.language,
       getPosition: async ({ request }) => {
