@@ -3353,13 +3353,135 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         status.textContent = 'No se pudo guardar el perfil. ' + (error?.message || '');
       }
     });
+    const tripDialog = $('#trazia-trip-dialog');
+    let plannedTrips = [];
+    const tripNotified = new Set();
+    const tripStorageKey = () => profileUser?.uid ? 'trazia:planned-trips:' + profileUser.uid : null;
+    function loadPlannedTrips() {
+      try {
+        const key = tripStorageKey();
+        const data = key ? JSON.parse(localStorage.getItem(key) || '[]') : [];
+        plannedTrips = Array.isArray(data) ? data.filter(t => t && typeof t.destination === 'string' && typeof t.when === 'string') : [];
+      } catch { plannedTrips = []; }
+      renderPlannedTrips();
+    }
+    function savePlannedTrips() {
+      const key = tripStorageKey();
+      if (key) localStorage.setItem(key, JSON.stringify(plannedTrips));
+      renderPlannedTrips();
+    }
+    function renderPlannedTrips() {
+      const list = $('#trazia-trip-list');
+      list.replaceChildren();
+      if (!plannedTrips.length) {
+        const empty = document.createElement('p');
+        empty.textContent = 'Todavía no tienes viajes planeados.';
+        empty.style.color = '#bfc2c7';
+        list.append(empty);
+        return;
+      }
+      for (const trip of [...plannedTrips].sort((a,b) => a.when.localeCompare(b.when))) {
+        const card = document.createElement('div');
+        card.style.cssText = 'padding:14px;border:1px solid #50545a;border-radius:14px;display:grid;gap:8px';
+        const title = document.createElement('strong');
+        title.textContent = '📍 ' + trip.destination;
+        const date = document.createElement('span');
+        const dt = new Date(trip.when);
+        date.textContent = Number.isNaN(dt.getTime()) ? trip.when : dt.toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'});
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;gap:12px;flex-wrap:wrap';
+        const navigate = document.createElement('button');
+        navigate.type = 'button'; navigate.textContent = 'Ver ruta';
+        navigate.addEventListener('click', () => {
+          closeDialog(tripDialog);
+          setDestinationText(trip.destination);
+          void searchRoute();
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.textContent = 'Eliminar';
+        remove.addEventListener('click', () => {
+          plannedTrips = plannedTrips.filter(t => t.id !== trip.id);
+          savePlannedTrips();
+        });
+        actions.append(navigate,remove);
+        card.append(title,date,actions);
+        list.append(card);
+      }
+    }
+    function showTripPlanner() {
+      $('#trazia-trip-intro').hidden = true;
+      $('#trazia-trip-planner').hidden = false;
+      $('#trazia-trip-destination').focus();
+    }
+    $('#trazia-trip-start').addEventListener('click', showTripPlanner);
     $('#menu-schedule').addEventListener('click', () => {
       closeDialog(menuDialog);
-      $('.side-panel').classList.add('expanded');
-      $('#toggle-panel').setAttribute('aria-expanded','true');
-      destinationInput.focus({ preventScroll: true });
-      showToast('Elige un destino para planificar tu viaje.');
+      loadPlannedTrips();
+      $('#trazia-trip-intro').hidden = false;
+      $('#trazia-trip-planner').hidden = true;
+      $('#trazia-trip-status').textContent = '';
+      const now = new Date();
+      const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+      $('#trazia-trip-date').min = local.toISOString().slice(0,10);
+      $('#trazia-trip-date').value = local.toISOString().slice(0,10);
+      $('#trazia-trip-time').value = '08:00';
+      openDialog(tripDialog);
     });
+    function updateTripSuggestions() {
+      const query = $('#trazia-trip-destination').value.trim().toLocaleLowerCase();
+      const list = $('#trazia-trip-suggestions');
+      list.replaceChildren();
+      if (query.length < 2) return;
+      const candidates = [
+        ...state.savedPlaces.map(p => p.name),
+        ...state.recentDestinations
+      ].filter((v,i,a) => typeof v === 'string' && v.toLocaleLowerCase().includes(query) && a.indexOf(v) === i).slice(0,6);
+      for (const name of candidates) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = '⌕ ' + name;
+        button.style.cssText = 'text-align:left;padding:10px;background:#363a40;color:white;border:0;border-radius:8px';
+        button.addEventListener('click', () => {
+          $('#trazia-trip-destination').value = name;
+          list.replaceChildren();
+        });
+        list.append(button);
+      }
+    }
+    $('#trazia-trip-destination').addEventListener('input',updateTripSuggestions);
+    $('#trazia-trip-form').addEventListener('submit',event => {
+      event.preventDefault();
+      if (!profileUser?.uid) { $('#trazia-trip-status').textContent = 'Inicia sesión para guardar viajes.'; return; }
+      const destination = $('#trazia-trip-destination').value.trim();
+      const when = $('#trazia-trip-date').value + 'T' + $('#trazia-trip-time').value;
+      const timestamp = new Date(when).getTime();
+      if (!destination || !Number.isFinite(timestamp) || timestamp < Date.now()) {
+        $('#trazia-trip-status').textContent = 'Indica un destino y una fecha futura.';
+        return;
+      }
+      plannedTrips.push({
+        id: String(Date.now()) + '-' + Math.random().toString(36).slice(2,8),
+        destination,when,reminder: Number($('#trazia-trip-reminder').value)
+      });
+      savePlannedTrips();
+      $('#trazia-trip-form').reset();
+      $('#trazia-trip-suggestions').replaceChildren();
+      $('#trazia-trip-status').textContent = 'Viaje guardado en este dispositivo.';
+      $('#trazia-trip-intro').hidden = true;
+      $('#trazia-trip-planner').hidden = true;
+    });
+    function checkPlannedTripReminders() {
+      if (!profileUser?.uid || document.hidden) return;
+      const now = Date.now();
+      for (const trip of plannedTrips) {
+        const due = new Date(trip.when).getTime() - Number(trip.reminder || 0) * 60000;
+        if (Number.isFinite(due) && now >= due && now - due < 60000 && !tripNotified.has(trip.id)) {
+          tripNotified.add(trip.id);
+          showToast('⏰ Viaje programado: ' + trip.destination);
+        }
+      }
+    }
+    window.setInterval(checkPlannedTripReminders,15000);
     $('#menu-inbox').addEventListener('click', () => { closeDialog(menuDialog); showToast('La bandeja de entrada estará disponible próximamente.'); });
     $('#menu-companion').addEventListener('click', () => { closeDialog(menuDialog); showToast('Los acompañantes estarán disponibles próximamente.'); });
     $('#menu-help').addEventListener('click', () => { closeDialog(menuDialog); showToast('Ayuda: utiliza Ajustes para configurar TRAZIA.'); });
@@ -3571,6 +3693,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       onEnter: (user) => {
         profileUser = user;
         refreshProfileMenu();
+        loadPlannedTrips();
         const uid = user?.uid;
         if (!uid) return;
         if (state.savedPlacesOwner !== uid) {
@@ -3591,6 +3714,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       },
       onLeave: () => {
         profileUser = null;
+        plannedTrips = [];
+        tripNotified.clear();
+        renderPlannedTrips();
         refreshProfileMenu();
         $('#trazia-profile-dialog')?.close();
         state.savedPlacesOwner = null;
