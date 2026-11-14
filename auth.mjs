@@ -161,7 +161,15 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
   $('account-logout').addEventListener('click', () => { void action(() => service.logout()); });
   setMode('register');
   status.textContent = 'Preparando el acceso…';
-  const ready = serviceFactory(config).then((result) => {
+  const initializeService = async () => {
+    status.textContent = 'Conectando con el acceso seguro…';
+    const result = await Promise.race([
+      serviceFactory(config),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('auth/connection-timeout')), 12000))
+    ]);
+    return result;
+  };
+  const ready = initializeService().then((result) => {
     service = result;
     service.subscribe((nextUser) => {
       window.TRAZIA_NATIVE_STAGE?.(nextUser ? 'sesión validada; preparando perfil' : 'sin sesión');
@@ -205,8 +213,17 @@ export function setupAccountScreen({ document, config, onEnter, onLeave, service
     });
     setBusy(false);
   }).catch((error) => {
-    status.textContent = 'No se pudo conectar el acceso de TRAZIA. Revisá internet y recargá la página. ' + accountError(error);
+    status.textContent = 'No se pudo conectar el acceso de TRAZIA. ' + (error?.message === 'auth/connection-timeout' ? 'La conexión tardó demasiado. Comprueba internet y vuelve a intentar.' : accountError(error));
     setBusy(false);
+    let retry = $('account-retry');
+    if (!retry) {
+      retry = document.createElement('button');
+      retry.type = 'button'; retry.id = 'account-retry'; retry.className = 'account-primary';
+      retry.textContent = 'Reintentar conexión';
+      status.insertAdjacentElement('afterend',retry);
+    }
+    retry.disabled = false;
+    retry.addEventListener('click', () => { window.location.reload(); }, {once:true});
   });
   return { ready };
 }
