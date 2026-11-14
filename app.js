@@ -2429,6 +2429,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const trafficSignalCache = new Map();
   let trafficSignalTimer = null;
   let trafficSignalRequest = 0;
+  let trafficSignalLoadingKey = null;
+  let trafficSignalLoadedKey = null;
   const trafficSignalEmpty = () => ({ type: 'FeatureCollection', features: [] });
 
   function renderTrafficSignals() {
@@ -2482,47 +2484,63 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   async function loadTrafficSignals() {
-    if (!state.mapReady || !state.map || document.hidden) return;
+    if (!state.mapReady || !state.map || document.hidden || state.map.getZoom() < 9) return;
     renderTrafficSignals();
     const source = state.map.getSource('trazia-traffic-signals');
     if (!source) return;
-    if (state.map.getZoom() < 9) return;
     const center = state.map.getCenter();
     const key = center.lat.toFixed(2) + ':' + center.lng.toFixed(2);
-    if (!trafficSignalCache.has(key)) {
+    if (key === trafficSignalLoadingKey) return;
+    let cached = trafficSignalCache.get(key);
+    if (!cached) {
       try {
         const stored = JSON.parse(localStorage.getItem('trazia:traffic-signals:' + key) || 'null');
-        if (stored?.data?.type === 'FeatureCollection' && Date.now() - stored.time < 7 * 86400000) trafficSignalCache.set(key, stored);
+        if (stored?.data?.features?.length && Date.now() - stored.time < 7 * 86400000) {
+          cached = stored;
+          trafficSignalCache.set(key, stored);
+        }
       } catch {}
     }
-    const cached = trafficSignalCache.get(key);
-    if (cached && Date.now() - cached.time < 7 * 86400000) {
-      source.setData(cached.data);
+    if (cached?.data?.features?.length && Date.now() - cached.time < 7 * 86400000) {
+      if (trafficSignalLoadedKey !== key) source.setData(cached.data);
+      trafficSignalLoadedKey = key;
       return;
     }
+    trafficSignalLoadingKey = key;
     const request = ++trafficSignalRequest;
-    // Query a consistent neighborhood radius, even while the vehicle moves or map rotates.
-    const radiusLat = 0.02;
+    // Query a neighborhood large enough to cover the visible intersections.
+    const radiusLat = 0.025;
     const radiusLng = radiusLat / Math.max(0.3, Math.cos(center.lat * Math.PI / 180));
-    const south = center.lat - radiusLat;
-    const north = center.lat + radiusLat;
-    const west = center.lng - radiusLng;
-    const east = center.lng + radiusLng;
-    const query = '[out:json][timeout:14];node["highway"="traffic_signals"](' +
-      [south, west, north, east].map((n) => n.toFixed(5)).join(',') + ');out body;';
+    const bounds = [center.lat-radiusLat,center.lng-radiusLng,center.lat+radiusLat,center.lng+radiusLng]
+      .map(n => n.toFixed(5)).join(',');
+    const query = '[out:json][timeout:20];node["highway"="traffic_signals"](' + bounds + ');out body;';
     try {
-      const payload = await requestOverpass(query, 18000);
-      if (request !== trafficSignalRequest) return;
-      const features = (payload.elements || []).filter((el) => Number.isFinite(el.lat) && Number.isFinite(el.lon))
-        .map((el) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [el.lon, el.lat] }, properties: {} }));
-      const data = { type: 'FeatureCollection', features };
-      trafficSignalCache.set(key, { time: Date.now(), data });
-      try { localStorage.setItem('trazia:traffic-signals:' + key, JSON.stringify({ time: Date.now(), data })); } catch {}
+      const payload = await requestOverpass(query, 24000);
+      const features = (payload.elements || [])
+        .filter(el => Number.isFinite(el.lat) && Number.isFinite(el.lon))
+        .map(el => ({type:'Feature',geometry:{type:'Point',coordinates:[el.lon,el.lat]},properties:{id:el.id}}));
+      // Empty data may reflect incomplete OSM coverage. Never cache it for a week
+      // or erase previously rendered signals when the provider returns no nodes.
+      if (!features.length) {
+        console.info('TRAZIA: No hay semáforos registrados en OpenStreetMap para esta zona:', key);
+        return;
+      }
+      const data = {type:'FeatureCollection',features};
+      const record = {time:Date.now(),data};
+      trafficSignalCache.set(key,record);
+      try { localStorage.setItem('trazia:traffic-signals:' + key, JSON.stringify(record)); } catch {}
       if (trafficSignalCache.size > 40) trafficSignalCache.delete(trafficSignalCache.keys().next().value);
-      state.map.getSource('trazia-traffic-signals')?.setData(data);
+      // Allow the last successful request to populate the map even if a newer
+      // camera movement triggered another lookup.
+      const liveSource = state.map?.getSource('trazia-traffic-signals');
+      if (liveSource && request >= trafficSignalRequest - 1) {
+        liveSource.setData(data);
+        trafficSignalLoadedKey = key;
+      }
     } catch (error) {
-      console.warn('TRAZIA: No se pudieron descargar los semáforos:', error.message);
-      // Keep previously loaded markers visible during a temporary data outage.
+      console.warn('TRAZIA: Falló la consulta de semáforos:',error.message);
+    } finally {
+      if (trafficSignalLoadingKey === key) trafficSignalLoadingKey = null;
     }
   }
 
