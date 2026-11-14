@@ -348,6 +348,34 @@
       </div>
     </dialog>
 
+    <dialog class="modal" id="trazia-trip-dialog" aria-labelledby="trazia-trip-title">
+      <div class="modal-card" style="background:#202124;color:#f5f5f5;max-width:520px;max-height:88dvh;overflow:auto;border-radius:22px;padding:22px">
+        <div class="modal-header"><h2 id="trazia-trip-title">Programar un viaje</h2><button type="button" data-close="trazia-trip-dialog" aria-label="Cerrar">×</button></div>
+        <div id="trazia-trip-intro" style="text-align:center;padding:30px 8px">
+          <div aria-hidden="true" style="font-size:92px">⏰🧭</div>
+          <h3 style="font-size:28px;margin:20px 0 8px">Llegar a tiempo</h3>
+          <p style="color:#bfc2c7">Planea tu próximo recorrido y consulta tus viajes guardados.</p>
+          <button type="button" id="trazia-trip-start" class="primary-button" style="width:100%;margin-top:36px">Programar un viaje</button>
+        </div>
+        <section id="trazia-trip-planner" hidden>
+          <form id="trazia-trip-form" style="display:grid;gap:14px">
+            <label class="form-label">Buscar destino<input id="trazia-trip-destination" class="form-control" placeholder="Dirección o lugar" autocomplete="street-address" required></label>
+            <div id="trazia-trip-suggestions" style="display:grid;gap:5px"></div>
+            <label class="form-label">Fecha del viaje<input id="trazia-trip-date" class="form-control" type="date" required></label>
+            <label class="form-label">Hora de llegada deseada<input id="trazia-trip-time" class="form-control" type="time" required></label>
+            <label class="form-label">Recordatorio<select id="trazia-trip-reminder" class="form-control"><option value="0">A la hora indicada</option><option value="15">15 minutos antes</option><option value="30" selected>30 minutos antes</option><option value="60">1 hora antes</option></select></label>
+            <p style="color:#bfc2c7;font-size:13px">Los avisos se muestran mientras TRAZIA está abierta. La hora no se ajusta automáticamente al tráfico.</p>
+            <button class="primary-button" type="submit">Guardar viaje</button>
+          </form>
+        </section>
+        <section style="margin-top:22px;border-top:1px solid #50545a;padding-top:16px">
+          <h3 style="margin:0 0 12px">Viajes planeados</h3>
+          <div id="trazia-trip-list" style="display:grid;gap:10px"></div>
+          <p id="trazia-trip-status" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </dialog>
+
     <dialog class="modal sos-dialog" id="sos-dialog" aria-labelledby="sos-title" aria-describedby="sos-scope-note">
       <div class="modal-card">
         <div class="modal-header">
