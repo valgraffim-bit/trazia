@@ -1513,11 +1513,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     renderSavedPlaces();
     renderSavedPlaceMarkers();
     closeDialog(savedPlaceDialog);
-    if (state.mapReady && state.map && !state.isNavigating) {
-      state.followCamera = false;
-      collapseMobilePanel();
-      state.map.flyTo({ center: [saved.location.lng, saved.location.lat], zoom: 16, duration: 500 });
-    }
+    // Saving a private place must not move the map or start navigation.
     showToast(t('placeSaved'));
   }
 
@@ -3901,7 +3897,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#toggle-voice').addEventListener('click', openVoiceModeDialog);
     $('#quick-places').addEventListener('click', (event) => {
       const button = event.target.closest('[data-place-id]');
-      if (button) selectSavedPlace(button.dataset.placeId);
+      // Shortcuts are private address settings, not navigation actions.
+      if (button) openSavedPlaceEditor(button.dataset.placeId === 'add' ? null : button.dataset.placeId);
     });
     $('#save-place').addEventListener('click', () => { void saveSavedPlace(); });
     savedPlaceDialog.addEventListener('close', resetSavedPlaceSearch);
