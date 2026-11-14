@@ -3986,11 +3986,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function initialize() {
-    window.TRAZIA_APP_INITIALIZED = true;
+    window.TRAZIA_APP_INITIALIZED = false;
     runSplashScreen();
     applyLanguage(state.language);
     applyTheme();
-    setupEvents();
+    try { setupEvents(); } catch (error) { console.error('TRAZIA: event setup failed; keeping account access available',error); }
     state.sos = setupSOS({ window, document, openDialog, language: () => state.language,
       getPosition: async ({ request }) => {
         if (request) return getUserPosition();
@@ -4051,11 +4051,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
     }});
-    renderSavedPlaces();
-    renderSavedPlaceMarkers();
-    renderRecentDestinations();
-    renderSavedReportCount();
+    try { renderSavedPlaces(); renderSavedPlaceMarkers(); renderRecentDestinations(); renderSavedReportCount(); }
+    catch (error) { console.error('TRAZIA: optional saved places initialization failed',error); }
     let mapStarted = false;
+    window.TRAZIA_APP_INITIALIZED = true;
     setupAccountScreen({
       document,
       config: window.TRAZIA_CONFIG?.firebase,
