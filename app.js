@@ -35,6 +35,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const menuDialog = $('#app-menu-dialog');
   let profileUser = null;
   let refreshProfileMenu = () => {};
+  let refreshPlannedTrips = () => {};
+  let clearPlannedTrips = () => {};
   const savedPlaceDialog = $('#saved-place-dialog');
   const reportDialog = $('#report-dialog');
   const settingsDialog = $('#settings-dialog');
@@ -3481,6 +3483,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       }
     }
+    refreshPlannedTrips = loadPlannedTrips;
+    clearPlannedTrips = () => { plannedTrips = []; tripNotified.clear(); renderPlannedTrips(); };
     window.setInterval(checkPlannedTripReminders,15000);
     $('#menu-inbox').addEventListener('click', () => { closeDialog(menuDialog); showToast('La bandeja de entrada estará disponible próximamente.'); });
     $('#menu-companion').addEventListener('click', () => { closeDialog(menuDialog); showToast('Los acompañantes estarán disponibles próximamente.'); });
@@ -3693,7 +3697,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       onEnter: (user) => {
         profileUser = user;
         refreshProfileMenu();
-        loadPlannedTrips();
+        refreshPlannedTrips();
         const uid = user?.uid;
         if (!uid) return;
         if (state.savedPlacesOwner !== uid) {
@@ -3714,9 +3718,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       },
       onLeave: () => {
         profileUser = null;
-        plannedTrips = [];
-        tripNotified.clear();
-        renderPlannedTrips();
+        clearPlannedTrips();
         refreshProfileMenu();
         $('#trazia-profile-dialog')?.close();
         state.savedPlacesOwner = null;
