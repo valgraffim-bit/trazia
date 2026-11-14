@@ -2426,6 +2426,54 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
 
   // Traffic lights mapped in OpenStreetMap, always shown when zoomed in.
   // Missing OSM records are not interpreted as an absence of traffic lights.
+  // Independently documented traffic-light intersections in Cali.
+  // These are street names, not fabricated coordinates. Resolve against OSM
+  // geocoding before plotting; never display a point at an unverified location.
+  const CALI_OFFICIAL_SIGNALS = [
+    'Calle 16 con Carrera 66', 'Calle 16 con Carrera 50',
+    'Calle 16 con Carrera 44', 'Calle 16 con Carrera 80',
+    'Calle 16 con Carrera 86', 'Calle 16 con Carrera 100'
+  ];
+  const officialSignalCoordinates = new Map();
+  let officialSignalBusy = false;
+  async function loadOfficialCaliSignals() {
+    if (officialSignalBusy || !state.mapReady || !state.map) return;
+    const c = state.map.getCenter();
+    if (c.lat < 3.30 || c.lat > 3.55 || c.lng < -76.65 || c.lng > -76.40) return;
+    officialSignalBusy = true;
+    try {
+      const stored = JSON.parse(localStorage.getItem('trazia:official-cali-signals') || '{}');
+      for (const [name,coords] of Object.entries(stored)) {
+        if (Array.isArray(coords) && coords.length === 2) officialSignalCoordinates.set(name,coords);
+      }
+      for (const name of CALI_OFFICIAL_SIGNALS) {
+        if (officialSignalCoordinates.has(name)) continue;
+        // Nominatim is rate limited; at most one address lookup per second.
+        const params = new URLSearchParams({q:name+', Cali, Valle del Cauca, Colombia',format:'jsonv2',limit:'1',countrycodes:'co'});
+        try {
+          const response = await fetchTimed('https://nominatim.openstreetmap.org/search?'+params, {headers:{Accept:'application/json'}},10000);
+          if (response.ok) {
+            const items = await response.json();
+            const match = items[0];
+            const lat = Number(match?.lat), lon = Number(match?.lon);
+            if (Number.isFinite(lat) && Number.isFinite(lon) && lat>3.3 && lat<3.55 && lon> -76.65 && lon< -76.4
+                && /cal(i|í)/i.test(match.display_name || '')) {
+              officialSignalCoordinates.set(name,[lon,lat]);
+              try { localStorage.setItem('trazia:official-cali-signals',JSON.stringify(Object.fromEntries(officialSignalCoordinates))); } catch {}
+            }
+          }
+        } catch (error) { console.info('TRAZIA: official signal geocode unavailable',error.message); }
+        await new Promise(resolve => setTimeout(resolve,1100));
+      }
+    } finally { officialSignalBusy = false; updateOfficialCaliSignalSource(); }
+  }
+  function updateOfficialCaliSignalSource() {
+    const source = state.map?.getSource('trazia-official-cali-signals');
+    if (!source) return;
+    source.setData({type:'FeatureCollection',features:[...officialSignalCoordinates].map(([name,coords])=>({
+      type:'Feature',properties:{name,source:'Alcaldía de Cali / geocodificación OSM'},geometry:{type:'Point',coordinates:coords}
+    }))});
+  }
   const trafficSignalCache = new Map();
   let trafficSignalTimer = null;
   let trafficSignalRequest = 0;
@@ -2475,12 +2523,24 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       });
     }
+    if (!state.map.getSource('trazia-official-cali-signals')) {
+      state.map.addSource('trazia-official-cali-signals',{type:'geojson',data:trafficSignalEmpty()});
+    }
+    if (!state.map.getLayer('trazia-official-cali-signals-icon')) {
+      state.map.addLayer({
+        id:'trazia-official-cali-signals-icon',type:'symbol',source:'trazia-official-cali-signals',minzoom:9,
+        layout:{'icon-image':'trazia-signal-png','icon-size':['interpolate',['linear'],['zoom'],9,0.48,13,0.65,17,0.85],
+          'icon-allow-overlap':true,'icon-ignore-placement':true,'icon-pitch-alignment':'viewport'}
+      });
+    }
+    updateOfficialCaliSignalSource();
     keepRouteInForeground();
   }
 
   function scheduleTrafficSignals() {
     clearTimeout(trafficSignalTimer);
     trafficSignalTimer = setTimeout(() => { void loadTrafficSignals(); }, 550);
+    if (!officialSignalBusy && officialSignalCoordinates.size < CALI_OFFICIAL_SIGNALS.length) void loadOfficialCaliSignals();
   }
 
   async function loadTrafficSignals() {
