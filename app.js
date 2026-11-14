@@ -3125,6 +3125,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function onNavigationPosition(position) {
+    if (document.getElementById('trazia-sleep-screen')?.hidden === false) return;
     if (!saveUserPosition(position)) return;
     const user = state.currentPosition;
     if (state.mapReady && state.map && (state.followCamera || state.isNavigating)) {
@@ -3635,7 +3636,31 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       setTimeout(() => URL.revokeObjectURL(url),1000);
       showToast('Diagnóstico generado. No incluye contraseñas ni ubicación exacta.');
     });
-    $('#menu-sleep').addEventListener('click', () => { closeDialog(menuDialog); showToast('Modo de suspensión aún no disponible.'); });
+    let sleeping = false;
+    function setSleepMode(enabled) {
+      if (sleeping === enabled) return;
+      sleeping = enabled;
+      const screen = $('#trazia-sleep-screen');
+      screen.hidden = !enabled;
+      screen.style.display = enabled ? 'flex' : 'none';
+      document.body.style.overflow = enabled ? 'hidden' : '';
+      if (enabled) {
+        // Explicitly stop active navigation and geolocation polling.
+        if (state.isNavigating) stopNavigation(false);
+        state.followCamera = false;
+        if (state.locationWatch !== null) {
+          navigator.geolocation?.clearWatch(state.locationWatch);
+          state.locationWatch = null;
+        }
+        window.speechSynthesis?.cancel();
+        state.map?.stop();
+      } else {
+        startLocationWatch();
+        window.requestAnimationFrame(() => state.map?.resize());
+      }
+    }
+    $('#menu-sleep').addEventListener('click', () => { closeDialog(menuDialog); setSleepMode(true); });
+    $('#trazia-sleep-wake').addEventListener('click', () => setSleepMode(false));
     $('#open-menu').addEventListener('click', () => openDialog(menuDialog));
     $('#menu-search').addEventListener('click', () => {
       closeDialog(menuDialog);
