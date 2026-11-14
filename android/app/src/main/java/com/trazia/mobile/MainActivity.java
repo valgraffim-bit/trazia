@@ -36,6 +36,9 @@ public final class MainActivity extends Activity {
         window.setStatusBarColor(Color.rgb(16, 38, 59));
         window.setNavigationBarColor(Color.rgb(16, 38, 59));
 
+        // The browser-hosted TRAZIA now includes Normal, Reduced, Alerts-only,
+        // and Off navigation speech modes. Android system/browser media volume
+        // and mute policies remain under the user's control.
         // Open TRAZIA in the system browser. Authentication and WebGL mapping
         // work there without the embedded WebView blank-screen failure.
         Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(TRAZIA_URL));
