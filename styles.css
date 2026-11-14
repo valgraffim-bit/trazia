@@ -794,3 +794,9 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 
 /* Hide the lower Reports card only; retain its DOM nodes and event hooks. */
 .community-card { display: none !important; }
+
+/* Home and Work shortcuts: outlined, colorful icons like the reference. */
+.quick-place-button[data-place-id="home"] .quick-place-icon,
+.quick-place-button[data-place-id="work"] .quick-place-icon { background: transparent; color: inherit; border-radius: 0; width: 38px; height: 38px; flex: 0 0 38px; }
+.quick-place-button[data-place-id="home"] .quick-place-icon svg,
+.quick-place-button[data-place-id="work"] .quick-place-icon svg { display: block; width: 100%; height: 100%; overflow: visible; }
