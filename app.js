@@ -3985,7 +3985,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     applyTheme();
     // Search buttons must not prevent Firebase login from starting.
     try {
-      $('.category-button').forEach((button) => {
+      $$('.category-button').forEach((button) => {
         button.addEventListener('click', () => {
           const results = $('#place-results');
           if (button.classList.contains('active') && !results.hidden) clearPlaces();
