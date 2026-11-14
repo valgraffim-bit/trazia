@@ -376,6 +376,15 @@
       </div>
     </dialog>
 
+    <dialog class="modal" id="trazia-inbox-dialog" aria-labelledby="trazia-inbox-title">
+      <div class="modal-card" style="background:#202124;color:#f4f4f5;max-width:520px;max-height:88dvh;overflow:auto;border-radius:22px;padding:22px">
+        <div class="modal-header"><h2 id="trazia-inbox-title">Bandeja de entrada (0)</h2><button type="button" data-close="trazia-inbox-dialog" aria-label="Cerrar">×</button></div>
+        <p style="color:#aeb4bd">Alertas emitidas por TRAZIA en este dispositivo.</p>
+        <div id="trazia-inbox-list" style="display:grid;gap:12px"></div>
+        <button type="button" id="trazia-inbox-clear" style="margin-top:18px;padding:12px;background:#393d43;color:white;border:1px solid #666;border-radius:12px">Borrar historial de alertas</button>
+      </div>
+    </dialog>
+
     <dialog class="modal sos-dialog" id="sos-dialog" aria-labelledby="sos-title" aria-describedby="sos-scope-note">
       <div class="modal-card">
         <div class="modal-header">
