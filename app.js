@@ -237,6 +237,70 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#location-status').textContent = state.currentPosition ? t('locationOn') : t('locationOff');
   }
 
+  const VOICE_MODES = ['normal', 'reduced', 'alerts', 'off'];
+  state.voiceMode = VOICE_MODES.includes(localStorage.getItem('trazia:voice-mode'))
+    ? localStorage.getItem('trazia:voice-mode')
+    : (state.voiceEnabled ? 'normal' : 'off');
+  state.voiceEnabled = state.voiceMode !== 'off';
+  function voiceModeDialog() {
+    let dialog = document.getElementById('trazia-voice-modes');
+    if (dialog) return dialog;
+    dialog = document.createElement('dialog');
+    dialog.id = 'trazia-voice-modes';
+    dialog.style.cssText = 'border:0;border-radius:22px;background:#202226;color:white;width:min(92vw,430px);padding:24px;max-height:85vh;box-shadow:0 20px 70px #0009';
+    dialog.innerHTML = '<h2 style="margin:0 0 20px;font:700 24px system-ui">Indicaciones de voz</h2>';
+    const options = [
+      ['normal','🔊 Normal'],['reduced','🔉 Menos conversación'],
+      ['alerts','📢 Solo alertas'],['off','🔇 Desactivado']
+    ];
+    for (const [mode,label] of options) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.mode = mode;
+      button.style.cssText = 'display:block;width:100%;margin:10px 0;padding:17px;border:2px solid #59616b;border-radius:15px;background:#383d42;color:white;text-align:left;font:600 18px system-ui';
+      button.addEventListener('click', () => {
+        state.voiceMode = mode;
+        state.voiceEnabled = mode !== 'off';
+        localStorage.setItem('trazia:voice-mode',mode);
+        localStorage.setItem('trazia:voice',state.voiceEnabled?'on':'off');
+        if (!state.voiceEnabled) window.speechSynthesis?.cancel();
+        updateVoiceToggle();
+        dialog.close();
+        if (state.voiceEnabled) speak(t('voiceTest'),true);
+      });
+      button.textContent = label;
+      dialog.appendChild(button);
+    }
+    const close = document.createElement('button');
+    close.type = 'button'; close.textContent = 'Cerrar';
+    close.style.cssText = 'margin-top:12px;padding:10px;color:white;background:transparent;border:0;font:16px system-ui';
+    close.addEventListener('click', () => dialog.close());
+    dialog.appendChild(close);
+    document.body.appendChild(dialog);
+    return dialog;
+  }
+  function openVoiceModeDialog() {
+    const dialog = voiceModeDialog();
+    dialog.querySelectorAll('[data-mode]').forEach(button => {
+      const active = button.dataset.mode === state.voiceMode;
+      button.style.borderColor = active ? '#38bdf8' : '#59616b';
+      button.setAttribute('aria-pressed',String(active));
+    });
+    dialog.showModal();
+  }
+  let lastReducedSpeech = 0;
+  function shouldSpeakNavigation(text, preview) {
+    if (preview) return true;
+    if (state.voiceMode === 'off') return false;
+    if (state.voiceMode === 'normal') return true;
+    const alert = /alert|atenci[oó]n|peligro|c[aá]mara|escolar|reduzca|desv[ií]o|rerout|recalcul|accident|warning|precauci[oó]n|llegad|arrived/i.test(text);
+    if (state.voiceMode === 'alerts') return alert;
+    if (alert) return true;
+    if (Date.now() - lastReducedSpeech < 45000) return false;
+    lastReducedSpeech = Date.now();
+    return true;
+  }
+
   function updateVoiceToggle() {
     const button = $('#toggle-voice');
     if (!button) return;
@@ -2928,7 +2992,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function speak(text, preview = false) {
-    if ((!state.voiceEnabled && !preview) || !text || $('#voice-search-dialog')?.open) return;
+    if ((!state.voiceEnabled && !preview) || !text || $('#voice-search-dialog')?.open || !shouldSpeakNavigation(text,preview)) return;
     const speech = window.speechSynthesis;
     const Utterance = window.SpeechSynthesisUtterance;
     if (!speech || !Utterance) {
@@ -3268,16 +3332,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     });
     $('#open-report-map').addEventListener('click', () => openDialog(reportDialog));
     $$('.music-service').forEach((button) => button.addEventListener('click', (event) => openMusicService(button.dataset.musicService, event)));
-    $('#toggle-voice').addEventListener('click', () => {
-      state.voiceEnabled = !state.voiceEnabled;
-      localStorage.setItem('trazia:voice', state.voiceEnabled ? 'on' : 'off');
-      if (!state.voiceEnabled) window.speechSynthesis?.cancel();
-      updateVoiceToggle();
-      if (state.voiceEnabled) {
-        window.speechSynthesis?.resume?.();
-        speak(t('voiceTest'));
-      }
-    });
+    $('#toggle-voice').addEventListener('click', openVoiceModeDialog);;
     $('#quick-places').addEventListener('click', (event) => {
       const button = event.target.closest('[data-place-id]');
       if (button) selectSavedPlace(button.dataset.placeId);
