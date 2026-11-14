@@ -2926,7 +2926,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       results.append(finder);
       const placeRows = [];
       finder.addEventListener('input', () => {
-        const term = finder.value.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().trim();
+        const term = finder.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
         placeRows.forEach(({row,searchText}) => { row.hidden = !!term && !searchText.includes(term); });
       });
       features.forEach((feature) => {
@@ -2999,7 +2999,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         text.append(contacts);
         row.append(icon, text);
         results.append(row);
-        placeRows.push({row,searchText:(parts.main+' '+address).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase()});
+        placeRows.push({row,searchText:(parts.main+' '+address).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()});
       });
       const note = document.createElement('p');
       note.className = 'nearby-summary'; note.textContent = t('nearbyDataNote'); results.append(note);
