@@ -3300,6 +3300,69 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       localStorage.setItem('trazia:theme', state.theme);
       applyTheme();
     });
+    const profileDialog = $('#trazia-profile-dialog');
+    let profileUser = null;
+    const defaultAvatar = './assets/trazia-app-icon.png';
+    function avatarKey() { return profileUser?.uid ? 'trazia:avatar:' + profileUser.uid : null; }
+    function refreshProfileMenu() {
+      const avatar = avatarKey() ? localStorage.getItem(avatarKey()) : null;
+      $('#menu-avatar').src = avatar || profileUser?.photoURL || defaultAvatar;
+      $('#menu-display-name').textContent = profileUser?.displayName || profileUser?.email?.split('@')[0] || 'Mi perfil';
+    }
+    function openProfileEditor() {
+      if (!profileUser) { showToast('Inicia sesión para editar tu perfil.', true); return; }
+      $('#trazia-profile-name').value = profileUser.displayName || '';
+      $('#trazia-profile-email').textContent = profileUser.email || '';
+      $('#trazia-profile-avatar').src = $('#menu-avatar').src;
+      $('#trazia-profile-image').value = '';
+      $('#trazia-profile-status').textContent = '';
+      closeDialog(menuDialog);
+      openDialog(profileDialog);
+    }
+    $('#menu-profile').addEventListener('click', openProfileEditor);
+    $('#trazia-profile-image').addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (!['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 2_000_000) {
+        $('#trazia-profile-status').textContent = 'Selecciona una imagen JPG, PNG o WebP menor de 2 MB.';
+        event.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => { $('#trazia-profile-avatar').src = reader.result; };
+      reader.readAsDataURL(file);
+    });
+    $('#trazia-profile-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!profileUser) return;
+      const name = $('#trazia-profile-name').value.trim();
+      if (!name) return;
+      const status = $('#trazia-profile-status');
+      status.textContent = 'Guardando…';
+      try {
+        const { updateProfile } = await import('https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js');
+        await updateProfile(profileUser, { displayName: name });
+        const key = avatarKey();
+        if (key && $('#trazia-profile-image').files.length) {
+          localStorage.setItem(key, $('#trazia-profile-avatar').src);
+        }
+        refreshProfileMenu();
+        status.textContent = 'Perfil actualizado.';
+      } catch (error) {
+        status.textContent = 'No se pudo guardar el perfil. ' + (error?.message || '');
+      }
+    });
+    $('#menu-schedule').addEventListener('click', () => {
+      closeDialog(menuDialog);
+      $('.side-panel').classList.add('expanded');
+      $('#toggle-panel').setAttribute('aria-expanded','true');
+      destinationInput.focus({ preventScroll: true });
+      showToast('Elige un destino para planificar tu viaje.');
+    });
+    $('#menu-inbox').addEventListener('click', () => { closeDialog(menuDialog); showToast('La bandeja de entrada estará disponible próximamente.'); });
+    $('#menu-companion').addEventListener('click', () => { closeDialog(menuDialog); showToast('Los acompañantes estarán disponibles próximamente.'); });
+    $('#menu-help').addEventListener('click', () => { closeDialog(menuDialog); showToast('Ayuda: utiliza Ajustes para configurar TRAZIA.'); });
+    $('#menu-sleep').addEventListener('click', () => { closeDialog(menuDialog); showToast('Modo de suspensión aún no disponible.'); });
     $('#open-menu').addEventListener('click', () => openDialog(menuDialog));
     $('#menu-search').addEventListener('click', () => {
       closeDialog(menuDialog);
@@ -3505,6 +3568,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       document,
       config: window.TRAZIA_CONFIG?.firebase,
       onEnter: (user) => {
+        profileUser = user;
+        refreshProfileMenu();
         const uid = user?.uid;
         if (!uid) return;
         if (state.savedPlacesOwner !== uid) {
@@ -3524,6 +3589,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         }
       },
       onLeave: () => {
+        profileUser = null;
+        refreshProfileMenu();
+        $('#trazia-profile-dialog')?.close();
         state.savedPlacesOwner = null;
         state.savedPlaces = [];
         renderSavedPlaces();
