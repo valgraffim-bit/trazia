@@ -3545,7 +3545,96 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     $('#menu-inbox').addEventListener('click', () => { closeDialog(menuDialog); renderInbox(); openDialog($('#trazia-inbox-dialog')); });
     $('#trazia-inbox-clear').addEventListener('click', () => { inboxItems = []; if (inboxKey()) localStorage.removeItem(inboxKey()); renderInbox(); });
     $('#menu-companion').addEventListener('click', () => { closeDialog(menuDialog); showToast('Los acompañantes estarán disponibles próximamente.'); });
-    $('#menu-help').addEventListener('click', () => { closeDialog(menuDialog); showToast('Ayuda: utiliza Ajustes para configurar TRAZIA.'); });
+    const helpDialog = $('#trazia-help-dialog');
+    const helpContent = $('#trazia-help-content');
+    const helpTopics = [
+      ['¿Cómo iniciar una ruta?', 'Busca un destino, selecciona la ruta y toca Iniciar navegación. Activa la ubicación precisa para obtener mejores resultados.'],
+      ['¿Cómo cambiar el vehículo o la flecha?', 'Abre el menú de configuración de vehículo y elige el icono de navegación. TRAZIA recuerda la selección.'],
+      ['¿Cómo activar las indicaciones de voz?', 'Toca el botón de sonido del mapa y selecciona Normal, Menos conversación, Solo alertas o Desactivado.'],
+      ['¿Por qué faltan semáforos o zonas escolares?', 'Las ubicaciones dependen de los registros disponibles en OpenStreetMap y de la conexión a internet.'],
+      ['¿Dónde se guardan mis viajes y alertas?', 'Se guardan por cuenta en el navegador de este dispositivo; no se sincronizan automáticamente entre teléfonos.']
+    ];
+    function showHelpTopics() {
+      helpContent.replaceChildren();
+      const heading = document.createElement('h3'); heading.textContent = 'Centro de ayuda';
+      helpContent.append(heading);
+      for (const [question,answer] of helpTopics) {
+        const details = document.createElement('details');
+        details.style.cssText = 'border-top:1px solid #4c5158;padding:14px 0';
+        const summary = document.createElement('summary');
+        summary.textContent = question;
+        const p = document.createElement('p');
+        p.textContent = answer;
+        p.style.color = '#c3c5ca';
+        details.append(summary,p);
+        helpContent.append(details);
+      }
+    }
+    $('#menu-help').addEventListener('click', () => {
+      closeDialog(menuDialog);
+      helpContent.replaceChildren();
+      openDialog(helpDialog);
+    });
+    $('#trazia-help-faq').addEventListener('click',showHelpTopics);
+    $('#trazia-help-chat').addEventListener('click',() => {
+      showHelpTopics();
+      showToast('Asistencia guiada disponible. El chat de IA aún no está conectado.');
+    });
+    $('#trazia-help-community').addEventListener('click',() => {
+      helpContent.replaceChildren();
+      const p = document.createElement('p');
+      p.textContent = 'La comunidad de TRAZIA aún no está habilitada. Puedes enviar comentarios desde Informar un problema.';
+      helpContent.append(p);
+    });
+    $('#trazia-help-feedback').addEventListener('click',() => {
+      helpContent.replaceChildren();
+      const heading = document.createElement('h3'); heading.textContent = 'Informar un problema';
+      const form = document.createElement('form');
+      form.style.cssText = 'display:grid;gap:12px';
+      const category = document.createElement('select');
+      category.setAttribute('aria-label','Categoría');
+      for (const label of ['Mapa o GPS','Navegación','Audio y alertas','Cuenta y perfil','Otro']) {
+        const opt = document.createElement('option'); opt.value = label; opt.textContent = label; category.append(opt);
+      }
+      const description = document.createElement('textarea');
+      description.required = true; description.maxLength = 2000; description.rows = 5;
+      description.placeholder = 'Describe qué ocurrió y cómo reproducir el problema';
+      description.style.cssText = 'width:100%;box-sizing:border-box;padding:12px;border-radius:10px';
+      const submit = document.createElement('button');
+      submit.type = 'submit'; submit.textContent = 'Guardar comentario';
+      submit.className = 'primary-button';
+      const status = document.createElement('p'); status.setAttribute('role','status');
+      form.append(category,description,submit,status);
+      form.addEventListener('submit',event => {
+        event.preventDefault();
+        if (!profileUser?.uid) { status.textContent = 'Inicia sesión para guardar el comentario.'; return; }
+        const key = 'trazia:feedback:' + profileUser.uid;
+        try {
+          const existing = JSON.parse(localStorage.getItem(key) || '[]');
+          const items = Array.isArray(existing) ? existing : [];
+          items.unshift({category:category.value,description:description.value.trim(),time:new Date().toISOString()});
+          localStorage.setItem(key,JSON.stringify(items.slice(0,30)));
+          status.textContent = 'Comentario guardado en este dispositivo. Aún no se envía al equipo de soporte.';
+          description.value = '';
+        } catch { status.textContent = 'No se pudo guardar el comentario.'; }
+      });
+      helpContent.append(heading,form);
+    });
+    $('#trazia-help-logs').addEventListener('click',() => {
+      const diagnostic = {
+        app:'TRAZIA',time:new Date().toISOString(),
+        platform:navigator.platform,online:navigator.onLine,
+        mapReady:Boolean(state.mapReady),locationPermission:'No incluida',
+        routeActive:Boolean(state.isNavigating)
+      };
+      const blob = new Blob([JSON.stringify(diagnostic,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = 'trazia-diagnostico.json';
+      document.body.append(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url),1000);
+      showToast('Diagnóstico generado. No incluye contraseñas ni ubicación exacta.');
+    });
     $('#menu-sleep').addEventListener('click', () => { closeDialog(menuDialog); showToast('Modo de suspensión aún no disponible.'); });
     $('#open-menu').addEventListener('click', () => openDialog(menuDialog));
     $('#menu-search').addEventListener('click', () => {
