@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trazia-shell-v107';
+const CACHE_NAME = 'trazia-shell-v108';
 const APP_FILES = [
   './',
   './index.html',
