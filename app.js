@@ -1747,7 +1747,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       collapseMobilePanel();
       state.followCamera = true;
       if (state.map) {
-        state.map.flyTo({ center: [position.lng, position.lat], zoom: 18, pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
+        // Preserve the zoom chosen before starting navigation; only follow position and heading.
+      state.map.flyTo({ center: [position.lng, position.lat], zoom: state.map.getZoom(), pitch: state.is3d ? 55 : 0, bearing: compassBearing(), duration: 700, offset: mobileMapOffset() });
       }
       updateUserMarker(position);
       updateRouteProgress(position);
@@ -3131,7 +3132,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (state.mapReady && state.map && (state.followCamera || state.isNavigating)) {
       state.map.easeTo({
         center: [user.lng, user.lat],
-        zoom: Math.max(state.map.getZoom(), state.isNavigating ? 18 : 16),
+        zoom: state.map.getZoom(),
         pitch: state.is3d ? 55 : 0,
         bearing: compassBearing(),
         duration: 380,
