@@ -2521,7 +2521,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (trafficSignalCache.size > 40) trafficSignalCache.delete(trafficSignalCache.keys().next().value);
       state.map.getSource('trazia-traffic-signals')?.setData(data);
     } catch (error) {
-      console.info('Traffic signal coverage temporarily unavailable:', error.message);
+      console.warn('TRAZIA: No se pudieron descargar los semáforos:', error.message);
       // Keep previously loaded markers visible during a temporary data outage.
     }
   }
@@ -2617,29 +2617,31 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   async function requestOverpass(query, timeoutMs = 18000) {
-    const options = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' },
-      body: new URLSearchParams({ data: query }).toString(),
-    };
+    // Public Overpass instances can reject cross-origin POSTs from GitHub Pages.
+    // Try GET as well, across independent endpoints, and validate the response.
     const endpoints = [
       ...(isLocalApiHost() ? ['/api/overpass'] : []),
+      'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass.nchc.org.tw/api/interpreter',
       'https://overpass.private.coffee/api/interpreter',
       'https://overpass-api.de/api/interpreter',
     ];
-    const perEndpointTimeout = Math.max(7000, Math.min(14000, Math.floor(timeoutMs / endpoints.length)));
     let lastError;
     for (const endpoint of endpoints) {
-      try {
-        const response = await fetchTimed(endpoint, options, perEndpointTimeout);
-        if (!response.ok) {
-          lastError = new Error(`Overpass ${response.status}`);
-          if (response.status === 404 || response.status === 408 || response.status === 429 || response.status >= 500) continue;
-          throw lastError;
+      for (const method of ['GET', 'POST']) {
+        try {
+          const url = method === 'GET' ? endpoint + '?data=' + encodeURIComponent(query) : endpoint;
+          const options = method === 'GET'
+            ? { method: 'GET', headers: { Accept: 'application/json' } }
+            : { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', Accept: 'application/json' }, body: new URLSearchParams({ data: query }).toString() };
+          const response = await fetchTimed(url, options, Math.min(12000, timeoutMs));
+          if (!response.ok) throw new Error('Overpass ' + response.status + ' at ' + endpoint);
+          const payload = await response.json();
+          if (!Array.isArray(payload.elements)) throw new Error('Invalid Overpass response');
+          return payload;
+        } catch (error) {
+          lastError = error;
         }
-        return await response.json();
-      } catch (error) {
-        lastError = error;
       }
     }
     throw lastError || new Error('Overpass unavailable');
