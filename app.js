@@ -3948,14 +3948,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     });
     $('#avoid-tolls').checked = state.avoidTolls;
     $('#avoid-tolls').addEventListener('change', (event) => { state.avoidTolls = event.target.checked; localStorage.setItem('trazia:avoid-tolls', state.avoidTolls ? 'on' : 'off'); });
-    $('.category-button').forEach((button) => button.addEventListener('click', () => {
-      const results = $('#place-results');
-      if (button.classList.contains('active') && !results.hidden) {
-        clearPlaces();
-      } else {
-        void searchNearby(button.dataset.category);
-      }
-    }));
+    // Nearby buttons are bound independently during initialize().
     $('#clear-places').addEventListener('click', clearPlaces);
     $('#open-report').addEventListener('click', () => openDialog(reportDialog));
     $('#save-report').addEventListener('click', saveReport);
@@ -3990,6 +3983,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     runSplashScreen();
     applyLanguage(state.language);
     applyTheme();
+    $('.category-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        const results = $('#place-results');
+        if (button.classList.contains('active') && !results.hidden) clearPlaces();
+        else void searchNearby(button.dataset.category);
+      });
+    });
     try { setupEvents(); } catch (error) { console.error('TRAZIA: event setup failed; keeping account access available',error); }
     state.sos = setupSOS({ window, document, openDialog, language: () => state.language,
       getPosition: async ({ request }) => {
