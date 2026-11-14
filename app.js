@@ -1279,6 +1279,59 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     throw lastError || new Error('Valhalla unavailable');
   }
 
+  // Inbox stores only alerts actually emitted by this device, scoped to the signed-in user.
+  let inboxUserId = null;
+  let inboxItems = [];
+  const inboxKey = () => inboxUserId ? 'trazia:inbox:' + inboxUserId : null;
+  function renderInbox() {
+    const list = document.getElementById('trazia-inbox-list');
+    if (!list) return;
+    list.replaceChildren();
+    document.getElementById('trazia-inbox-title').textContent = 'Bandeja de entrada (' + inboxItems.filter(item => !item.read).length + ')';
+    if (!inboxItems.length) {
+      const empty = document.createElement('p');
+      empty.textContent = 'Todavía no hay alertas emitidas.';
+      list.append(empty);
+      return;
+    }
+    for (const item of inboxItems) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.style.cssText = 'text-align:left;padding:17px;background:#292b30;color:white;border:1px solid #555b66;border-radius:14px;display:grid;gap:8px;width:100%';
+      const title = document.createElement('strong');
+      title.textContent = (item.read ? '○ ' : '🔵 ') + item.title;
+      const detail = document.createElement('span');
+      detail.textContent = item.detail;
+      const date = document.createElement('small');
+      date.style.color = '#b7bbc4';
+      date.textContent = new Date(item.time).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'});
+      card.append(title,detail,date);
+      card.addEventListener('click',() => {
+        item.read = true;
+        if (inboxKey()) localStorage.setItem(inboxKey(),JSON.stringify(inboxItems));
+        renderInbox();
+      });
+      list.append(card);
+    }
+  }
+  function loadInboxForUser(uid) {
+    inboxUserId = uid || null;
+    try {
+      const saved = inboxKey() ? JSON.parse(localStorage.getItem(inboxKey()) || '[]') : [];
+      inboxItems = Array.isArray(saved) ? saved.slice(0,100) : [];
+    } catch { inboxItems = []; }
+    renderInbox();
+  }
+  function recordEmittedAlert(title,detail,key) {
+    if (!inboxUserId) return;
+    const time = Date.now();
+    if (key && inboxItems.some(item => item.key === key && time - item.time < 6 * 60 * 60 * 1000)) return;
+    inboxItems.unshift({id:String(time)+Math.random().toString(36).slice(2,6),title,detail,key,time,read:false});
+    inboxItems = inboxItems.slice(0,100);
+    try { localStorage.setItem(inboxKey(),JSON.stringify(inboxItems)); } catch(error) { console.info('Inbox storage unavailable',error); }
+    renderInbox();
+  }
+
   function showToast(message, isError = false) {
     toast.textContent = message;
     toast.classList.toggle('error', isError);
@@ -2319,6 +2372,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     const key = `${approach.camera.id}:${stage}`;
     if (state.announcedCameras.has(key)) return;
     state.announcedCameras.add(key);
+    recordEmittedAlert('📷 Cámara de fotodetección', 'Cámara detectada a ' + rounded + ' metros.', 'camera:' + key);
     speak(state.language === 'es'
       ? `Atención: cámara de fotodetección a ${rounded} metros.`
       : `Traffic enforcement camera ${rounded} meters ahead.`);
@@ -2481,6 +2535,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     banner.hidden = false;
     if (!schoolAlerted.has(zone.id)) {
       schoolAlerted.add(zone.id);
+      recordEmittedAlert('🚸 Zona escolar', 'Zona escolar detectada a 500 metros o menos.', 'school:' + zone.id);
       if (schoolAlerted.size > 300) schoolAlerted.clear();
       speak(state.language === 'es' ? 'Atención, zona escolar a quinientos metros o menos. Reduzca la velocidad.' : 'Attention, school zone ahead. Reduce speed.');
     }
@@ -3480,13 +3535,15 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         if (Number.isFinite(due) && now >= due && now - due < 60000 && !tripNotified.has(trip.id)) {
           tripNotified.add(trip.id);
           showToast('⏰ Viaje programado: ' + trip.destination);
+          recordEmittedAlert('⏰ Recordatorio de viaje',trip.destination,'trip:' + trip.id);
         }
       }
     }
     refreshPlannedTrips = loadPlannedTrips;
     clearPlannedTrips = () => { plannedTrips = []; tripNotified.clear(); renderPlannedTrips(); };
     window.setInterval(checkPlannedTripReminders,15000);
-    $('#menu-inbox').addEventListener('click', () => { closeDialog(menuDialog); showToast('La bandeja de entrada estará disponible próximamente.'); });
+    $('#menu-inbox').addEventListener('click', () => { closeDialog(menuDialog); renderInbox(); openDialog($('#trazia-inbox-dialog')); });
+    $('#trazia-inbox-clear').addEventListener('click', () => { inboxItems = []; if (inboxKey()) localStorage.removeItem(inboxKey()); renderInbox(); });
     $('#menu-companion').addEventListener('click', () => { closeDialog(menuDialog); showToast('Los acompañantes estarán disponibles próximamente.'); });
     $('#menu-help').addEventListener('click', () => { closeDialog(menuDialog); showToast('Ayuda: utiliza Ajustes para configurar TRAZIA.'); });
     $('#menu-sleep').addEventListener('click', () => { closeDialog(menuDialog); showToast('Modo de suspensión aún no disponible.'); });
@@ -3696,6 +3753,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       config: window.TRAZIA_CONFIG?.firebase,
       onEnter: (user) => {
         profileUser = user;
+        loadInboxForUser(user?.uid);
         refreshProfileMenu();
         refreshPlannedTrips();
         const uid = user?.uid;
@@ -3718,6 +3776,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       },
       onLeave: () => {
         profileUser = null;
+        loadInboxForUser(null);
         clearPlannedTrips();
         refreshProfileMenu();
         $('#trazia-profile-dialog')?.close();
