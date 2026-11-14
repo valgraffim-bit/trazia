@@ -2818,6 +2818,42 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     return { id: `${element.type}/${element.id}`, geometry: { type: 'Point', coordinates: point }, properties };
   }
 
+  async function searchNearbyTomTom(category, center) {
+    const key = window.TRAZIA_CONFIG?.tomtomApiKey;
+    if (!key) return null; // Existing OpenStreetMap fallback remains available.
+    const queries = {
+      gas: 'gas station', clinic: 'hospital clinic',
+      pharmacy: 'pharmacy', business: 'shop store'
+    };
+    const url = new URL('https://api.tomtom.com/search/2/poiSearch/' + encodeURIComponent(queries[category]) + '.json');
+    url.searchParams.set('key',key);
+    url.searchParams.set('lat',String(center.lat));
+    url.searchParams.set('lon',String(center.lng));
+    url.searchParams.set('radius','10000');
+    url.searchParams.set('limit','40');
+    url.searchParams.set('countrySet','CO');
+    url.searchParams.set('language',state.language === 'es' ? 'es-ES' : 'en-US');
+    const response = await fetchTimed(url.toString(),{headers:{Accept:'application/json'}},14000);
+    if (!response.ok) throw new Error('TomTom POI ' + response.status);
+    const payload = await response.json();
+    if (!Array.isArray(payload.results)) throw new Error('Invalid TomTom POI response');
+    return payload.results.filter(item => {
+      const p = item.position;
+      return Number.isFinite(p?.lat) && Number.isFinite(p?.lon) && item.address?.countryCode === 'CO';
+    }).map(item => ({
+      id:'tomtom/'+item.id,
+      type:'Feature',
+      geometry:{type:'Point',coordinates:[item.position.lon,item.position.lat]},
+      properties:{
+        name:item.poi?.name || item.address?.freeformAddress || '',
+        fullAddress:item.address?.freeformAddress || '',
+        street:item.address?.streetName || '',
+        city:item.address?.municipality || '',
+        source:'TomTom',
+      }
+    }));
+  }
+
   async function searchNearby(category) {
     const requestId = ++state.nearbyRequestId;
     $$('.category-button').forEach((button) => button.classList.toggle('active', button.dataset.category === category));
@@ -2844,6 +2880,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       if (cached && cached.expiresAt > Date.now()) features = cached.features;
       else {
         try {
+          features = await searchNearbyTomTom(category, center);
+        } catch (tomtomError) {
+          console.info('TRAZIA: TomTom nearby POI unavailable; using open map data:',tomtomError.message);
+        }
+        if (!features?.length) try {
           const query = makeNearbyOverpassQuery(category, plan);
           const payload = await requestOverpass(query, 30000);
           const unique = new Map();
