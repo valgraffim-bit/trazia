@@ -3332,7 +3332,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     });
     $('#open-report-map').addEventListener('click', () => openDialog(reportDialog));
     $$('.music-service').forEach((button) => button.addEventListener('click', (event) => openMusicService(button.dataset.musicService, event)));
-    $('#toggle-voice').addEventListener('click', openVoiceModeDialog);;
+    $('#toggle-voice').addEventListener('click', openVoiceModeDialog);
     $('#quick-places').addEventListener('click', (event) => {
       const button = event.target.closest('[data-place-id]');
       if (button) selectSavedPlace(button.dataset.placeId);
@@ -3477,7 +3477,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       vehicle: setVehicleType,
       view: setMap3d,
       compass: (mode) => { if (mode !== state.compassMode) toggleCompassMode(); },
-      voice: (enabled) => { if (enabled !== state.voiceEnabled) $('#toggle-voice').click(); },
+      voice: (enabled) => { state.voiceMode = enabled ? 'normal' : 'off'; state.voiceEnabled = Boolean(enabled); localStorage.setItem('trazia:voice-mode',state.voiceMode); localStorage.setItem('trazia:voice',enabled?'on':'off'); if (!enabled) window.speechSynthesis?.cancel(); updateVoiceToggle(); },
       testVoice: () => speak(t('voiceTest'), true),
       tolls: (enabled) => { $('#avoid-tolls').checked = enabled; $('#avoid-tolls').dispatchEvent(new Event('change')); },
       fuel: () => { void searchNearby('gas'); },
