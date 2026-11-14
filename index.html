@@ -385,6 +385,23 @@
       </div>
     </dialog>
 
+    <dialog class="modal" id="trazia-help-dialog" aria-labelledby="trazia-help-title">
+      <div class="modal-card" style="background:#202124;color:#f5f5f5;max-width:520px;max-height:88dvh;overflow:auto;border-radius:22px;padding:22px">
+        <div class="modal-header"><h2 id="trazia-help-title">Ayuda y comentarios</h2><button type="button" data-close="trazia-help-dialog" aria-label="Cerrar">×</button></div>
+        <div style="background:#111;border-radius:18px;padding:20px;margin:16px 0 24px">
+          <strong style="font-size:19px">🤖 Asistencia TRAZIA</strong>
+          <p style="color:#c3c5ca;margin:10px 0">Respuestas rápidas sobre las funciones de navegación.</p>
+          <button id="trazia-help-chat" type="button" style="color:#65c9ff;background:transparent;border:0;font-size:17px;font-weight:700;padding:0">Iniciar asistencia</button>
+        </div>
+        <div style="display:grid;gap:4px">
+          <button type="button" class="menu-item" id="trazia-help-faq"><span class="menu-item-icon">ⓘ</span><span>Centro de ayuda</span><span>›</span></button>
+          <button type="button" class="menu-item" id="trazia-help-community"><span class="menu-item-icon">♧</span><span>Comunidad de TRAZIA</span><span>›</span></button>
+          <button type="button" class="menu-item" id="trazia-help-feedback"><span class="menu-item-icon">!</span><span>Informar un problema</span><span>›</span></button>
+          <button type="button" class="menu-item" id="trazia-help-logs"><span class="menu-item-icon">⇧</span><span>Exportar diagnóstico</span><span>›</span></button>
+        </div>
+        <section id="trazia-help-content" style="margin-top:18px"></section>
+      </div>
+    </dialog>
     <dialog class="modal sos-dialog" id="sos-dialog" aria-labelledby="sos-title" aria-describedby="sos-scope-note">
       <div class="modal-card">
         <div class="modal-header">
