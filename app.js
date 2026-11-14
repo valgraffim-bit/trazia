@@ -2474,7 +2474,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
             const lat = Number(match?.lat), lon = Number(match?.lon);
             if (Number.isFinite(lat) && Number.isFinite(lon) && lat>3.3 && lat<3.55 && lon> -76.65 && lon< -76.4
                 && /cal(i|í)/i.test(match.display_name || '')
-                && name.match(/(?:calle|cl|carrera|cra|cr|avenida|av)\\s*\\d+/ig)?.every(part =>
+                && name.match(/(?:calle|cl|carrera|cra|cr|avenida|av)\s*\d+/ig)?.every(part =>
                   (match.display_name || '').toLowerCase().includes(part.match(/\d+/)?.[0] || '---')) {
               officialSignalCoordinates.set(name,[lon,lat]);
               try { localStorage.setItem('trazia:official-cali-signals',JSON.stringify(Object.fromEntries(officialSignalCoordinates))); } catch {}
