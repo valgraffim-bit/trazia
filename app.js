@@ -2434,33 +2434,41 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     if (!state.map.getSource('trazia-traffic-signals')) {
       state.map.addSource('trazia-traffic-signals', { type: 'geojson', data: trafficSignalEmpty() });
     }
-    if (!state.map.getLayer('trazia-traffic-signals')) {
-      state.map.addLayer({
-        id: 'trazia-traffic-signals',
-        type: 'circle',
-        source: 'trazia-traffic-signals',
-        minzoom: 10,
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 4, 16, 7, 19, 9],
-          'circle-color': '#202a36',
-          'circle-stroke-color': '#f9f5e9',
-          'circle-stroke-width': 2,
-        },
-      });
+    // A fixed, high-contrast traffic-light pictogram, like the reference screenshot.
+    // Drawn to a canvas and registered as a pixel-ratio-2 image to avoid platform emoji differences.
+    if (!state.map.hasImage('trazia-signal-png')) {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 112;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(56,56,51,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f8c746';
+        ctx.beginPath(); ctx.arc(56,56,46,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#283745';
+        ctx.beginPath(); ctx.roundRect(40,22,32,68,12); ctx.fill();
+        for (const [y,color] of [[37,'#f25d55'],[56,'#f9c84a'],[75,'#38c879']]) {
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(56,y,8,0,Math.PI*2); ctx.fill();
+        }
+        const image = ctx.getImageData(0,0,112,112);
+        state.map.addImage('trazia-signal-png', image, { pixelRatio: 2 });
+      }
     }
     if (!state.map.getLayer('trazia-traffic-signals-icon')) {
       state.map.addLayer({
         id: 'trazia-traffic-signals-icon',
         type: 'symbol',
         source: 'trazia-traffic-signals',
-        minzoom: 10,
+        minzoom: 9,
         layout: {
-          'text-field': '🚦',
-          'text-size': ['interpolate', ['linear'], ['zoom'], 10, 14, 14, 20, 18, 24],
-          'text-allow-overlap': true,
-          'text-ignore-placement': true,
-          'text-pitch-alignment': 'viewport',
-        },
+          'icon-image': 'trazia-signal-png',
+          'icon-size': ['interpolate',['linear'],['zoom'],9,0.48,13,0.65,17,0.85],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-pitch-alignment': 'viewport',
+          'icon-rotation-alignment': 'viewport'
+        }
       });
     }
     keepRouteInForeground();
@@ -2476,7 +2484,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     renderTrafficSignals();
     const source = state.map.getSource('trazia-traffic-signals');
     if (!source) return;
-    if (state.map.getZoom() < 10) return;
+    if (state.map.getZoom() < 9) return;
     const center = state.map.getCenter();
     const key = center.lat.toFixed(2) + ':' + center.lng.toFixed(2);
     const cached = trafficSignalCache.get(key);
