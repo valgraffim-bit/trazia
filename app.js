@@ -2918,6 +2918,17 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       summary.className = 'nearby-summary';
       summary.textContent = `${scope} · ${features.length} ${t('nearbyResults')}`;
       results.append(summary);
+      const finder = document.createElement('input');
+      finder.type = 'search';
+      finder.placeholder = '🔎 Buscar por nombre o dirección entre estos lugares';
+      finder.setAttribute('aria-label','Buscar lugares cercanos');
+      finder.style.cssText = 'width:100%;box-sizing:border-box;margin:10px 0 14px;padding:13px 15px;border-radius:14px;border:1px solid #58606c;background:#22272d;color:#fff;font:inherit';
+      results.append(finder);
+      const placeRows = [];
+      finder.addEventListener('input', () => {
+        const term = finder.value.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().trim();
+        placeRows.forEach(({row,searchText}) => { row.hidden = !!term && !searchText.includes(term); });
+      });
       features.forEach((feature) => {
         const coordinates = feature.geometry?.coordinates;
         const parts = photonFeatureParts(feature.properties || {});
@@ -2950,6 +2961,19 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         meta.textContent = [address, distanceLabel].join(' · ');
         name.addEventListener('click', () => state.map.flyTo({ center: coordinates, zoom: 16, duration: 500, offset: mobileMapOffset() }));
         text.append(name, meta);
+        const go = document.createElement('button');
+        go.type = 'button';
+        go.textContent = '📍 Ir aquí · Trazar ruta';
+        go.style.cssText = 'display:block;margin:9px 0;padding:10px 13px;border-radius:12px;border:1px solid #32c6ac;background:#16443f;color:#fff;font:inherit;font-weight:700;cursor:pointer';
+        go.addEventListener('click', () => {
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+          const label = parts.main || properties.name || 'Destino seleccionado';
+          state.followCamera = true;
+          setDestinationText(label);
+          state.selectedDestination = {label,location:{lat,lng},temporary:true,query:label};
+          void searchRoute({automatic:false,target:state.selectedDestination});
+        });
+        text.append(go);
         if (properties.openingHours) {
           const hours = document.createElement('div');
           hours.className = 'place-result-details';
@@ -2975,6 +2999,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
         text.append(contacts);
         row.append(icon, text);
         results.append(row);
+        placeRows.push({row,searchText:(parts.main+' '+address).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase()});
       });
       const note = document.createElement('p');
       note.className = 'nearby-summary'; note.textContent = t('nearbyDataNote'); results.append(note);
