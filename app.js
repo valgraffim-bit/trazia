@@ -3986,6 +3986,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function initialize() {
+    window.TRAZIA_APP_INITIALIZED = true;
     runSplashScreen();
     applyLanguage(state.language);
     applyTheme();
