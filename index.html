@@ -602,7 +602,7 @@
     <script>
       // If a module import fails before TRAZIA starts, the account screen would
       // otherwise remain disabled forever. Show an actionable error instead.
-      window.addEventListener('load', function () {
+      (function () {
         setTimeout(function () {
           if (window.TRAZIA_APP_INITIALIZED) return;
           var status = document.getElementById('account-status');
@@ -624,7 +624,7 @@
           }
           retry.addEventListener('click',function () { location.reload(); });
         }, 5000);
-      });
+      }());
     </script>
     <script>
       // Login tabs remain interactive even when a map dependency fails to load.
@@ -670,6 +670,34 @@
         }
         setTimeout(releaseSplash, 6000);
         window.addEventListener('load', function () { setTimeout(releaseSplash, 3500); });
+      }());
+    </script>
+    <script>
+      // Minimal early bootstrap diagnostics independent of app.js and the load event.
+      (function () {
+        var screen = document.getElementById('account-screen');
+        var status = document.getElementById('account-status');
+        var register = document.getElementById('account-register');
+        var login = document.getElementById('account-login');
+        if (!screen || !status || !register || !login) return;
+        var booted = false;
+        function showFailure(message) {
+          if (window.TRAZIA_APP_INITIALIZED) return;
+          status.textContent = message;
+          var google = document.getElementById('account-google');
+          if (google) google.title = 'El servicio de acceso aún no se ha cargado';
+          var splash = document.getElementById('app-splash');
+          if (splash) { splash.hidden = true; splash.style.pointerEvents = 'none'; }
+        }
+        window.addEventListener('error',function (event) {
+          if (!window.TRAZIA_APP_INITIALIZED) showFailure('Error al iniciar TRAZIA: '+String(event.message || 'no se pudo cargar un archivo').slice(0,130));
+        },true);
+        window.addEventListener('unhandledrejection',function (event) {
+          if (!window.TRAZIA_APP_INITIALIZED) showFailure('Error de conexión: '+String(event.reason?.message || 'no disponible').slice(0,130));
+        });
+        setTimeout(function () {
+          if (!window.TRAZIA_APP_INITIALIZED) showFailure('TRAZIA no pudo iniciar el módulo de acceso. Envíame una captura de este mensaje.');
+        }, 4500);
       }());
     </script>
     <script src="./config.js?v=57"></script>
