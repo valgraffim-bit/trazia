@@ -33,6 +33,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   const statusText = $('#connection-status');
   const toast = $('#toast');
   const menuDialog = $('#app-menu-dialog');
+  let profileUser = null;
+  let refreshProfileMenu = () => {};
   const savedPlaceDialog = $('#saved-place-dialog');
   const reportDialog = $('#report-dialog');
   const settingsDialog = $('#settings-dialog');
@@ -3301,10 +3303,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       applyTheme();
     });
     const profileDialog = $('#trazia-profile-dialog');
-    let profileUser = null;
     const defaultAvatar = './assets/trazia-app-icon.png';
     function avatarKey() { return profileUser?.uid ? 'trazia:avatar:' + profileUser.uid : null; }
-    function refreshProfileMenu() {
+    refreshProfileMenu = function refreshProfileMenu() {
       const avatar = avatarKey() ? localStorage.getItem(avatarKey()) : null;
       $('#menu-avatar').src = avatar || profileUser?.photoURL || defaultAvatar;
       $('#menu-display-name').textContent = profileUser?.displayName || profileUser?.email?.split('@')[0] || 'Mi perfil';
