@@ -4140,6 +4140,11 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
   }
 
-  initialize();
+  try { initialize(); } catch (error) {
+    console.error('TRAZIA bootstrap failed:',error);
+    const status = document.getElementById('account-status');
+    if (status) status.textContent = 'Error al iniciar TRAZIA: ' + (error?.message || String(error));
+    window.TRAZIA_APP_INITIALIZED = false;
+  }
 })();
 
