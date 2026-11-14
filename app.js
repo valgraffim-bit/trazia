@@ -2436,11 +2436,13 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   ];
   const officialSignalCoordinates = new Map();
   let officialSignalBusy = false;
+  let officialSignalAttempted = false;
   async function loadOfficialCaliSignals() {
     if (officialSignalBusy || !state.mapReady || !state.map) return;
     const c = state.map.getCenter();
     if (c.lat < 3.30 || c.lat > 3.55 || c.lng < -76.65 || c.lng > -76.40) return;
     officialSignalBusy = true;
+    officialSignalAttempted = true;
     try {
       const stored = JSON.parse(localStorage.getItem('trazia:official-cali-signals') || '{}');
       for (const [name,coords] of Object.entries(stored)) {
@@ -2457,7 +2459,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
             const match = items[0];
             const lat = Number(match?.lat), lon = Number(match?.lon);
             if (Number.isFinite(lat) && Number.isFinite(lon) && lat>3.3 && lat<3.55 && lon> -76.65 && lon< -76.4
-                && /cal(i|í)/i.test(match.display_name || '')) {
+                && /cal(i|í)/i.test(match.display_name || '')
+                && (match.display_name || '').includes(name.match(/Carrera (\\d+)/)?.[1] || '---')
+                && (match.display_name || '').includes('16')) {
               officialSignalCoordinates.set(name,[lon,lat]);
               try { localStorage.setItem('trazia:official-cali-signals',JSON.stringify(Object.fromEntries(officialSignalCoordinates))); } catch {}
             }
@@ -2540,7 +2544,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   function scheduleTrafficSignals() {
     clearTimeout(trafficSignalTimer);
     trafficSignalTimer = setTimeout(() => { void loadTrafficSignals(); }, 550);
-    if (!officialSignalBusy && officialSignalCoordinates.size < CALI_OFFICIAL_SIGNALS.length) void loadOfficialCaliSignals();
+    if (!officialSignalBusy && !officialSignalAttempted) void loadOfficialCaliSignals();
   }
 
   async function loadTrafficSignals() {
