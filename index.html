@@ -311,17 +311,40 @@
       </section>
     </main>
 
-    <dialog class="modal menu-modal" id="app-menu-dialog">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="menu-brand"><img class="brand-icon" src="./assets/trazia-app-icon.png" alt="" /><div><strong>Trazia</strong><span data-i18n="tagline">Tu ruta, más clara</span></div></div>
-          <button class="icon-button close-modal" type="button" aria-label="Cerrar" data-close="app-menu-dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <dialog class="modal menu-modal" id="app-menu-dialog" aria-label="Menú de TRAZIA">
+      <div class="modal-card" style="background:#202124;color:#f4f4f5;max-height:90dvh;overflow:auto;border-radius:24px;padding:24px">
+        <div style="display:flex;justify-content:flex-end"><button type="button" data-close="app-menu-dialog" aria-label="Cerrar menú" style="background:#414349;color:white;border:0;border-radius:50%;font-size:28px;width:44px;height:44px">×</button></div>
+        <button id="menu-profile" type="button" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:transparent;color:inherit;border:0;padding:12px 0 22px;border-bottom:1px solid #414349">
+          <img id="menu-avatar" src="./assets/trazia-app-icon.png" alt="Avatar del perfil" style="width:76px;height:76px;border-radius:22px;object-fit:cover;background:#374151">
+          <span style="display:grid;gap:6px"><strong id="menu-display-name" style="font-size:24px">Mi perfil</strong><span style="color:#60c8fa;font-weight:700">Ver y editar perfil ›</span></span>
+        </button>
+        <div style="display:grid;gap:5px;margin-top:26px">
+          <button class="menu-item" id="menu-schedule" type="button"><span class="menu-item-icon">◷</span><span>Programar un viaje</span></button>
+          <button class="menu-item" id="menu-inbox" type="button"><span class="menu-item-icon">▤</span><span>Bandeja de entrada</span></button>
+          <button class="menu-item" id="menu-settings" type="button"><span class="menu-item-icon">⚙</span><span>Ajustes</span></button>
+          <button class="menu-item" id="menu-companion" type="button"><span class="menu-item-icon">✧</span><span>Elige un acompañante</span></button>
+          <button class="menu-item" id="menu-help" type="button"><span class="menu-item-icon">?</span><span>Ayuda y comentarios</span></button>
+          <button class="menu-item" id="menu-sleep" type="button"><span class="menu-item-icon">⏻</span><span>Modo de suspensión</span></button>
         </div>
-        <button class="menu-item" id="menu-search" type="button"><span class="menu-item-icon">⌕</span><span data-i18n="menuSearch">Buscar destino</span></button>
-        <button class="menu-item" id="menu-music" type="button"><span class="menu-item-icon">♫</span><span data-i18n="musicConnect">Conectar música</span></button>
-        <button class="menu-item" id="menu-reports" type="button"><span class="menu-item-icon">＋</span><span data-i18n="menuReport">Reportar algo en la vía</span></button>
-        <button class="menu-item" id="menu-settings" type="button"><span class="menu-item-icon">⚙</span><span data-i18n="menuSettings">Ajustes</span></button>
-        <p class="menu-footnote" data-i18n="menuNote">Navegación clara, hecha por Trazia.</p>
+        <div style="border-top:1px solid #414349;margin-top:22px;padding-top:12px">
+          <button class="menu-item" id="menu-search" type="button"><span class="menu-item-icon">⌕</span><span>Buscar destino</span></button>
+          <button class="menu-item" id="menu-music" type="button"><span class="menu-item-icon">♫</span><span>Conectar música</span></button>
+          <button class="menu-item" id="menu-reports" type="button"><span class="menu-item-icon">＋</span><span>Reportar algo en la vía</span></button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="trazia-profile-dialog" aria-labelledby="trazia-profile-title">
+      <div class="modal-card" style="max-width:440px">
+        <div class="modal-header"><h2 id="trazia-profile-title">Editar mi perfil</h2><button type="button" data-close="trazia-profile-dialog" aria-label="Cerrar">×</button></div>
+        <form id="trazia-profile-form" style="display:grid;gap:14px">
+          <img id="trazia-profile-avatar" src="./assets/trazia-app-icon.png" alt="Tu avatar" style="width:104px;height:104px;border-radius:50%;object-fit:cover;margin:auto">
+          <label class="form-label">Cambiar avatar (imagen JPG o PNG, máximo 2 MB)<input id="trazia-profile-image" type="file" accept="image/png,image/jpeg,image/webp" class="form-control"></label>
+          <label class="form-label">Nombre para mostrar<input id="trazia-profile-name" class="form-control" maxlength="60" required></label>
+          <p id="trazia-profile-email" style="overflow-wrap:anywhere"></p>
+          <p id="trazia-profile-status" role="status" aria-live="polite"></p>
+          <button class="primary-button" type="submit">Guardar perfil</button>
+        </form>
       </div>
     </dialog>
 
