@@ -3948,7 +3948,14 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     });
     $('#avoid-tolls').checked = state.avoidTolls;
     $('#avoid-tolls').addEventListener('change', (event) => { state.avoidTolls = event.target.checked; localStorage.setItem('trazia:avoid-tolls', state.avoidTolls ? 'on' : 'off'); });
-    $$('.category-button').forEach((button) => button.addEventListener('click', () => { void searchNearby(button.dataset.category); }));
+    $('.category-button').forEach((button) => button.addEventListener('click', () => {
+      const results = $('#place-results');
+      if (button.classList.contains('active') && !results.hidden) {
+        clearPlaces();
+      } else {
+        void searchNearby(button.dataset.category);
+      }
+    }));
     $('#clear-places').addEventListener('click', clearPlaces);
     $('#open-report').addEventListener('click', () => openDialog(reportDialog));
     $('#save-report').addEventListener('click', saveReport);
