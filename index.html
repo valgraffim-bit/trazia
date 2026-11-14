@@ -599,6 +599,33 @@
         }, 12000);
       }());
     </script>
+    <script>
+      // If a module import fails before TRAZIA starts, the account screen would
+      // otherwise remain disabled forever. Show an actionable error instead.
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (window.TRAZIA_APP_INITIALIZED) return;
+          var status = document.getElementById('account-status');
+          if (status) status.textContent = 'No se pudo iniciar TRAZIA. Es posible que un archivo no haya cargado. Intenta actualizar.';
+          var screen = document.getElementById('account-screen');
+          if (!screen) return;
+          var tabs = ['account-register','account-login'];
+          tabs.forEach(function (id) {
+            var btn = document.getElementById(id);
+            if (btn) btn.disabled = false;
+          });
+          var retry = document.getElementById('account-retry');
+          if (!retry) {
+            retry = document.createElement('button');
+            retry.id = 'account-retry'; retry.type = 'button';
+            retry.className = 'account-primary';
+            retry.textContent = 'Volver a cargar TRAZIA';
+            if (status) status.insertAdjacentElement('afterend',retry);
+          }
+          retry.addEventListener('click',function () { location.reload(); });
+        }, 5000);
+      });
+    </script>
     <script src="./config.js?v=57"></script>
     <script type="module" src="./app.js?v=104"></script>
   </body>
