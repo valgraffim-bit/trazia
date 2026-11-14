@@ -483,7 +483,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     // even while the map turns to keep the road ahead at the top of the screen.
     if (!state.userMarker) return;
     const heading = Number.isFinite(state.lastHeading) ? state.lastHeading : 0;
-    state.userMarker.setRotation(heading);
+    state.userMarker.setRotation(((heading % 360) + 360) % 360);
   }
 
   function bearingBetween(from, to) {
@@ -510,7 +510,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       const camera = { bearing: compassBearing(), duration: 500 };
       if (state.currentPosition && state.followCamera) {
         camera.center = [state.currentPosition.lng, state.currentPosition.lat];
-        camera.zoom = Math.max(state.map.getZoom(), 16);
+        camera.zoom = state.map.getZoom();
         camera.pitch = state.is3d ? 55 : 0;
         camera.offset = mobileMapOffset();
       }
@@ -1689,7 +1689,10 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     void state.weatherBadge?.refresh();
     state.lastLocationTimestamp = timestamp;
     state.lastLocationAccuracy = accuracy;
-    if (heading !== null) state.lastHeading = heading;
+    // At rest, GPS course can jump by 180° and flip the vehicle icon.
+    // Keep the last reliable travel bearing until movement resumes.
+    if (heading !== null && (reportedSpeed === null || reportedSpeed >= 0.8)) state.lastHeading = heading;
+    else heading = null;
     updateSpeedometer(position);
     updateUserMarker(state.currentPosition, heading);
     updateSchoolWarning(state.currentPosition);
