@@ -1,3 +1,4 @@
+import { getMercadoLibreColombiaLocations, getMercadoLibreStateCities } from './mercadolibre-locations.mjs';
 import { setupSOS } from './sos.mjs?v=71';
 import { setupWeatherBadge } from './weather.mjs?v=69';
 import { setupMusicDock } from './music-dock.mjs?v=68';
@@ -1021,6 +1022,35 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
       } catch (error) {
         if (signal?.aborted) throw error;
         lastError = error;
+      }
+    }
+    // Mercado Libre provides administrative names, not street addresses or GPS.
+    // Only consult it for explicit city/department text searches (not every keystroke).
+    // Photon remains responsible for coordinates and routing destinations.
+    if (allowNominatimFallback && !parseColombianStructuredAddress(baseQuery).length && /^[\\p{L}\\s,.-]{3,80}$/u.test(baseQuery)) {
+      try {
+        const normalized = normalizeGeocodeText(baseQuery);
+        const locations = await getMercadoLibreColombiaLocations({ signal, fetchFn: (url, options) => fetchTimed(url, options, 2200) });
+        const stateMatch = locations.states.find(item => normalizeGeocodeText(item.name) === normalized);
+        if (stateMatch) {
+          const payload = await fetchPhotonFeatures(makePhotonSearchParams(stateMatch.name + ', Colombia', usableCenter), signal, 3000);
+          const valid = payload.features.filter(isColombiaFeature);
+          if (valid.length) return rankPhotonFeatures(valid, stateMatch.name, usableCenter);
+        } else if (normalized.includes('valle del cauca')) {
+          const valle = locations.states.find(item => normalizeGeocodeText(item.name) === 'valle del cauca');
+          if (valle) {
+            const cities = await getMercadoLibreStateCities(valle.id, { signal, fetchFn: (url, options) => fetchTimed(url, options, 2200) });
+            const city = cities.find(item => normalized.includes(normalizeGeocodeText(item.name)));
+            if (city) {
+              const payload = await fetchPhotonFeatures(makePhotonSearchParams(city.name + ', Valle del Cauca, Colombia', usableCenter), signal, 3000);
+              const valid = payload.features.filter(isColombiaFeature);
+              if (valid.length) return rankPhotonFeatures(valid, city.name, usableCenter);
+            }
+          }
+        }
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        // Mercado Libre is optional; never block the existing geocoders.
       }
     }
     // Free-text search handles abbreviations without relying on the public
