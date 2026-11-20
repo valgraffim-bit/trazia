@@ -841,3 +841,45 @@ button.trazia-report-marker:focus-visible { outline: 3px solid #5bd5bf; outline-
 
 /* Hide redundant search/location action buttons while keeping DOM and JS listeners intact. */
 .search-buttons:has(#search-route):has(#locate-me) { display: none !important; }
+
+/* iPhone Safari: keep the app sheet and map inside the visual viewport.
+   The map can pan independently; UI must not widen the document. */
+@media (max-width: 820px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  .app-shell {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .side-panel {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .panel-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+  }
+  .panel-header, .status-row, .search-section, .vehicle-selector,
+  .vehicle-options, .vehicle-choices, .destination-autocomplete {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .panel-header > *, .status-row > *, .search-section > * { min-width: 0; }
+  .map-area, .map-stage, .live-map { max-width: 100%; }
+}
