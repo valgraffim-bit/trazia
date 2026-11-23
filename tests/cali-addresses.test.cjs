@@ -66,3 +66,28 @@ test('an exact address returned by the nearby query still takes priority; no nea
  const matches=await findNearbyCaliCandidates('Cra 83B3 #45-53, Cali',options([point('KR 83 B 3 # 45 - 47'),point('KR 83 B 3 #45-53')]));assert.equal(matches.length,1);assert.equal(matches[0].properties.nearbyFor,undefined);assert.match(matches[0].properties.fullAddress,/53/);
  for(const query of ['Negocio','Cra 83B3 #45-53, Bogotá'])assert.deepEqual(await findNearbyCaliCandidates(query,{fetchFn(){throw Error('Unexpected request');}}),[]);
 });
+
+
+test('preserves B 1, B 2, B 3 and BIS as distinct official street identifiers',async()=>{
+ const {caliAddressQuery,findCaliCandidates}=await mod;
+ const cases=[
+  ['KR83B1#45-53','KR 83 B 1 # 45 - 53','Cra 83b 1 # 45-53, Cali'],
+  ['KR83B2#45-53','KR 83 B 2 # 45 - 53','Cra 83b 2 # 45-53, Cali'],
+  ['KR83B3#45-53','KR 83 B 3 # 45 - 53','Cra 83b 3 # 45-53, Cali'],
+  ['KR83BIS#45-53','KR 83 BIS # 45 - 53','Cra 83 bis # 45-53, Cali'],
+  ['KR83BBIS#45-53','KR 83 B BIS # 45 - 53','Cra 83b bis # 45-53, Cali'],
+ ];
+ const features=cases.map(([,source],i)=>point(source,[-76.53+i*.001,3.44]));
+ for(const [key,,query] of cases){
+  assert.equal(caliAddressQuery(query,null)?.key,key);
+  const matches=await findCaliCandidates(query,options(features));
+  assert.equal(matches.length,1,query);
+  assert.equal(caliAddressQuery(matches[0].properties.fullAddress,center)?.key,key);
+ }
+});
+test('never substitutes BIS, B1 or B2 for the requested B3 address',async()=>{
+ const {findCaliCandidates,findNearbyCaliCandidates}=await mod;
+ const wrong=['KR 83 B 1 # 45 - 53','KR 83 B 2 # 45 - 53','KR 83 BIS # 45 - 53','KR 83 B BIS # 45 - 53','KR 83 B # 45 - 53'];
+ assert.deepEqual(await findCaliCandidates('Cra 83b 3 # 45-53, Cali',options(wrong.map(x=>point(x)))),[]);
+ assert.deepEqual(await findNearbyCaliCandidates('Cra 83b 3 # 45-53, Cali',options(wrong.map(x=>point(x)))),[]);
+});
