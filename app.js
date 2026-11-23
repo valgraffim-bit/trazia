@@ -2699,8 +2699,9 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     schoolAlerted.clear();
   }
   function updateSchoolWarning(user) {
-    // Warnings are transient navigation UI, never persistent map overlays.
-    if (!state.isNavigating || !state.route || !user || !schoolZones.length) {
+    // Safety warnings work with GPS even when turn-by-turn navigation is inactive.
+    // The banner is transient and disappears after passing the school zone.
+    if (!user || !schoolZones.length) {
       hideSchoolWarning();
       return;
     }
