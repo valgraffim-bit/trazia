@@ -91,3 +91,25 @@ test('never substitutes BIS, B1 or B2 for the requested B3 address',async()=>{
  assert.deepEqual(await findCaliCandidates('Cra 83b 3 # 45-53, Cali',options(wrong.map(x=>point(x)))),[]);
  assert.deepEqual(await findNearbyCaliCandidates('Cra 83b 3 # 45-53, Cali',options(wrong.map(x=>point(x)))),[]);
 });
+
+
+test('diagonales y transversales conservan B1 B2 B3 BIS y B BIS sin confundirse',async()=>{
+ const {caliAddressQuery,findCaliCandidates,findNearbyCaliCandidates}=await mod;
+ for(const [road,aliases] of [['DG',['Diagonal','Diag','DG']],['TV',['Transversal','Trans','TV']]]){
+  const variants=[['B 1','B1'],['B 2','B2'],['B 3','B3'],['BIS','BIS'],['B BIS','BBIS']];
+  const features=variants.map(([suffix],i)=>point(`${road} 83 ${suffix} # 45 - 53`,[-76.53+i*.001,3.44]));
+  for(const [suffix,compact] of variants){
+   const expected=`${road}83${compact}#45-53`;
+   for(const alias of aliases){
+    const query=`${alias} 83 ${suffix} # 45-53, Cali`;
+    assert.equal(caliAddressQuery(query,null)?.key,expected,query);
+    const matches=await findCaliCandidates(query,options(features));
+    assert.equal(matches.length,1,query);
+    assert.equal(caliAddressQuery(matches[0].properties.fullAddress,center)?.key,expected);
+   }
+  }
+  const wrong=features.filter(f=>!f.properties.nddirecc.includes('B 3'));
+  assert.deepEqual(await findCaliCandidates(`${road} 83 B 3 # 45-53, Cali`,options(wrong)),[]);
+  assert.deepEqual(await findNearbyCaliCandidates(`${road} 83 B 3 # 45-53, Cali`,options(wrong)),[]);
+ }
+});
