@@ -2672,6 +2672,8 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   let schoolZoneTimer = null;
   let schoolZones = [];
   let schoolAlerted = new Set();
+  const schoolClosestApproach = new Map();
+  const schoolPassed = new Set();
   let schoolRequest = 0;
   function schoolBanner() {
     let banner = document.getElementById('trazia-school-warning');
@@ -2686,14 +2688,41 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
     }
     return banner;
   }
+  function hideSchoolWarning() {
+    const banner = document.getElementById('trazia-school-warning');
+    if (banner) banner.hidden = true;
+  }
+  function resetSchoolWarning() {
+    hideSchoolWarning();
+    schoolClosestApproach.clear();
+    schoolPassed.clear();
+    schoolAlerted.clear();
+  }
   function updateSchoolWarning(user) {
+    // Warnings are transient navigation UI, never persistent map overlays.
+    if (!state.isNavigating || !state.route || !user || !schoolZones.length) {
+      hideSchoolWarning();
+      return;
+    }
+    const nearby = schoolZones.map(zone => ({ zone, meters: distanceMeters(user, zone.position) }));
+    for (const { zone, meters } of nearby) {
+      if (meters > 550) {
+        schoolClosestApproach.delete(zone.id);
+        schoolPassed.delete(zone.id);
+        schoolAlerted.delete(zone.id);
+        continue;
+      }
+      const minimum = Math.min(meters, schoolClosestApproach.get(zone.id) ?? Infinity);
+      schoolClosestApproach.set(zone.id, minimum);
+      // A sustained departure after approaching the zone hides the notice.
+      // The 35 m hysteresis avoids GPS jitter triggering a false pass.
+      if (minimum <= 80 && meters >= minimum + 35 && meters > 90) schoolPassed.add(zone.id);
+    }
+    const closest = nearby.filter(({zone,meters}) => meters <= 500 && !schoolPassed.has(zone.id))
+      .sort((a,b) => a.meters - b.meters)[0];
+    if (!closest) { hideSchoolWarning(); return; }
+    const {zone,meters} = closest;
     const banner = schoolBanner();
-    if (!user || !schoolZones.length) { banner.hidden = true; return; }
-    const closest = schoolZones.map((zone) => ({ zone, meters: distanceMeters(user, zone.position) }))
-      .filter((item) => item.meters <= 500)
-      .sort((a, b) => a.meters - b.meters)[0];
-    if (!closest) { banner.hidden = true; return; }
-    const { zone, meters } = closest;
     banner.textContent = '🚸 ZONA ESCOLAR · ' + Math.max(0, Math.ceil(meters / 50) * 50) + ' m · Reduzca la velocidad';
     banner.hidden = false;
     if (!schoolAlerted.has(zone.id)) {
@@ -3549,6 +3578,7 @@ import { mapLayerPalette, roadColors } from './map-palette.mjs?v=33';
   }
 
   function stopNavigation(showMessage = true) {
+    resetSchoolWarning();
     state.isNavigating = false;
     setNavigationView(false);
     state.isRerouting = false;
